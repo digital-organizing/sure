@@ -100,12 +100,18 @@ jobs:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
 
+
       - name: Tailscale
         uses: tailscale/github-action@v3
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ahs
+
+      - name: Test connectivity to remote server
+        run: |
+          ping -c 3 100.72.0.35 || echo "Ping failed"
+          nc -zv 100.72.0.35 22 || echo "SSH port not reachable"
 
       - name: Add remote server to known hosts
         run: |

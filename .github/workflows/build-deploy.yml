@@ -109,12 +109,12 @@ jobs:
 
       - name: Add remote server to known hosts
         run: |
-          ssh-keyscan appserver-sure >> ~/.ssh/known_hosts
+          ssh-keyscan 100.72.0.35 >> ~/.ssh/known_hosts
 
       - name: Pull Docker Images and Update Application
         if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
         run: |
-          ssh debian@appserver-sure << 'EOF'
+          ssh debian@100.72.0.35 << 'EOF'
             cd /home/debian/sure/staging
             docker compose pull
             docker compose up -d
@@ -124,7 +124,7 @@ jobs:
       - name: Pull Docker Images and Update Application
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          ssh debian@appserver-sure << 'EOF'
+          ssh debian@100.72.0.35 << 'EOF'
             cd /home/debian/sure/prod
             docker compose pull
             docker compose up -d

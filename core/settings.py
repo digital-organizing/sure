@@ -180,10 +180,3 @@ CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-DJANGO_VITE = {
-    "default": {
-        "dev_mode": env.bool("DEV_MODE", default=True),
-        "manifest_path": "frontend/dist/manifest.json",
-    }
-}

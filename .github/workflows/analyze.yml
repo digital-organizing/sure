@@ -2,13 +2,7 @@ name: Analyze Code Base
 on: [ push, pull_request ]
 
 jobs:
-  ruff:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v3
-
-  ty:
+  python-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,9 +14,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip uv
           uv sync
+
+      - name: Run format check
+        run: uv run ruff check
+
       - name: Run type checks
-        run: |
-          ty check
+        run: uv run ty check
+
+      - name: Run bandit security checker
+        run: uv run bandit -r . -x migrations,tests,./.venv/
 
   npm-check:
     runs-on: ubuntu-latest

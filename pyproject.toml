@@ -34,6 +34,7 @@ dev = [
   "joblib-stubs>=1.5.2.0.20250831",
   "mypy>=1.18.1",
   "pyre-check>=0.9.21",
+  "ruff>=0.13.1",
   "ty>=0.0.1a21",
 ]
 
@@ -42,3 +43,7 @@ plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
 django_settings_module = "core.settings"
+
+
+[tool.bandit]
+exclude = ["migrations", "tests", "./.venv/"]

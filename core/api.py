@@ -20,7 +20,9 @@ def get_csrf_token(request) -> CsrfTokenResponse:
 
 @api.post("/login", auth=None)
 def login_view(request, username: Form[str], password: Form[str]):
-    if (user := authenticate(request, username=username, password=password)) is not None:
+    if (
+        user := authenticate(request, username=username, password=password)
+    ) is not None:
         login(request, user)
         return {"success": True}
     return {"success": False}

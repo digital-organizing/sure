@@ -27,11 +27,14 @@ USER app
 
 COPY pyproject.toml uv.lock ./
 
+RUN uv sync --frozen --no-dev
+ENV PATH="/home/app/web/.venv/bin:$PATH"
+
 # copy project
 COPY --chown=app:app . $APP_HOME
 
-RUN uv run manage.py collectstatic
+RUN python manage.py collectstatic
 
 ENTRYPOINT ["/home/app/web/docker/entrypoint.sh"]
 
-CMD ["uv", "run", "gunicorn", "-w", "2", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "-w", "2", "core.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -12,8 +12,8 @@ class CsrfTokenResponse(Schema):
     csrfToken: str
 
 
-@api.post("/csrf", auth=None, response=CsrfTokenResponse)
 @ensure_csrf_cookie
+@api.post("/csrf", auth=None, response=CsrfTokenResponse)
 def get_csrf_token(request) -> CsrfTokenResponse:
     return CsrfTokenResponse(csrfToken=get_token(request))
 

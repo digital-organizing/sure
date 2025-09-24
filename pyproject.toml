@@ -33,6 +33,8 @@ dev = [
   "isort>=6.0.1",
   "joblib-stubs>=1.5.2.0.20250831",
   "mypy>=1.18.1",
+  "pyre-check>=0.9.21",
+  "ty>=0.0.1a21",
 ]
 
 [tool.mypy]

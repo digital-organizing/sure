@@ -1,5 +1,10 @@
-name: Analyze Code Base
-on: [ push, pull_request ]
+name: Code Analysis
+
+on: [push, pull_request]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   python-check:

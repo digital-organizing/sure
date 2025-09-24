@@ -20,12 +20,10 @@ def get_csrf_token(request) -> CsrfTokenResponse:
 
 @api.post("/login", auth=None)
 def login_view(request, username: Form[str], password: Form[str]):
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
+    if (user := authenticate(request, username=username, password=password)) is not None:
         login(request, user)
         return {"success": True}
-    else:
-        return {"success": False}
+    return {"success": False}
 
 
 @api.post("/logout")
@@ -38,5 +36,4 @@ def logout_view(request):
 def account(request):
     if request.user.is_authenticated:
         return {"username": request.user.username}
-    else:
-        return {"username": None}
+    return {"username": None}

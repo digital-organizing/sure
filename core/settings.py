@@ -148,7 +148,8 @@ STORAGES = {
 }
 
 
-def immutable_file_test(path, url):
+def immutable_file_test(_, url):
+    """Determine if file is immutable and should be cached forever."""
     # Match vite (rollup)-generated hashes, à la, `some_file-CSliV9zW.js`
     return re.match(r"^.+[.-][0-9a-zA-Z_-]{8,12}\..+$", url)
 

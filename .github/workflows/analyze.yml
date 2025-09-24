@@ -20,9 +20,12 @@ jobs:
 
       - name: Run type checks
         run: uv run ty check
+      - name: Run pylint
+        run: uv run pylint . --ignore=migrations,tests,./.venv/ --enable-all-extensions --fail-under=8
 
       - name: Run bandit security checker
         run: uv run bandit -r . -x migrations,tests,./.venv/
+      
 
   npm-check:
     runs-on: ubuntu-latest

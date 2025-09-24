@@ -5,7 +5,11 @@ from ninja import Form, NinjaAPI, Schema
 from ninja.security import django_auth
 
 
+import sure.api
+
 api = NinjaAPI(auth=django_auth)
+
+api.add_router("/sure", sure.api.router)
 
 
 class CsrfTokenResponse(Schema):

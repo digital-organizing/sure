@@ -4,82 +4,102 @@
  * CsrfTokenResponse
  */
 export type CsrfTokenResponse = {
-    /**
-     * Csrftoken
-     */
-    csrfToken: string;
-};
+  /**
+   * Csrftoken
+   */
+  csrfToken: string
+}
 
 export type CoreApiGetCsrfTokenData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/csrf';
-};
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/csrf'
+}
 
 export type CoreApiGetCsrfTokenResponses = {
-    /**
-     * OK
-     */
-    200: CsrfTokenResponse;
-};
+  /**
+   * OK
+   */
+  200: CsrfTokenResponse
+}
 
-export type CoreApiGetCsrfTokenResponse = CoreApiGetCsrfTokenResponses[keyof CoreApiGetCsrfTokenResponses];
+export type CoreApiGetCsrfTokenResponse =
+  CoreApiGetCsrfTokenResponses[keyof CoreApiGetCsrfTokenResponses]
 
 export type CoreApiLoginViewData = {
+  /**
+   * FormParams
+   */
+  body: {
     /**
-     * FormParams
+     * Username
      */
-    body: {
-        /**
-         * Username
-         */
-        username: string;
-        /**
-         * Password
-         */
-        password: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/login';
-};
+    username: string
+    /**
+     * Password
+     */
+    password: string
+  }
+  path?: never
+  query?: never
+  url: '/api/login'
+}
 
 export type CoreApiLoginViewResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
+  /**
+   * OK
+   */
+  200: unknown
+}
 
 export type CoreApiLogoutViewData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/logout';
-};
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/logout'
+}
 
 export type CoreApiLogoutViewResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
+  /**
+   * OK
+   */
+  200: unknown
+}
 
 export type CoreApiAccountData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/account';
-};
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/account'
+}
 
 export type CoreApiAccountResponses = {
+  /**
+   * OK
+   */
+  200: unknown
+}
+
+export type SureApiGetQuestionnaireData = {
+  body?: never
+  path: {
     /**
-     * OK
+     * Slug
      */
-    200: unknown;
-};
+    slug: string
+  }
+  query?: never
+  url: '/api/sure/questionnaire/{slug}/'
+}
+
+export type SureApiGetQuestionnaireResponses = {
+  /**
+   * OK
+   */
+  200: unknown
+}
 
 export type ClientOptions = {
-    baseUrl: string;
-};
+  baseUrl: string
+}

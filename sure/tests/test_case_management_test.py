@@ -53,7 +53,7 @@ class CaseManagementTest(TestCase):
         phone_number = "+41797360516"
         _, token = generate_token(phone_number)
 
-        contact = verify_token(token, phone_number)
+        contact = verify_token(token, phone_number, use=False)
 
         self.assertIsNotNone(contact)
         assert contact is not None
@@ -66,10 +66,10 @@ class CaseManagementTest(TestCase):
         case = create_case(self.location)
         _, token = generate_token(phone_number)
 
-        conection = connect_case(
+        connection = connect_case(
             case, phone_number, token, consent=ConsentChoice.ALLOWED
         )
-        client = conection.client
+        client = connection.client
 
         self.assertIsNotNone(client)
         self.assertIsNotNone(client.contact)
@@ -77,8 +77,8 @@ class CaseManagementTest(TestCase):
             client.contact.phone_number, canonicalize_phone_number(phone_number)
         )
 
-        self.assertIsNotNone(conection)
-        self.assertEqual(conection.case, case)
+        self.assertIsNotNone(connection)
+        self.assertEqual(connection.case, case)
 
         client2 = get_client_by_id(client.id, case.id)
 

@@ -1,4 +1,4 @@
-""" "Configuration for the tenants app."""
+"""Configuration for the tenants app."""
 
 from django.apps import AppConfig
 

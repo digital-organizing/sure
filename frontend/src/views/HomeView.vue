@@ -3,5 +3,5 @@
 <template>
   <h1>You did it!</h1>
   <p>Hello World!</p>
-  <Button label="Click" />
+  <PrimeButton label="Click" />
 </template>

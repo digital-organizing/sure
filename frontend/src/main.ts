@@ -58,7 +58,7 @@ app.use(PrimeVue, {
   },
 })
 
-app.component('Button', Button)
+app.component('PrimeButton', Button)
 
 // Initialize stores after Pinia is set up
 const initializeStores = () => {

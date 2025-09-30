@@ -9,8 +9,9 @@ import router from './router'
 import { client } from './client/client.gen.ts'
 import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
 
-import PrimeVue from 'primevue/config';
-import Aura from '@primeuix/themes/aura';
+import PrimeVue from 'primevue/config'
+import Aura from '@primeuix/themes/aura'
+import Button from 'primevue/button'
 
 // Import stores for initialization
 
@@ -52,10 +53,12 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(PrimeVue, {
-    theme: {
-        preset: Aura
-    }
-});
+  theme: {
+    preset: Aura,
+  },
+})
+
+app.component('Button', Button)
 
 // Initialize stores after Pinia is set up
 const initializeStores = () => {

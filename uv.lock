@@ -498,18 +498,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-nested-admin"
-version = "4.1.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "python-monkey-business" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f2/a2/b608b29ebf329fccb045da31875c9988bd66dc1a890e009d2abd8be21a25/django_nested_admin-4.1.4.tar.gz", hash = "sha256:a47dc97652d694be3a9c8cd698f85a5d5192fdad383e6efca5fb5eff87cd53e1", size = 425567, upload-time = "2025-08-25T15:06:01.399Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/a9/584eab484aa5bd953e11e2ee961c9b2a1f5d3ee130f4244c3ce5a88d50e6/django_nested_admin-4.1.4-py3-none-any.whl", hash = "sha256:5c6ba4b85ba93d838bd42d55aed998923909e864fb18c7a3d4e2c5289771037f", size = 473774, upload-time = "2025-08-25T15:05:59.739Z" },
-]
-
-[[package]]
 name = "django-ninja"
 version = "1.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1342,15 +1330,6 @@ wheels = [
 ]
 
 [[package]]
-name = "python-monkey-business"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/bc/a6182bb30701d0df25ad336f2dd74343447032e0995025ba82079a94f745/python-monkey-business-1.1.0.tar.gz", hash = "sha256:8393839cc741415ed5ddc2bd58e2d4ce07f966a7d26b7aebff19dcec64818edc", size = 4270, upload-time = "2024-07-11T16:35:00.117Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/a2/b6a5cbd5822b4d049adfedf496ce0908480e5a41722fda7b7ffaacb086d6/python_monkey_business-1.1.0-py2.py3-none-any.whl", hash = "sha256:15b4f603c749ba9a7b4f1acd36af023a6c5ba0f7e591c945f8253f0ef44bf389", size = 4670, upload-time = "2024-07-11T16:34:58.565Z" },
-]
-
-[[package]]
 name = "pyyaml"
 version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1610,7 +1589,6 @@ dependencies = [
     { name = "django-environ" },
     { name = "django-model-utils" },
     { name = "django-modeltranslation" },
-    { name = "django-nested-admin" },
     { name = "django-ninja" },
     { name = "django-unfold" },
     { name = "django-vite" },
@@ -1651,7 +1629,6 @@ requires-dist = [
     { name = "django-environ", specifier = ">=0.12.0" },
     { name = "django-model-utils", specifier = ">=5.0.0" },
     { name = "django-modeltranslation", specifier = ">=0.19.17" },
-    { name = "django-nested-admin", specifier = ">=4.1.4" },
     { name = "django-ninja", specifier = ">=1.4.3" },
     { name = "django-unfold", specifier = ">=0.67.0" },
     { name = "django-vite", specifier = ">=3.1.0" },

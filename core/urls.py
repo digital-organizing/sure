@@ -21,8 +21,6 @@ from django.views.generic.base import TemplateView
 from .api import api
 
 urlpatterns = [
-    path("grappelli/", include("grappelli.urls")),  # grappelli URLS
-    path("_nested_admin/", include("nested_admin.urls")),
     path("admin/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/", api.urls),

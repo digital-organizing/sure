@@ -4,45 +4,51 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group, User
 from django.db import models
-from modeltranslation.admin import (TabbedTranslationAdmin,
-                                    TranslationStackedInline,
-                                    TranslationTabularInline)
+from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
+from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
+from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
+from django_celery_beat.admin import PeriodicTaskForm, TaskSelectWidget
+from django_celery_beat.models import (
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule,
+)
+from modeltranslation.admin import (
+    TabbedTranslationAdmin,
+    TranslationStackedInline,
+    TranslationTabularInline,
+)
 from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
-from unfold.forms import (AdminPasswordChangeForm, UserChangeForm,
-                          UserCreationForm)
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
-from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
-                         ConsultantQuestion, Questionnaire, Section,
-                         TestBundle, TestCategory, TestKind, TestResultOption)
-
-admin.site.unregister(Group)
-admin.site.unregister(User)
-
-
-@admin.register(User)
-class UserAdmin(BaseUserAdmin, ModelAdmin):
-    # Forms loaded from `unfold.forms`
-    form = UserChangeForm
-    add_form = UserCreationForm
-    change_password_form = AdminPasswordChangeForm
-
-
-@admin.register(Group)
-class GroupAdmin(BaseGroupAdmin, ModelAdmin):
-    pass
+from sure.models import (
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    TestBundle,
+    TestCategory,
+    TestKind,
+    TestResultOption,
+)
 
 
 class ClientOptionInline(TabularInline, TranslationTabularInline):
     model = ClientOption
-    extra = 0
+    extra = 1
     ordering_field = "order"
     hide_ordering_field = True
 
 
 class ClientQuestionInline(TabularInline, TranslationTabularInline):
     model = ClientQuestion
-    extra = 0
+    extra = 1
 
     ordering_field = "order"
     hide_ordering_field = True
@@ -58,7 +64,7 @@ class ClientQuestionInline(TabularInline, TranslationTabularInline):
 
 class SectionInline(StackedInline, TranslationStackedInline):
     model = Section
-    extra = 0
+    extra = 1
 
     ordering_field = "order"
     hide_ordering_field = True
@@ -68,7 +74,7 @@ class SectionInline(StackedInline, TranslationStackedInline):
 
 class ConsultantOptionInline(TabularInline, TranslationTabularInline):
     model = ConsultantOption
-    extra = 0
+    extra = 1
 
     ordering_field = "order"
     hide_ordering_field = True
@@ -76,7 +82,7 @@ class ConsultantOptionInline(TabularInline, TranslationTabularInline):
 
 class ConsultantQuestionInline(TabularInline, TranslationTabularInline):
     model = ConsultantQuestion
-    extra = 0
+    extra = 1
     ordering_field = "order"
     hide_ordering_field = True
 
@@ -126,7 +132,7 @@ class ConsultantQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 class TestOptionInline(TabularInline, TranslationTabularInline):
     model = TestResultOption
-    extra = 0
+    extra = 1
 
 
 @admin.register(TestKind)
@@ -144,7 +150,7 @@ class TestKindAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 class TestKindInline(TabularInline, TranslationTabularInline):
     model = TestKind
-    extra = 0
+    extra = 1
     inlines = [TestOptionInline]
 
     show_change_link = True
@@ -164,3 +170,63 @@ class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name",)
     ordering = ("name",)
     filter_horizontal = ("test_kinds",)
+
+
+admin.site.unregister(PeriodicTask)
+admin.site.unregister(IntervalSchedule)
+admin.site.unregister(CrontabSchedule)
+admin.site.unregister(SolarSchedule)
+admin.site.unregister(ClockedSchedule)
+
+
+class UnfoldTaskSelectWidget(UnfoldAdminSelectWidget, TaskSelectWidget):
+    pass
+
+
+class UnfoldPeriodicTaskForm(PeriodicTaskForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["task"].widget = UnfoldAdminTextInputWidget()
+        self.fields["regtask"].widget = UnfoldTaskSelectWidget()
+
+
+@admin.register(PeriodicTask)
+class PeriodicTaskAdmin(BasePeriodicTaskAdmin, ModelAdmin):
+    form = UnfoldPeriodicTaskForm
+
+
+@admin.register(IntervalSchedule)
+class IntervalScheduleAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(CrontabSchedule)
+class CrontabScheduleAdmin(BaseCrontabScheduleAdmin, ModelAdmin):
+    pass
+
+
+@admin.register(SolarSchedule)
+class SolarScheduleAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(ClockedSchedule)
+class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
+    pass
+
+
+admin.site.unregister(Group)
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin, ModelAdmin):
+    # Forms loaded from `unfold.forms`
+    form = UserChangeForm
+    add_form = UserCreationForm
+    change_password_form = AdminPasswordChangeForm
+
+
+@admin.register(Group)
+class GroupAdmin(BaseGroupAdmin, ModelAdmin):
+    pass

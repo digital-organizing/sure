@@ -176,10 +176,10 @@ WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-REDIS_USER = env.str("REDIS_USER", default="user")
+REDIS_USER = env.str("REDIS_USER", default="default")
 REDIS_PASSWORD = env.str("REDIS_PASSWORD", default="password")
 
-REDIS_HOST = env.str("REDIS_HOST", default="localhost")
+REDIS_HOST = env.str("REDIS_HOST", default="redis")
 REDIS_PORT = env.int("REDIS_PORT", default=6379)
 
 REDIS_URL = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
@@ -205,6 +205,10 @@ DEFAULT_REGION = env.str("DEFAULT_REGION", default="CH")
 SITE_URL = env.str("SITE_URL", default="http://localhost:8000")
 
 UNFOLD = {
+    "SITE_TITLE": "Administration",
+    "SITE_HEADER": "SURE",
+    "SITE_SUBHEADER": "SURE Administration",
+    "SITE_SYMBOL": "health_metrics",
     "SHOW_LANGUAGES": True,
     "EXTENSIONS": {
         "modeltranslation": {
@@ -217,5 +221,12 @@ UNFOLD = {
                 "pt": "🇵🇹",
             },
         },
+    },
+    "SIDEBAR": {
+        "show_search": True,  # Search in applications and models names
+        "command_search": True,
+    },
+    "COMMAND": {
+        "search_models": True,  # Search models in command search
     },
 }

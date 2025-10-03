@@ -19,6 +19,9 @@ class Tenant(models.Model):
 
     locations: QuerySet["Location"]
 
+    def __str__(self) -> str:
+        return f"{self.name}"
+
 
 class Location(models.Model):
     """A location belonging to a tenant."""
@@ -28,6 +31,9 @@ class Location(models.Model):
     )
     name = models.CharField(max_length=255)
 
+    def __str__(self) -> str:
+        return f"{self.name} ({self.tenant.name})"
+
 
 class Consultant(models.Model):
     """A consultant belonging to a tenant."""
@@ -36,3 +42,6 @@ class Consultant(models.Model):
         Tenant, on_delete=models.CASCADE, related_name="consultants"
     )
     user = models.OneToOneField("auth.User", on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.user.get_full_name()} ({self.tenant.name})"

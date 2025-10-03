@@ -1,9 +1,16 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from sure.client_service import (canonicalize_phone_number, connect_case,
-                                 create_case, generate_token, get_case_link,
-                                 get_cases, get_client_by_id, verify_token)
+from sure.client_service import (
+    canonicalize_phone_number,
+    connect_case,
+    create_case,
+    generate_token,
+    get_case_link,
+    get_cases,
+    get_client_by_id,
+    verify_token,
+)
 from sure.models import Client, ConsentChoice, Contact, Token
 from tenants.models import Tenant
 

@@ -486,6 +486,30 @@ wheels = [
 ]
 
 [[package]]
+name = "django-modeltranslation"
+version = "0.19.17"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a7/32/34f33d0a375087197e1e7b6e27a87332c3dfaa970cb38ec353b6198b855b/django_modeltranslation-0.19.17.tar.gz", hash = "sha256:13bd9cab4e4aed0bef5624c17a7da2ac8c5538f0650adbd89ce8c878cbef02fd", size = 77741, upload-time = "2025-09-14T10:14:36.05Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/87/f8cf0626e502fd6fd996b8dc590985ed5002b63dfb4442f954670bd101b7/django_modeltranslation-0.19.17-py3-none-any.whl", hash = "sha256:fda198c08b4ede0c2fd09b795ab420a04c7b5a868315fdf4aade0d0a526c269f", size = 93423, upload-time = "2025-09-14T10:14:34.536Z" },
+]
+
+[[package]]
+name = "django-nested-admin"
+version = "4.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-monkey-business" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f2/a2/b608b29ebf329fccb045da31875c9988bd66dc1a890e009d2abd8be21a25/django_nested_admin-4.1.4.tar.gz", hash = "sha256:a47dc97652d694be3a9c8cd698f85a5d5192fdad383e6efca5fb5eff87cd53e1", size = 425567, upload-time = "2025-08-25T15:06:01.399Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/a9/584eab484aa5bd953e11e2ee961c9b2a1f5d3ee130f4244c3ce5a88d50e6/django_nested_admin-4.1.4-py3-none-any.whl", hash = "sha256:5c6ba4b85ba93d838bd42d55aed998923909e864fb18c7a3d4e2c5289771037f", size = 473774, upload-time = "2025-08-25T15:05:59.739Z" },
+]
+
+[[package]]
 name = "django-ninja"
 version = "1.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -536,6 +560,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ba/5b/0dbe271fef3c2274b83dbcb1b19fa3dacf1f7e542382819294644e78ea8b/django_timezone_field-7.1.tar.gz", hash = "sha256:b3ef409d88a2718b566fabe10ea996f2838bc72b22d3a2900c0aa905c761380c", size = 13727, upload-time = "2025-01-11T17:49:54.486Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/09/7a808392a751a24ffa62bec00e3085a9c1a151d728c323a5bab229ea0e58/django_timezone_field-7.1-py3-none-any.whl", hash = "sha256:93914713ed882f5bccda080eda388f7006349f25930b6122e9b07bf8db49c4b4", size = 13177, upload-time = "2025-01-11T17:49:52.142Z" },
+]
+
+[[package]]
+name = "django-unfold"
+version = "0.67.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/22/92/a83a74f4a810a3b592892b55b0babe1a96a7aef83bf72dbaac51cd8697d2/django_unfold-0.67.0.tar.gz", hash = "sha256:94a918a2108b62419f6b8dcaef8351af13e75111b7139125f36985fabe68547a", size = 1078405, upload-time = "2025-09-30T08:31:55.105Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/99/fdf2ddba83c090fb5840be6178d656efc8a03a52efaf5f04c82804fcea71/django_unfold-0.67.0-py3-none-any.whl", hash = "sha256:87939d7c2fbc8a39880d0af28c32f919515819e54bfbc3d845bb495852bf8da7", size = 1187388, upload-time = "2025-09-30T08:31:53.49Z" },
 ]
 
 [[package]]
@@ -1306,6 +1342,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-monkey-business"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/bc/a6182bb30701d0df25ad336f2dd74343447032e0995025ba82079a94f745/python-monkey-business-1.1.0.tar.gz", hash = "sha256:8393839cc741415ed5ddc2bd58e2d4ce07f966a7d26b7aebff19dcec64818edc", size = 4270, upload-time = "2024-07-11T16:35:00.117Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/a2/b6a5cbd5822b4d049adfedf496ce0908480e5a41722fda7b7ffaacb086d6/python_monkey_business-1.1.0-py2.py3-none-any.whl", hash = "sha256:15b4f603c749ba9a7b4f1acd36af023a6c5ba0f7e591c945f8253f0ef44bf389", size = 4670, upload-time = "2024-07-11T16:34:58.565Z" },
+]
+
+[[package]]
 name = "pyyaml"
 version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1564,7 +1609,10 @@ dependencies = [
     { name = "django-debug-toolbar" },
     { name = "django-environ" },
     { name = "django-model-utils" },
+    { name = "django-modeltranslation" },
+    { name = "django-nested-admin" },
     { name = "django-ninja" },
+    { name = "django-unfold" },
     { name = "django-vite" },
     { name = "gunicorn" },
     { name = "phonenumbers" },
@@ -1602,7 +1650,10 @@ requires-dist = [
     { name = "django-debug-toolbar", specifier = ">=6.0.0" },
     { name = "django-environ", specifier = ">=0.12.0" },
     { name = "django-model-utils", specifier = ">=5.0.0" },
+    { name = "django-modeltranslation", specifier = ">=0.19.17" },
+    { name = "django-nested-admin", specifier = ">=4.1.4" },
     { name = "django-ninja", specifier = ">=1.4.3" },
+    { name = "django-unfold", specifier = ">=0.67.0" },
     { name = "django-vite", specifier = ">=3.1.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "phonenumbers", specifier = ">=9.0.15" },

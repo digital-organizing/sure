@@ -1,26 +1,27 @@
 """Admin configuration for the tenants app."""
 
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 
-from tenants.models import Counselor, Location, Tenant
+from tenants.models import Consultant, Location, Tenant
 
 
-class LocationInline(admin.TabularInline):
+class LocationInline(TabularInline):
     """Inline admin for locations."""
 
     model = Location
     extra = 0
 
 
-class CounselorInline(admin.TabularInline):
-    """Inline admin for counselors."""
+class ConsultantInline(TabularInline):
+    """Inline admin for consultants."""
 
-    model = Counselor
+    model = Consultant
     extra = 0
 
 
 @admin.register(Tenant)
-class TenantAdmin(admin.ModelAdmin):
+class TenantAdmin(ModelAdmin):
     """Admin for tenants.
 
     Only superusers can see all tenants.
@@ -28,7 +29,7 @@ class TenantAdmin(admin.ModelAdmin):
 
     list_display = ("name", "owner")
     search_fields = ("name", "owner__username", "owner__email")
-    inlines = [LocationInline, CounselorInline]
+    inlines = [LocationInline, ConsultantInline]
     filter_horizontal = ("admins",)
 
     def get_queryset(self, request):

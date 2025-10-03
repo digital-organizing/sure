@@ -29,10 +29,10 @@ class Location(models.Model):
     name = models.CharField(max_length=255)
 
 
-class Counselor(models.Model):
-    """A counselor belonging to a tenant."""
+class Consultant(models.Model):
+    """A consultant belonging to a tenant."""
 
     tenant = models.ForeignKey(
-        Tenant, on_delete=models.CASCADE, related_name="counselors"
+        Tenant, on_delete=models.CASCADE, related_name="consultants"
     )
     user = models.OneToOneField("auth.User", on_delete=models.CASCADE)

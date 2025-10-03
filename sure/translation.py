@@ -1,24 +1,15 @@
 from modeltranslation.translator import TranslationOptions, translator
 
-from sure.models import (
-    ClientOption,
-    ClientQuestion,
-    ConsultantOption,
-    ConsultantQuestion,
-    Questionaire,
-    Section,
-    TestBundle,
-    TestCategory,
-    TestKind,
-    TestResultOption,
-)
+from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
+                         ConsultantQuestion, Questionnaire, Section,
+                         TestBundle, TestCategory, TestKind, TestResultOption)
 
 
 class QuestionaireTranslationOptions(TranslationOptions):
     fields = ("name",)
 
 
-translator.register(Questionaire, QuestionaireTranslationOptions)
+translator.register(Questionnaire, QuestionaireTranslationOptions)
 
 
 class SectionTranslationOptions(TranslationOptions):

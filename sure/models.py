@@ -148,7 +148,7 @@ class Token(models.Model):
     used_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Used At"))
 
 
-class Questionaire(models.Model):
+class Questionnaire(models.Model):
     """A questionnaire is a set of questions to be answered by the client and consultant."""
 
     name = models.CharField(
@@ -167,8 +167,8 @@ class Questionaire(models.Model):
 class Section(models.Model):
     """A section is a group of questions in a questionnaire for the client."""
 
-    questionaire = models.ForeignKey(
-        Questionaire, on_delete=models.CASCADE, related_name="sections"
+    questionnaire = models.ForeignKey(
+        Questionnaire, on_delete=models.CASCADE, related_name="sections"
     )
     order = models.PositiveIntegerField(
         default=0,
@@ -188,7 +188,7 @@ class Section(models.Model):
         ordering = ["order"]
 
     def __str__(self):
-        return f"{self.questionaire.name} - {self.title}"
+        return f"{self.questionnaire.name} - {self.title}"
 
 
 class QuestionFormats(models.TextChoices):
@@ -314,8 +314,8 @@ class ClientOption(BaseOption):
 class ConsultantQuestion(BaseQuestion):
     """A question to be answered by the consultant."""
 
-    questionaire = models.ForeignKey(
-        Questionaire, on_delete=models.CASCADE, related_name="consultant_questions"
+    questionnaire = models.ForeignKey(
+        Questionnaire, on_delete=models.CASCADE, related_name="consultant_questions"
     )
 
 
@@ -455,8 +455,8 @@ class Visit(models.Model):
     """A visit links a case to a questionnaire."""
 
     case = models.OneToOneField(Case, on_delete=models.CASCADE, related_name="visit")
-    questionaire = models.ForeignKey(
-        Questionaire, on_delete=models.CASCADE, related_name="visits"
+    questionnaire = models.ForeignKey(
+        Questionnaire, on_delete=models.CASCADE, related_name="visits"
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     consultant = models.ForeignKey(

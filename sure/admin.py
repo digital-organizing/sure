@@ -4,27 +4,17 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group, User
 from django.db import models
-from modeltranslation.admin import (
-    TabbedTranslationAdmin,
-    TranslationStackedInline,
-    TranslationTabularInline,
-)
+from modeltranslation.admin import (TabbedTranslationAdmin,
+                                    TranslationStackedInline,
+                                    TranslationTabularInline)
 from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
-from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from unfold.forms import (AdminPasswordChangeForm, UserChangeForm,
+                          UserCreationForm)
 
-from sure.models import (
-    ClientOption,
-    ClientQuestion,
-    ConsultantOption,
-    ConsultantQuestion,
-    Questionaire,
-    Section,
-    TestBundle,
-    TestCategory,
-    TestKind,
-    TestResultOption,
-)
+from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
+                         ConsultantQuestion, Questionnaire, Section,
+                         TestBundle, TestCategory, TestKind, TestResultOption)
 
 admin.site.unregister(Group)
 admin.site.unregister(User)
@@ -53,7 +43,6 @@ class ClientOptionInline(TabularInline, TranslationTabularInline):
 class ClientQuestionInline(TabularInline, TranslationTabularInline):
     model = ClientQuestion
     extra = 0
-    inlines = [ClientOptionInline]
 
     ordering_field = "order"
     hide_ordering_field = True
@@ -70,7 +59,6 @@ class ClientQuestionInline(TabularInline, TranslationTabularInline):
 class SectionInline(StackedInline, TranslationStackedInline):
     model = Section
     extra = 0
-    inlines = [ClientQuestionInline]
 
     ordering_field = "order"
     hide_ordering_field = True
@@ -101,7 +89,7 @@ class ConsultantQuestionInline(TabularInline, TranslationTabularInline):
     show_change_link = True
 
 
-@admin.register(Questionaire)
+@admin.register(Questionnaire)
 class QuestionaireAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
     search_fields = ("name",)
@@ -111,10 +99,10 @@ class QuestionaireAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 @admin.register(Section)
 class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
-    list_display = ("title", "questionaire", "order")
-    search_fields = ("title", "questionaire__name")
-    list_filter = ("questionaire",)
-    ordering = ("questionaire__name", "order")
+    list_display = ("title", "questionnaire", "order")
+    search_fields = ("title", "questionnaire__name")
+    list_filter = ("questionnaire",)
+    ordering = ("questionnaire__name", "order")
     inlines = [ClientQuestionInline]
 
 
@@ -122,8 +110,8 @@ class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
 class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "section", "order")
     search_fields = ("question_text", "section__title")
-    list_filter = ("section", "section__questionaire")
-    ordering = ("section__questionaire__name", "section__order", "order")
+    list_filter = ("section", "section__questionnaire")
+    ordering = ("section__questionnaire__name", "section__order", "order")
     inlines = [ClientOptionInline]
 
 
@@ -131,7 +119,7 @@ class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
 class ConsultantQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "order")
     search_fields = ("question_text",)
-    list_filter = ("questionaire",)
+    list_filter = ("questionnaire",)
     ordering = ("order",)
     inlines = [ConsultantOptionInline]
 
@@ -139,9 +127,6 @@ class ConsultantQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
 class TestOptionInline(TabularInline, TranslationTabularInline):
     model = TestResultOption
     extra = 0
-
-    ordering_field = "order"
-    hide_ordering_field = True
 
 
 @admin.register(TestKind)
@@ -161,9 +146,6 @@ class TestKindInline(TabularInline, TranslationTabularInline):
     model = TestKind
     extra = 0
     inlines = [TestOptionInline]
-
-    ordering_field = "order"
-    hide_ordering_field = True
 
     show_change_link = True
 

@@ -39,6 +39,12 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",
+    "modeltranslation",
+    "unfold.contrib.inlines",  # optional, if special inlines are needed
+    "unfold.contrib.location_field",  # optional, if django-location-field package is used
+    "sure.apps.SureConfig",
+    "tenants.apps.TenantsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -50,12 +56,11 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "django.contrib.postgres",
-    "sure.apps.SureConfig",
-    "tenants.apps.TenantsConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -116,7 +121,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
+
+LANGUAGES = [
+    ("en", "English"),
+    ("de", "German"),
+    ("fr", "French"),
+    ("it", "Italian"),
+    ("es", "Spanish"),
+    ("pt", "Portuguese"),
+]
+MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
 
 TIME_ZONE = env.str("TIME_ZONE", default="Europe/Zurich")
 
@@ -161,10 +176,10 @@ WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-REDIS_USER = env.str("REDIS_USER", default="user")
+REDIS_USER = env.str("REDIS_USER", default="default")
 REDIS_PASSWORD = env.str("REDIS_PASSWORD", default="password")
 
-REDIS_HOST = env.str("REDIS_HOST", default="localhost")
+REDIS_HOST = env.str("REDIS_HOST", default="redis")
 REDIS_PORT = env.int("REDIS_PORT", default=6379)
 
 REDIS_URL = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
@@ -188,3 +203,30 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 DEFAULT_REGION = env.str("DEFAULT_REGION", default="CH")
 SITE_URL = env.str("SITE_URL", default="http://localhost:8000")
+
+UNFOLD = {
+    "SITE_TITLE": "Administration",
+    "SITE_HEADER": "SURE",
+    "SITE_SUBHEADER": "SURE Administration",
+    "SITE_SYMBOL": "health_metrics",
+    "SHOW_LANGUAGES": True,
+    "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "en": "🇬🇧",
+                "de": "🇩🇪",
+                "fr": "🇫🇷",
+                "it": "🇮🇹",
+                "es": "🇪🇸",
+                "pt": "🇵🇹",
+            },
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,  # Search in applications and models names
+        "command_search": True,
+    },
+    "COMMAND": {
+        "search_models": True,  # Search models in command search
+    },
+}

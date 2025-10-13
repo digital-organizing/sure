@@ -39,6 +39,13 @@ from sure.models import (
 )
 
 
+@admin.register(ClientOption)
+class ClientOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
+    list_display = ("text", "order")
+    search_fields = ("question__code", "code")
+    ordering = ("order",)
+
+
 class ClientOptionInline(TabularInline, TranslationTabularInline):
     model = ClientOption
     extra = 1
@@ -60,6 +67,8 @@ class ClientQuestionInline(TabularInline, TranslationTabularInline):
     }
 
     show_change_link = True
+
+    autocomplete_fields = ("show_for_options",)
 
 
 class SectionInline(StackedInline, TranslationStackedInline):
@@ -119,6 +128,8 @@ class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_filter = ("section", "section__questionnaire")
     ordering = ("section__questionnaire__name", "section__order", "order")
     inlines = [ClientOptionInline]
+
+    autocomplete_fields = ("show_for_options",)
 
 
 @admin.register(ConsultantQuestion)

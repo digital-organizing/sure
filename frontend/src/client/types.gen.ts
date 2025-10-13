@@ -4,102 +4,261 @@
  * CsrfTokenResponse
  */
 export type CsrfTokenResponse = {
-  /**
-   * Csrftoken
-   */
-  csrfToken: string
-}
+    /**
+     * Csrftoken
+     */
+    csrfToken: string;
+};
+
+/**
+ * ClientOptionSchema
+ */
+export type ClientOptionSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Order
+     * Order of the option in the question
+     */
+    order?: number;
+    /**
+     * Option Text
+     */
+    text?: string | null;
+    /**
+     * Code
+     * Unique code for the option
+     */
+    code: string;
+};
+
+/**
+ * ClientQuestionSchema
+ */
+export type ClientQuestionSchema = {
+    /**
+     * Options
+     */
+    options: Array<ClientOptionSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Order
+     * Order of the question in the questionnaire
+     */
+    order?: number;
+    /**
+     * Code
+     * Unique code for the question
+     */
+    code: string;
+    /**
+     * Question Text
+     */
+    question_text: string;
+    /**
+     * Format
+     */
+    format?: string;
+    /**
+     * Validation
+     * Regex validation for open text questions
+     */
+    validation?: string | null;
+    /**
+     * Show For Options
+     * Show this question only if one of these options is selected
+     */
+    show_for_options: Array<number>;
+};
+
+/**
+ * QuestionnaireSchema
+ */
+export type QuestionnaireSchema = {
+    /**
+     * Sections
+     */
+    sections: Array<SectionSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     * Name of the questionnaire
+     */
+    name: string;
+};
+
+/**
+ * SectionSchema
+ */
+export type SectionSchema = {
+    /**
+     * Client Questions
+     */
+    client_questions: Array<ClientQuestionSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Order
+     * Order of the section in the questionnaire
+     */
+    order?: number;
+    /**
+     * Title
+     * Title of the section
+     */
+    title: string;
+    /**
+     * Description
+     * Description of the section
+     */
+    description?: string | null;
+};
+
+/**
+ * InternalQuestionnaireSchema
+ */
+export type InternalQuestionnaireSchema = {
+    /**
+     * Sections
+     */
+    sections: Array<SectionSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     * Name of the questionnaire
+     */
+    name: string;
+    /**
+     * Consultant Questions
+     */
+    consultant_questions: Array<ClientQuestionSchema>;
+};
 
 export type CoreApiGetCsrfTokenData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/csrf'
-}
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/csrf';
+};
 
 export type CoreApiGetCsrfTokenResponses = {
-  /**
-   * OK
-   */
-  200: CsrfTokenResponse
-}
+    /**
+     * OK
+     */
+    200: CsrfTokenResponse;
+};
 
-export type CoreApiGetCsrfTokenResponse =
-  CoreApiGetCsrfTokenResponses[keyof CoreApiGetCsrfTokenResponses]
+export type CoreApiGetCsrfTokenResponse = CoreApiGetCsrfTokenResponses[keyof CoreApiGetCsrfTokenResponses];
 
 export type CoreApiLoginViewData = {
-  /**
-   * FormParams
-   */
-  body: {
     /**
-     * Username
+     * FormParams
      */
-    username: string
-    /**
-     * Password
-     */
-    password: string
-  }
-  path?: never
-  query?: never
-  url: '/api/login'
-}
+    body: {
+        /**
+         * Username
+         */
+        username: string;
+        /**
+         * Password
+         */
+        password: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/login';
+};
 
 export type CoreApiLoginViewResponses = {
-  /**
-   * OK
-   */
-  200: unknown
-}
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type CoreApiLogoutViewData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/logout'
-}
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/logout';
+};
 
 export type CoreApiLogoutViewResponses = {
-  /**
-   * OK
-   */
-  200: unknown
-}
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type CoreApiAccountData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/account'
-}
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/account';
+};
 
 export type CoreApiAccountResponses = {
-  /**
-   * OK
-   */
-  200: unknown
-}
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type SureApiGetQuestionnaireData = {
-  body?: never
-  path: {
-    /**
-     * Slug
-     */
-    slug: string
-  }
-  query?: never
-  url: '/api/sure/questionnaire/{slug}/'
-}
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: number;
+    };
+    query?: never;
+    url: '/api/sure/questionnaires/{pk}';
+};
 
 export type SureApiGetQuestionnaireResponses = {
-  /**
-   * OK
-   */
-  200: unknown
-}
+    /**
+     * OK
+     */
+    200: QuestionnaireSchema;
+};
+
+export type SureApiGetQuestionnaireResponse = SureApiGetQuestionnaireResponses[keyof SureApiGetQuestionnaireResponses];
+
+export type SureApiGetInternalQuestionnaireData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: number;
+    };
+    query?: never;
+    url: '/api/sure/internal/questionnaires/{pk}';
+};
+
+export type SureApiGetInternalQuestionnaireResponses = {
+    /**
+     * OK
+     */
+    200: InternalQuestionnaireSchema;
+};
+
+export type SureApiGetInternalQuestionnaireResponse = SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses];
 
 export type ClientOptions = {
-  baseUrl: string
-}
+    baseUrl: string;
+};

@@ -155,6 +155,9 @@ class Questionnaire(models.Model):
         max_length=255, verbose_name=_("Name"), help_text=_("Name of the questionnaire")
     )
 
+    sections: models.QuerySet["Section"]
+    consultant_questions: models.QuerySet["ConsultantQuestion"]
+
     class Meta:
         verbose_name = _("Questionnaire")
         verbose_name_plural = _("Questionnaires")
@@ -184,6 +187,8 @@ class Section(models.Model):
         help_text=_("Description of the section"),
     )
 
+    client_questions: models.QuerySet["ClientQuestion"]
+
     class Meta:
         ordering = ["order"]
 
@@ -194,14 +199,21 @@ class Section(models.Model):
 class QuestionFormats(models.TextChoices):
     """Formats for questions."""
 
-    SINGLE_CHOICE = "single_choice", _("Single Choice")
-    MULTIPLE_CHOICE = "multiple_choice", _("Multiple Choice")
+    SINGLE_CHOICE = "single choice", _("Single Choice")
+    MULTIPLE_CHOICE = "multiple choice", _("Multiple Choice")
     MULTIPLE_CHOICE_WITH_TEXT = (
-        "multiple_choice_with_text",
-        _("Multiple Choice with Text"),
+        "multiple choice + open text field",
+        _("Multiple Choice with Open Text Field"),
     )
-    OPEN_TEXT = "open_text", _("Open Text")
-    MULTI_CHOICE_MULTI_TEXT = "multi_choice_multi_text", _("Multi Choice Multi Text")
+    OPEN_TEXT = "open text field", _("Open Text")
+    MULTI_CHOICE_MULTI_TEXT = (
+        "multiple choice + multiple open text field",
+        _("Multi Choice Multi Text"),
+    )
+    SINGLE_CHOICE_WITH_TEXT = (
+        "single choice + open text field",
+        _("Single Choice with Text"),
+    )
 
 
 class BaseQuestion(models.Model):
@@ -214,7 +226,7 @@ class BaseQuestion(models.Model):
         help_text=_("Unique code for the question"),
     )
     format = models.CharField(
-        max_length=30,
+        max_length=80,
         choices=QuestionFormats.choices,
         default=QuestionFormats.SINGLE_CHOICE,
         verbose_name=_("Format"),
@@ -237,6 +249,15 @@ class BaseQuestion(models.Model):
         help_text=_("Order of the question in the questionnaire"),
     )
 
+    choices = ArrayField(models.CharField(max_length=255), blank=True, default=list)
+
+    validation = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Validation"),
+        help_text=_("Regex validation for open text questions"),
+    )
+
     class Meta:
         abstract = True
         ordering = ["order"]
@@ -250,7 +271,7 @@ class BaseOption(models.Model):
 
     Combine a code and a label, and additional fields for ordering and allowing text input."""
 
-    text = models.CharField(max_length=255, verbose_name=_("Option Text"))
+    text = models.CharField(max_length=255, verbose_name=_("Option Text"), blank=True)
     code = models.CharField(
         max_length=100,
         verbose_name=_("Code"),
@@ -294,12 +315,29 @@ class ClientQuestion(BaseQuestion):
         help_text=_("Whether this question is optional for centers"),
     )
 
+    show_for_options = models.ManyToManyField(
+        "ClientOption",
+        blank=True,
+        related_name="conditional_questions",
+        verbose_name=_("Show For Options"),
+        help_text=_("Show this question only if one of these options is selected"),
+    )
+
+    options: models.QuerySet["ClientOption"]
+
 
 class ClientOption(BaseOption):
     """An option for a client question."""
 
     question = models.ForeignKey(
         ClientQuestion, on_delete=models.CASCADE, related_name="options"
+    )
+
+    text_for_consultant = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Text for Consultant"),
+        help_text=_("Text to be shown to the consultant when this option is selected"),
     )
 
     class Meta:
@@ -310,6 +348,9 @@ class ClientOption(BaseOption):
             )
         ]
 
+    def __str__(self):
+        return f"{self.question.code}={self.code}"
+
 
 class ConsultantQuestion(BaseQuestion):
     """A question to be answered by the consultant."""
@@ -317,6 +358,8 @@ class ConsultantQuestion(BaseQuestion):
     questionnaire = models.ForeignKey(
         Questionnaire, on_delete=models.CASCADE, related_name="consultant_questions"
     )
+
+    options: models.QuerySet["ConsultantOption"]
 
 
 class ConsultantOption(BaseOption):

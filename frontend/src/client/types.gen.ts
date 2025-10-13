@@ -4,261 +4,358 @@
  * CsrfTokenResponse
  */
 export type CsrfTokenResponse = {
-    /**
-     * Csrftoken
-     */
-    csrfToken: string;
-};
+  /**
+   * Csrftoken
+   */
+  csrfToken: string
+}
 
 /**
  * ClientOptionSchema
  */
 export type ClientOptionSchema = {
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Order
-     * Order of the option in the question
-     */
-    order?: number;
-    /**
-     * Option Text
-     */
-    text?: string | null;
-    /**
-     * Code
-     * Unique code for the option
-     */
-    code: string;
-};
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the option in the question
+   */
+  order?: number
+  /**
+   * Option Text
+   */
+  text?: string | null
+  /**
+   * Code
+   * Unique code for the option
+   */
+  code: string
+  /**
+   * Choices
+   */
+  choices?: Array<unknown> | null
+  /**
+   * Allow Text
+   * Allow text input for this option
+   */
+  allow_text?: boolean
+}
 
 /**
  * ClientQuestionSchema
  */
 export type ClientQuestionSchema = {
-    /**
-     * Options
-     */
-    options: Array<ClientOptionSchema>;
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Order
-     * Order of the question in the questionnaire
-     */
-    order?: number;
-    /**
-     * Code
-     * Unique code for the question
-     */
-    code: string;
-    /**
-     * Question Text
-     */
-    question_text: string;
-    /**
-     * Format
-     */
-    format?: string;
-    /**
-     * Validation
-     * Regex validation for open text questions
-     */
-    validation?: string | null;
-    /**
-     * Show For Options
-     * Show this question only if one of these options is selected
-     */
-    show_for_options: Array<number>;
-};
+  /**
+   * Options
+   */
+  options: Array<ClientOptionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the question in the questionnaire
+   */
+  order?: number
+  /**
+   * Code
+   * Unique code for the question
+   */
+  code: string
+  /**
+   * Question Text
+   */
+  question_text: string
+  /**
+   * Format
+   */
+  format?: string
+  /**
+   * Validation
+   * Regex validation for open text questions
+   */
+  validation?: string | null
+  /**
+   * Show For Options
+   * Show this question only if one of these options is selected
+   */
+  show_for_options: Array<number>
+  /**
+   * Copy Paste
+   * Allow copy paste for this question
+   */
+  copy_paste?: boolean
+  /**
+   * Do Not Show Directly
+   * Do not show this question directly to the client
+   */
+  do_not_show_directly?: boolean
+}
 
 /**
  * QuestionnaireSchema
  */
 export type QuestionnaireSchema = {
-    /**
-     * Sections
-     */
-    sections: Array<SectionSchema>;
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Name
-     * Name of the questionnaire
-     */
-    name: string;
-};
+  /**
+   * Sections
+   */
+  sections: Array<SectionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Name
+   * Name of the questionnaire
+   */
+  name: string
+}
 
 /**
  * SectionSchema
  */
 export type SectionSchema = {
-    /**
-     * Client Questions
-     */
-    client_questions: Array<ClientQuestionSchema>;
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Order
-     * Order of the section in the questionnaire
-     */
-    order?: number;
-    /**
-     * Title
-     * Title of the section
-     */
-    title: string;
-    /**
-     * Description
-     * Description of the section
-     */
-    description?: string | null;
-};
+  /**
+   * Client Questions
+   */
+  client_questions: Array<ClientQuestionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the section in the questionnaire
+   */
+  order?: number
+  /**
+   * Title
+   * Title of the section
+   */
+  title: string
+  /**
+   * Description
+   * Description of the section
+   */
+  description?: string | null
+}
+
+/**
+ * ConsultantOptionSchema
+ */
+export type ConsultantOptionSchema = {
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the option in the question
+   */
+  order?: number
+  /**
+   * Option Text
+   */
+  text?: string | null
+  /**
+   * Code
+   * Unique code for the option
+   */
+  code: string
+  /**
+   * Choices
+   */
+  choices?: Array<unknown> | null
+  /**
+   * Allow Text
+   * Allow text input for this option
+   */
+  allow_text?: boolean
+}
+
+/**
+ * ConsultantQuestionSchema
+ */
+export type ConsultantQuestionSchema = {
+  /**
+   * Options
+   */
+  options: Array<ConsultantOptionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the question in the questionnaire
+   */
+  order?: number
+  /**
+   * Code
+   * Unique code for the question
+   */
+  code: string
+  /**
+   * Question Text
+   */
+  question_text: string
+  /**
+   * Format
+   */
+  format?: string
+  /**
+   * Validation
+   * Regex validation for open text questions
+   */
+  validation?: string | null
+  /**
+   * Copy Paste
+   * Allow copy paste for this question
+   */
+  copy_paste?: boolean
+}
 
 /**
  * InternalQuestionnaireSchema
  */
 export type InternalQuestionnaireSchema = {
-    /**
-     * Sections
-     */
-    sections: Array<SectionSchema>;
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Name
-     * Name of the questionnaire
-     */
-    name: string;
-    /**
-     * Consultant Questions
-     */
-    consultant_questions: Array<ClientQuestionSchema>;
-};
+  /**
+   * Sections
+   */
+  sections: Array<SectionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Name
+   * Name of the questionnaire
+   */
+  name: string
+  /**
+   * Consultant Questions
+   */
+  consultant_questions: Array<ConsultantQuestionSchema>
+}
 
 export type CoreApiGetCsrfTokenData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/csrf';
-};
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/csrf'
+}
 
 export type CoreApiGetCsrfTokenResponses = {
-    /**
-     * OK
-     */
-    200: CsrfTokenResponse;
-};
+  /**
+   * OK
+   */
+  200: CsrfTokenResponse
+}
 
-export type CoreApiGetCsrfTokenResponse = CoreApiGetCsrfTokenResponses[keyof CoreApiGetCsrfTokenResponses];
+export type CoreApiGetCsrfTokenResponse =
+  CoreApiGetCsrfTokenResponses[keyof CoreApiGetCsrfTokenResponses]
 
 export type CoreApiLoginViewData = {
+  /**
+   * FormParams
+   */
+  body: {
     /**
-     * FormParams
+     * Username
      */
-    body: {
-        /**
-         * Username
-         */
-        username: string;
-        /**
-         * Password
-         */
-        password: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/login';
-};
+    username: string
+    /**
+     * Password
+     */
+    password: string
+  }
+  path?: never
+  query?: never
+  url: '/api/login'
+}
 
 export type CoreApiLoginViewResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
+  /**
+   * OK
+   */
+  200: unknown
+}
 
 export type CoreApiLogoutViewData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/logout';
-};
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/logout'
+}
 
 export type CoreApiLogoutViewResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
+  /**
+   * OK
+   */
+  200: unknown
+}
 
 export type CoreApiAccountData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/account';
-};
+  body?: never
+  path?: never
+  query?: never
+  url: '/api/account'
+}
 
 export type CoreApiAccountResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
+  /**
+   * OK
+   */
+  200: unknown
+}
 
 export type SureApiGetQuestionnaireData = {
-    body?: never;
-    path: {
-        /**
-         * Pk
-         */
-        pk: number;
-    };
-    query?: never;
-    url: '/api/sure/questionnaires/{pk}';
-};
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: number
+  }
+  query?: never
+  url: '/api/sure/questionnaires/{pk}'
+}
 
 export type SureApiGetQuestionnaireResponses = {
-    /**
-     * OK
-     */
-    200: QuestionnaireSchema;
-};
+  /**
+   * OK
+   */
+  200: QuestionnaireSchema
+}
 
-export type SureApiGetQuestionnaireResponse = SureApiGetQuestionnaireResponses[keyof SureApiGetQuestionnaireResponses];
+export type SureApiGetQuestionnaireResponse =
+  SureApiGetQuestionnaireResponses[keyof SureApiGetQuestionnaireResponses]
 
 export type SureApiGetInternalQuestionnaireData = {
-    body?: never;
-    path: {
-        /**
-         * Pk
-         */
-        pk: number;
-    };
-    query?: never;
-    url: '/api/sure/internal/questionnaires/{pk}';
-};
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: number
+  }
+  query?: never
+  url: '/api/sure/internal/questionnaires/{pk}'
+}
 
 export type SureApiGetInternalQuestionnaireResponses = {
-    /**
-     * OK
-     */
-    200: InternalQuestionnaireSchema;
-};
+  /**
+   * OK
+   */
+  200: InternalQuestionnaireSchema
+}
 
-export type SureApiGetInternalQuestionnaireResponse = SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses];
+export type SureApiGetInternalQuestionnaireResponse =
+  SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses]
 
 export type ClientOptions = {
-    baseUrl: string;
-};
+  baseUrl: string
+}

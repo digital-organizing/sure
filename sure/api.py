@@ -21,6 +21,7 @@ class ClientOptionSchema(ModelSchema):
             "text",
             "code",
             "choices",
+            "allow_text",
         ]
 
 
@@ -87,6 +88,7 @@ class ConsultantOptionSchema(ModelSchema):
             "text",
             "code",
             "choices",
+            "allow_text",
         ]
 
 

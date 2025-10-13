@@ -103,7 +103,7 @@ class ConsultantQuestionSchema(ModelSchema):
             "copy_paste",
         ]
 
-    options: list["ConsultantOptionSchema"]
+    options: list[ConsultantOptionSchema]
 
     @staticmethod
     def resolve_options(question: ConsultantQuestion) -> list[ConsultantOption]:

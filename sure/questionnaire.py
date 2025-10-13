@@ -160,14 +160,14 @@ def import_consultant_questions(df: pd.DataFrame, questionnaire: Questionnaire):
         for opt_index, option in enumerate(options):
             if option.strip() == "":  # Skip empty options
                 continue
-            code, _, text = option.partition(": ")
-            if not code or not text:
+            option_code, _, text = option.partition(": ")
+            if not option_code or not text:
                 logger.warning("Invalid option format: %s", option)
                 continue
             allow_text = TEXT_ALLOWED in text
             text = text.replace("_", "").strip()
             question.options.update_or_create(
-                code=code.strip(),
+                code=option_code.strip(),
                 defaults={
                     "text": text,
                     "order": opt_index,

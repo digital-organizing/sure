@@ -20,6 +20,7 @@ class ClientOptionSchema(ModelSchema):
             "order",
             "text",
             "code",
+            "choices",
         ]
 
 
@@ -34,7 +35,6 @@ class ClientQuestionSchema(ModelSchema):
             "format",
             "validation",
             "show_for_options",
-            "choices",
             "copy_paste",
             "do_not_show_directly",
         ]
@@ -86,6 +86,7 @@ class ConsultantOptionSchema(ModelSchema):
             "order",
             "text",
             "code",
+            "choices",
         ]
 
 
@@ -98,7 +99,6 @@ class ConsultantQuestionSchema(ModelSchema):
             "code",
             "question_text",
             "format",
-            "choices",
             "validation",
             "copy_paste",
         ]

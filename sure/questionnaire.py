@@ -13,12 +13,17 @@ YES = "yes"
 DO_NOT_SHOW = "// do not show directly //"
 FOUR_DIGIT_NUMBER = "four-digit number"
 
+DROPDOWN = "drop-down with search function"
+
 
 def map_answer_format(answer_format: str) -> tuple[str, str]:
     """Map the answer format from the excel file to the internal representation."""
     answer_format = answer_format.strip().lower()
     if answer_format == FOUR_DIGIT_NUMBER:
         return QuestionFormats.OPEN_TEXT, r"^\d{4}$"
+
+    if answer_format == DROPDOWN:
+        return QuestionFormats.SINGLE_CHOICE_WITH_TEXT, ""
 
     if answer_format not in QuestionFormats.values:
         raise ValueError(f"Unknown format: {answer_format}")

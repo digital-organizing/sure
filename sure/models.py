@@ -249,8 +249,6 @@ class BaseQuestion(models.Model):
         help_text=_("Order of the question in the questionnaire"),
     )
 
-    choices = ArrayField(models.CharField(max_length=255), blank=True, default=list)
-
     validation = models.CharField(
         max_length=255,
         blank=True,
@@ -287,6 +285,8 @@ class BaseOption(models.Model):
         verbose_name=_("Order"),
         help_text=_("Order of the option in the question"),
     )
+
+    choices = ArrayField(models.CharField(max_length=255), blank=True, default=list)
 
     class Meta:
         abstract = True

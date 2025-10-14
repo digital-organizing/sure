@@ -17,6 +17,8 @@ import type {
   CoreApiAccountResponses,
   SureApiGetQuestionnaireData,
   SureApiGetQuestionnaireResponses,
+  SureApiGetInternalQuestionnaireData,
+  SureApiGetInternalQuestionnaireResponses,
 } from './types.gen'
 import { client } from './client.gen'
 
@@ -106,12 +108,44 @@ export const coreApiAccount = <ThrowOnError extends boolean = false>(
 
 /**
  * Get Questionnaire
+ * Get a questionnaire by its ID.
  */
 export const sureApiGetQuestionnaire = <ThrowOnError extends boolean = false>(
   options: Options<SureApiGetQuestionnaireData, ThrowOnError>,
 ) => {
   return (options.client ?? client).get<SureApiGetQuestionnaireResponses, unknown, ThrowOnError>({
-    url: '/api/sure/questionnaire/{slug}/',
+    security: [
+      {
+        in: 'cookie',
+        name: 'sessionid',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/sure/questionnaires/{pk}',
+    ...options,
+  })
+}
+
+/**
+ * Get Internal Questionnaire
+ * Get a questionnaire by its ID, including consultant questions.
+ */
+export const sureApiGetInternalQuestionnaire = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiGetInternalQuestionnaireData, ThrowOnError>,
+) => {
+  return (options.client ?? client).get<
+    SureApiGetInternalQuestionnaireResponses,
+    unknown,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'sessionid',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/sure/internal/questionnaires/{pk}',
     ...options,
   })
 }

@@ -241,6 +241,121 @@ export type InternalQuestionnaireSchema = {
   consultant_questions: Array<ConsultantQuestionSchema>
 }
 
+/**
+ * ClientAnswerSchema
+ */
+export type ClientAnswerSchema = {
+  /**
+   * Question
+   */
+  question: number
+  /**
+   * Choices
+   */
+  choices?: Array<unknown> | null
+  /**
+   * Texts
+   */
+  texts?: Array<unknown> | null
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * User
+   * The user who recorded the answer (consultant)
+   */
+  user?: number | null
+}
+
+/**
+ * VisitSchema
+ */
+export type VisitSchema = {
+  /**
+   * Client Answers
+   */
+  client_answers: Array<ClientAnswerSchema>
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Questionnaire
+   */
+  questionnaire: number
+  /**
+   * Status
+   */
+  status?: string
+}
+
+/**
+ * SubmitCaseResponse
+ */
+export type SubmitCaseResponse = {
+  /**
+   * Success
+   */
+  success: boolean
+}
+
+/**
+ * AnswerSchema
+ */
+export type AnswerSchema = {
+  /**
+   * Questionid
+   */
+  questionId: number
+  /**
+   * Choices
+   */
+  choices: Array<ChoiceSchema>
+}
+
+/**
+ * ChoiceSchema
+ */
+export type ChoiceSchema = {
+  /**
+   * Code
+   */
+  code: string
+  /**
+   * Text
+   */
+  text: string
+}
+
+/**
+ * SubmitCaseSchema
+ */
+export type SubmitCaseSchema = {
+  /**
+   * Answers
+   */
+  answers: Array<AnswerSchema>
+}
+
+/**
+ * CreateCaseSchema
+ */
+export type CreateCaseSchema = {
+  /**
+   * Location Id
+   */
+  location_id: number
+  /**
+   * Questionnaire Id
+   */
+  questionnaire_id: number
+  /**
+   * Phone
+   */
+  phone?: string | null
+}
+
 export type CoreApiGetCsrfTokenData = {
   body?: never
   path?: never
@@ -312,6 +427,106 @@ export type CoreApiAccountResponses = {
   200: unknown
 }
 
+export type SureApiGetCaseQuestionnaireData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/questionnaire/'
+}
+
+export type SureApiGetCaseQuestionnaireResponses = {
+  /**
+   * OK
+   */
+  200: QuestionnaireSchema
+}
+
+export type SureApiGetCaseQuestionnaireResponse =
+  SureApiGetCaseQuestionnaireResponses[keyof SureApiGetCaseQuestionnaireResponses]
+
+export type SureApiGetCaseInternalData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/internal/'
+}
+
+export type SureApiGetCaseInternalResponses = {
+  /**
+   * OK
+   */
+  200: InternalQuestionnaireSchema
+}
+
+export type SureApiGetCaseInternalResponse =
+  SureApiGetCaseInternalResponses[keyof SureApiGetCaseInternalResponses]
+
+export type SureApiGetVisitData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/visit/'
+}
+
+export type SureApiGetVisitResponses = {
+  /**
+   * OK
+   */
+  200: VisitSchema
+}
+
+export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses]
+
+export type SureApiSubmitCaseData = {
+  body: SubmitCaseSchema
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/submit/'
+}
+
+export type SureApiSubmitCaseResponses = {
+  /**
+   * OK
+   */
+  200: SubmitCaseResponse
+}
+
+export type SureApiSubmitCaseResponse = SureApiSubmitCaseResponses[keyof SureApiSubmitCaseResponses]
+
+export type SureApiCreateCaseViewData = {
+  body: CreateCaseSchema
+  path?: never
+  query?: never
+  url: '/api/sure/case/create/'
+}
+
+export type SureApiCreateCaseViewResponses = {
+  /**
+   * OK
+   */
+  200: unknown
+}
+
 export type SureApiGetQuestionnaireData = {
   body?: never
   path: {
@@ -321,7 +536,7 @@ export type SureApiGetQuestionnaireData = {
     pk: number
   }
   query?: never
-  url: '/api/sure/questionnaires/{pk}'
+  url: '/api/sure/questionnaires/{pk}/'
 }
 
 export type SureApiGetQuestionnaireResponses = {
@@ -343,7 +558,7 @@ export type SureApiGetInternalQuestionnaireData = {
     pk: number
   }
   query?: never
-  url: '/api/sure/internal/questionnaires/{pk}'
+  url: '/api/sure/internal/questionnaires/{pk}/'
 }
 
 export type SureApiGetInternalQuestionnaireResponses = {

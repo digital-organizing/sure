@@ -2,12 +2,16 @@
 
 import phonenumbers
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 import tenants.models
+from sure.schema import AnswerSchema
 from sure.twilio import send_sms
 
-from .models import Case, Client, Connection, ConsentChoice, Contact
+from .models import (Case, Client, Connection, ConsentChoice, Contact,
+                     Questionnaire, Visit, VisitStatus)
 
 
 def canonicalize_phone_number(phone_number: str) -> str:
@@ -18,10 +22,41 @@ def canonicalize_phone_number(phone_number: str) -> str:
     )
 
 
-def create_case(location: tenants.models.Location) -> Case:
+def verify_access_to_location(location: tenants.models.Location, user) -> bool:
+    """Verify that the user has access to the given location."""
+    if user.is_superuser:
+        return True
+    if user.tenants.filter(id=location.tenant.pk).exists():
+        return True
+    return False
+
+
+def create_case(location_id: int, user) -> Case:
     """Create a new case at the given location."""
-    case = Case.objects.create(location=location)
+    location = get_object_or_404(tenants.models.Location, pk=location_id)
+    if not verify_access_to_location(location, user):
+        raise PermissionError("User does not have access to this location")
+    case = Case.objects.create(
+        location=location,
+    )
     return case
+
+
+def create_visit(case: Case, questionnaire: Questionnaire) -> Visit:
+    """Create a new visit for the given case and questionnaire."""
+    visit = Visit.objects.create(
+        case=case,
+        questionnaire=questionnaire,
+        status=VisitStatus.CREATED,
+    )
+    return visit
+
+
+def strip_id(human_id: str) -> str:
+    """Strip the prefix from a human-readable ID."""
+    if human_id.lower().startswith("suf-") or human_id.lower().startswith("suc-"):
+        return human_id[4:]
+    return human_id
 
 
 def get_case_link(case: Case) -> str:
@@ -120,3 +155,26 @@ def get_client_by_id(client_id: str, case_id: str):
     except Connection.DoesNotExist:
         return None
     return connection.client
+
+
+def record_client_answers(
+    visit: Visit, answers: list[AnswerSchema], user: User | None = None
+):
+    """Record answers for a visit."""
+    if user is None and visit.status != VisitStatus.CREATED:
+        raise ValueError(
+            "Cannot record answers for a visit that is not in the CREATED status"
+        )
+
+    for answer in answers:
+        choices = [choice.code for choice in answer.choices]
+        texts = [choice.text or "-" for choice in answer.choices]
+        visit.client_answers.create(
+            question_id=answer.questionId,
+            choices=choices,
+            texts=texts,
+            user=user,
+        )
+
+    visit.status = VisitStatus.CLIENT_SUBMITTED
+    visit.save()

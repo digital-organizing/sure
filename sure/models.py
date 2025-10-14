@@ -410,6 +410,9 @@ class ClientAnswer(BaseAnswer):
     question = models.ForeignKey(
         ClientQuestion, on_delete=models.CASCADE, related_name="answers"
     )
+    visit = models.ForeignKey(
+        "Visit", on_delete=models.CASCADE, related_name="client_answers"
+    )
 
 
 class ConsultantAnswer(BaseAnswer):
@@ -417,6 +420,9 @@ class ConsultantAnswer(BaseAnswer):
 
     question = models.ForeignKey(
         ConsultantQuestion, on_delete=models.CASCADE, related_name="answers"
+    )
+    visit = models.ForeignKey(
+        "Visit", on_delete=models.CASCADE, related_name="consultant_answers"
     )
 
 
@@ -494,6 +500,17 @@ class TestBundle(models.Model):
         return f"{self.name}"
 
 
+class VisitStatus(models.TextChoices):
+    """Status of a visit."""
+
+    CREATED = "created", _("Created")
+    CLIENT_SUBMITTED = "client_submitted", _("Client Submitted")
+    CONSULTANT_SUBMITTED = "consultant_submitted", _("Consultant Submitted")
+
+    RESULTS_RECORDED = "results_recorded", _("Results Recorded")
+    CLOSED = "closed", _("Closed")
+
+
 class Visit(models.Model):
     """A visit links a case to a questionnaire."""
 
@@ -509,6 +526,16 @@ class Visit(models.Model):
         blank=True,
         related_name="visits",
     )
+
+    status = models.CharField(
+        max_length=20,
+        choices=VisitStatus.choices,
+        default=VisitStatus.CREATED,
+        verbose_name=_("Status"),
+    )
+
+    client_answers: models.QuerySet[ClientAnswer]
+    consultant_answers: models.QuerySet[ConsultantAnswer]
 
 
 class Test(models.Model):

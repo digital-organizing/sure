@@ -32,7 +32,7 @@ class Location(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
-        return f"{self.name} ({self.tenant.name})"
+        return f"{self.name} ({self.tenant.name}, {self.pk})"
 
 
 class Consultant(models.Model):

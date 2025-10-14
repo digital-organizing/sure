@@ -1,10 +1,10 @@
 """Functions for handling questions: import from excel, get question in different language."""
 
 import logging
+
 import pandas as pd
 
 from sure.models import ClientQuestion, QuestionFormats, Questionnaire, Section
-
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ import { client } from './client/client.gen.ts'
 import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
 
 import PrimeVue from 'primevue/config';
-import Aura from '@primeuix/themes/aura';
+// import Aura from '@primeuix/themes/aura';
 
 // Import stores for initialization
 

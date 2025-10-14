@@ -1,19 +1,27 @@
-/* color palette from <https://github.com/vuejs/theme> */
 :root {
-  --color-green: green;
-  --color-white: white;
-  --color-black: black;
+  --color-ahs-black: #000000;
+  --color-ahs-white: #FFFFFF;
+  --color-ahs-red: #E20613;
+  --color-ahs-gray: #3C3C3B;
+  --color-ahs-light-blue: #F0F8FF;
+  --color-ahs-red-dark: #8B030B;
+  --color-ahs-middle-gray: #646464;
+  --color-ahs-light-gray: #BCBCBC;
+  --color-green: #D0EA2B;
+  --color-green-2: #66B032;
+  --color-orange: #FB9902;
+
 }
 
 /* semantic color variables for this project */
 :root {
-  --color-background: var(--color-white);
-  --color-text: var(--color-black);
+  --color-background: var(--color-ahs-white);
+  --color-text: var(--color-ahs-black);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--color-black);
     --color-text: var(--color-white);
   }
-}
+} */

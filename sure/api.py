@@ -152,8 +152,11 @@ def get_questionnaire(request, pk: int, lang: str = None):  # pylint: disable=un
 
 
 @router.get("/internal/questionnaires/{pk}", response=InternalQuestionnaireSchema)
-def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
+def get_internal_questionnaire(request, pk: int, lang: str = None):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID, including consultant questions."""
+    if not lang:
+        lang = get_language_from_request(request) or DEFAULT_LANGUAGE
+    translation.activate(lang)
 
     questionnaire = Questionnaire.objects.prefetch_related(
         Prefetch(

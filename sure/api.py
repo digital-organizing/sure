@@ -8,9 +8,12 @@ from sure.models import (
     ClientQuestion,
     ClientOption,
 )
+from django.utils import translation
+from django.utils.translation import get_language_from_request
 
 router = Router()
 
+DEFAULT_LANGUAGE = "de" # Todo: define default language
 
 class ClientOptionSchema(ModelSchema):
     class Meta:
@@ -123,8 +126,12 @@ class InternalQuestionnaireSchema(QuestionnaireSchema):
 
 
 @router.get("/questionnaires/{pk}", response=QuestionnaireSchema)
-def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
+def get_questionnaire(request, pk: int, lang: str = None):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID."""
+    if not lang:
+        lang = get_language_from_request(request) or DEFAULT_LANGUAGE
+    translation.activate(lang)
+    
     questionnaire = Questionnaire.objects.prefetch_related(
         Prefetch(
             "sections",
@@ -147,6 +154,7 @@ def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
 @router.get("/internal/questionnaires/{pk}", response=InternalQuestionnaireSchema)
 def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID, including consultant questions."""
+
     questionnaire = Questionnaire.objects.prefetch_related(
         Prefetch(
             "sections",

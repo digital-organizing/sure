@@ -1,27 +1,26 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from sure.client_service import (
-    canonicalize_phone_number,
-    connect_case,
-    create_case,
-    generate_token,
-    get_case_link,
-    get_cases,
-    get_client_by_id,
-    verify_token,
-)
-from sure.models import Client, ConsentChoice, Contact, Token
+from sure.client_service import (canonicalize_phone_number, connect_case,
+                                 create_case, create_visit, generate_token,
+                                 get_case_link, get_cases, get_client_by_id,
+                                 record_client_answers,
+                                 verify_access_to_location, verify_token)
+from sure.models import (Client, ClientQuestion, ConsentChoice, Contact,
+                         Questionnaire, Section, Token, VisitStatus)
+from sure.schema import AnswerSchema, ChoiceSchema
 from tenants.models import Tenant
 
 
 class CaseManagementTest(TestCase):
     def setUp(self) -> None:
         owner = User.objects.create_user(username="owner")
+        self.user = owner
         tenant = Tenant.objects.create(
             name="Test Tenant",
             owner=owner,
         )
+        tenant.admins.add(owner)
         location = tenant.locations.create(name="Test Location")
         self.location = location
 
@@ -30,12 +29,12 @@ class CaseManagementTest(TestCase):
         self.assertEqual(canonicalize_phone_number("0797360516"), "+41797360516")
 
     def test_create_case(self):
-        case = create_case(self.location)
+        case = create_case(self.location.pk, self.user)
         self.assertIsNotNone(case)
         self.assertEqual(case.location, self.location)
 
     def test_get_case_link(self):
-        case = create_case(self.location)
+        case = create_case(self.location.pk, self.user)
         from django.conf import settings
 
         link = get_case_link(case)
@@ -70,7 +69,7 @@ class CaseManagementTest(TestCase):
 
     def test_connect_case(self):
         phone_number = "+41797360516"
-        case = create_case(self.location)
+        case = create_case(self.location.pk, self.user)
         _, token = generate_token(phone_number)
 
         connection = connect_case(
@@ -94,7 +93,7 @@ class CaseManagementTest(TestCase):
 
     def test_connect_case_no_consent(self):
         phone_number = "+41797360516"
-        case = create_case(self.location)
+        case = create_case(self.location.pk, self.user)
         _, token = generate_token(phone_number)
 
         with self.assertRaises(ValueError):
@@ -102,7 +101,7 @@ class CaseManagementTest(TestCase):
 
     def test_connect_case_invalid_token(self):
         phone_number = "+41797360516"
-        case = create_case(self.location)
+        case = create_case(self.location.pk, self.user)
         generate_token(phone_number)
 
         with self.assertRaises(ValueError):
@@ -110,9 +109,61 @@ class CaseManagementTest(TestCase):
                 case, phone_number, "invalidtoken", consent=ConsentChoice.ALLOWED
             )
 
+    def test_verify_access_to_location(self):
+        # owner (self.user) should have access via tenant.admins
+        self.assertTrue(verify_access_to_location(self.location, self.user))
+
+        # a different normal user should not have access
+        other = User.objects.create_user(username="other")
+        self.assertFalse(verify_access_to_location(self.location, other))
+
+        # superuser should always have access
+        superu = User.objects.create_user(username="super")
+        superu.is_superuser = True
+        superu.save()
+        self.assertTrue(verify_access_to_location(self.location, superu))
+
+    def test_create_visit(self):
+        questionnaire = Questionnaire.objects.create(name="Test Questionnaire")
+        case = create_case(self.location.pk, self.user)
+        visit = create_visit(case, questionnaire)
+
+        self.assertIsNotNone(visit)
+        self.assertEqual(visit.case, case)
+        self.assertEqual(visit.questionnaire, questionnaire)
+        self.assertEqual(visit.status, VisitStatus.CREATED)
+
+    def test_record_client_answers(self):
+        # Build a minimal questionnaire with one client question
+        questionnaire = Questionnaire.objects.create(name="Q with client question")
+        section = Section.objects.create(questionnaire=questionnaire, order=0, title="S")
+        client_question = ClientQuestion.objects.create(
+            section=section, question_text="How are you?", code="Q1", order=0
+        )
+
+        case = create_case(self.location.pk, self.user)
+        visit = create_visit(case, questionnaire)
+
+        # create an answer object with the shape expected by record_client_answers
+        choice = ChoiceSchema(code="1", text="fine")
+        answer = AnswerSchema(questionId=client_question.pk, choices=[choice])
+
+        # record answers (user None allowed for CREATED visits)
+        record_client_answers(visit, [answer], user=None)
+
+        visit.refresh_from_db()
+        self.assertEqual(visit.status, VisitStatus.CLIENT_SUBMITTED)
+
+        # ensure the client answer was created and stored correctly
+        self.assertEqual(visit.client_answers.count(), 1)
+        ca = visit.client_answers.first()
+        assert ca is not None
+        self.assertEqual(ca.choices, [1])
+        self.assertEqual(ca.texts, ["fine"]) 
+
     def test_get_cases(self):
-        case1 = create_case(self.location)
-        case2 = create_case(self.location)
+        case1 = create_case(self.location.pk, self.user)
+        case2 = create_case(self.location.pk, self.user)
         phone_number = "+41797360516"
 
         _, token = generate_token(phone_number)

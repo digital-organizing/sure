@@ -1,8 +1,9 @@
 import pandas as pd
-from sure.questionnaire import import_client_questions, import_consultant_questions
-from sure.models import Questionnaire
-
 from django.test import TestCase
+
+from sure.models import Questionnaire
+from sure.questionnaire import (import_client_questions,
+                                import_consultant_questions)
 
 
 class TestQuestionnaireImport(TestCase):

@@ -1,131 +1,21 @@
 from django.db.models import Prefetch
-from ninja import ModelSchema, Router
-from sure.models import (
-    ConsultantOption,
-    ConsultantQuestion,
-    Questionnaire,
-    Section,
-    ClientQuestion,
-    ClientOption,
-)
+from django.shortcuts import get_object_or_404
+from ninja import Router
+
+from sure.client_service import (create_case, create_visit, get_case_link,
+                                 record_client_answers, send_case_link,
+                                 strip_id, verify_access_to_location)
+from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
+                         ConsultantQuestion, Questionnaire, Section, Visit)
+from sure.schema import (CreateCaseResponse, CreateCaseSchema,
+                         InternalQuestionnaireSchema, QuestionnaireSchema,
+                         SubmitCaseResponse, SubmitCaseSchema, VisitSchema)
 
 router = Router()
 
 
-class ClientOptionSchema(ModelSchema):
-    class Meta:
-        model = ClientOption
-        fields = [
-            "id",
-            "order",
-            "text",
-            "code",
-            "choices",
-            "allow_text",
-        ]
-
-
-class ClientQuestionSchema(ModelSchema):
-    class Meta:
-        model = ClientQuestion
-        fields = [
-            "id",
-            "order",
-            "code",
-            "question_text",
-            "format",
-            "validation",
-            "show_for_options",
-            "copy_paste",
-            "do_not_show_directly",
-        ]
-
-    options: list[ClientOptionSchema]
-
-    @staticmethod
-    def resolve_options(question: ClientQuestion) -> list[ClientOption]:
-        return list(question.options.all())
-
-
-class SectionSchema(ModelSchema):
-    class Meta:
-        model = Section
-        fields = [
-            "id",
-            "order",
-            "title",
-            "description",
-        ]
-
-    client_questions: list[ClientQuestionSchema]
-
-    @staticmethod
-    def resolve_client_questions(section: Section) -> list[ClientQuestion]:
-        return list(section.client_questions.all())
-
-
-class QuestionnaireSchema(ModelSchema):
-    class Meta:
-        model = Questionnaire
-        fields = [
-            "id",
-            "name",
-        ]
-
-    sections: list[SectionSchema]
-
-    @staticmethod
-    def resolve_sections(questionnaire: Questionnaire) -> list[Section]:
-        return list(questionnaire.sections.all())
-
-
-class ConsultantOptionSchema(ModelSchema):
-    class Meta:
-        model = ConsultantOption
-        fields = [
-            "id",
-            "order",
-            "text",
-            "code",
-            "choices",
-            "allow_text",
-        ]
-
-
-class ConsultantQuestionSchema(ModelSchema):
-    class Meta:
-        model = ConsultantQuestion
-        fields = [
-            "id",
-            "order",
-            "code",
-            "question_text",
-            "format",
-            "validation",
-            "copy_paste",
-        ]
-
-    options: list[ConsultantOptionSchema]
-
-    @staticmethod
-    def resolve_options(question: ConsultantQuestion) -> list[ConsultantOption]:
-        return list(question.options.all())
-
-
-class InternalQuestionnaireSchema(QuestionnaireSchema):
-    consultant_questions: list[ConsultantQuestionSchema]
-
-    @staticmethod
-    def resolve_consultant_questions(
-        questionnaire: Questionnaire,
-    ) -> list[ConsultantQuestion]:
-        return list(questionnaire.consultant_questions.all())
-
-
-@router.get("/questionnaires/{pk}", response=QuestionnaireSchema)
-def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
-    """Get a questionnaire by its ID."""
-    questionnaire = Questionnaire.objects.prefetch_related(
+def _prefetch_questionnaire(internal=False):
+    query = Questionnaire.objects.prefetch_related(
         Prefetch(
             "sections",
             queryset=Section.objects.order_by("order").prefetch_related(
@@ -139,34 +29,104 @@ def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
                 )
             ),
         )
-    ).get(pk=pk)
+    )
+
+    if internal:
+        query = query.prefetch_related(
+            Prefetch(
+                "consultant_questions",
+                queryset=ConsultantQuestion.objects.order_by("order").prefetch_related(
+                    Prefetch(
+                        "options", queryset=ConsultantOption.objects.order_by("order")
+                    )
+                ),
+            )
+        )
+    return query
+
+
+@router.get("/case/{pk}/questionnaire/", response=QuestionnaireSchema, auth=None)
+def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
+    """Get the questionnaire associated with a case."""
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(Visit, case_id=pk)
+    questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
 
     return questionnaire
 
 
-@router.get("/internal/questionnaires/{pk}", response=InternalQuestionnaireSchema)
+@router.get("/case/{pk}/internal/", response=InternalQuestionnaireSchema)
+def get_case_internal(request, pk: str):
+    """Get the internal questionnaire associated with a case."""
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(Visit, case_id=pk)
+
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    questionnaire = _prefetch_questionnaire(internal=True).get(
+        pk=visit.questionnaire.pk
+    )
+
+    return questionnaire
+
+
+@router.get("/case/{pk}/visit/", response=VisitSchema)
+def get_visit(request, pk: str):
+    """Get the client answers for a case."""
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(Visit, case_id=pk)
+
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    return visit
+
+
+@router.post("/case/{pk}/submit/", auth=None, response=SubmitCaseResponse)
+def submit_case(request, pk: str, answers: SubmitCaseSchema):
+    """Submit client answers for a case."""
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(Visit, case_id=pk)
+    if request.user.is_authenticated:
+        if not verify_access_to_location(visit.case.location, request.user):
+            raise PermissionError("User does not have access to this location")
+
+    record_client_answers(
+        visit, answers.answers, request.user if request.user.is_authenticated else None
+    )
+
+    return {"success": True}
+
+
+@router.post("/case/create/")
+def create_case_view(request, data: CreateCaseSchema):
+    """Create a new case from a questionnaire."""
+    print(data)
+    case = create_case(data.location_id, request.user)
+    create_visit(case, get_object_or_404(Questionnaire, pk=data.questionnaire_id))
+
+    link = get_case_link(case)
+
+    if data.phone:
+        send_case_link(case, data.phone)
+
+    return CreateCaseResponse(link=link)
+
+
+@router.get("/questionnaires/{pk}/", response=QuestionnaireSchema, auth=None)
+def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
+    """Get a questionnaire by its ID."""
+    questionnaire = _prefetch_questionnaire().get(pk=pk)
+    return questionnaire
+
+
+@router.get("/internal/questionnaires/{pk}/", response=InternalQuestionnaireSchema)
 def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID, including consultant questions."""
-    questionnaire = Questionnaire.objects.prefetch_related(
-        Prefetch(
-            "sections",
-            queryset=Section.objects.order_by("order").prefetch_related(
-                Prefetch(
-                    "client_questions",
-                    queryset=ClientQuestion.objects.order_by("order").prefetch_related(
-                        Prefetch(
-                            "options", queryset=ClientOption.objects.order_by("order")
-                        )
-                    ),
-                )
-            ),
-        ),
-        Prefetch(
-            "consultant_questions",
-            queryset=ConsultantQuestion.objects.order_by("order").prefetch_related(
-                Prefetch("options", queryset=ConsultantOption.objects.order_by("order"))
-            ),
-        ),
-    ).get(pk=pk)
-
+    questionnaire = _prefetch_questionnaire(internal=True).get(pk=pk)
     return questionnaire

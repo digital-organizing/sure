@@ -15,6 +15,16 @@ import type {
   CoreApiLogoutViewResponses,
   CoreApiAccountData,
   CoreApiAccountResponses,
+  SureApiGetCaseQuestionnaireData,
+  SureApiGetCaseQuestionnaireResponses,
+  SureApiGetCaseInternalData,
+  SureApiGetCaseInternalResponses,
+  SureApiGetVisitData,
+  SureApiGetVisitResponses,
+  SureApiSubmitCaseData,
+  SureApiSubmitCaseResponses,
+  SureApiCreateCaseViewData,
+  SureApiCreateCaseViewResponses,
   SureApiGetQuestionnaireData,
   SureApiGetQuestionnaireResponses,
   SureApiGetInternalQuestionnaireData,
@@ -107,13 +117,30 @@ export const coreApiAccount = <ThrowOnError extends boolean = false>(
 }
 
 /**
- * Get Questionnaire
- * Get a questionnaire by its ID.
+ * Get Case Questionnaire
+ * Get the questionnaire associated with a case.
  */
-export const sureApiGetQuestionnaire = <ThrowOnError extends boolean = false>(
-  options: Options<SureApiGetQuestionnaireData, ThrowOnError>,
+export const sureApiGetCaseQuestionnaire = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiGetCaseQuestionnaireData, ThrowOnError>,
 ) => {
-  return (options.client ?? client).get<SureApiGetQuestionnaireResponses, unknown, ThrowOnError>({
+  return (options.client ?? client).get<
+    SureApiGetCaseQuestionnaireResponses,
+    unknown,
+    ThrowOnError
+  >({
+    url: '/api/sure/case/{pk}/questionnaire/',
+    ...options,
+  })
+}
+
+/**
+ * Get Case Internal
+ * Get the internal questionnaire associated with a case.
+ */
+export const sureApiGetCaseInternal = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiGetCaseInternalData, ThrowOnError>,
+) => {
+  return (options.client ?? client).get<SureApiGetCaseInternalResponses, unknown, ThrowOnError>({
     security: [
       {
         in: 'cookie',
@@ -121,7 +148,81 @@ export const sureApiGetQuestionnaire = <ThrowOnError extends boolean = false>(
         type: 'apiKey',
       },
     ],
-    url: '/api/sure/questionnaires/{pk}',
+    url: '/api/sure/case/{pk}/internal/',
+    ...options,
+  })
+}
+
+/**
+ * Get Visit
+ * Get the client answers for a case.
+ */
+export const sureApiGetVisit = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiGetVisitData, ThrowOnError>,
+) => {
+  return (options.client ?? client).get<SureApiGetVisitResponses, unknown, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: 'sessionid',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/sure/case/{pk}/visit/',
+    ...options,
+  })
+}
+
+/**
+ * Submit Case
+ * Submit client answers for a case.
+ */
+export const sureApiSubmitCase = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiSubmitCaseData, ThrowOnError>,
+) => {
+  return (options.client ?? client).post<SureApiSubmitCaseResponses, unknown, ThrowOnError>({
+    url: '/api/sure/case/{pk}/submit/',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Create Case View
+ * Create a new case from a questionnaire.
+ */
+export const sureApiCreateCaseView = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiCreateCaseViewData, ThrowOnError>,
+) => {
+  return (options.client ?? client).post<SureApiCreateCaseViewResponses, unknown, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: 'sessionid',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/sure/case/create/',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+}
+
+/**
+ * Get Questionnaire
+ * Get a questionnaire by its ID.
+ */
+export const sureApiGetQuestionnaire = <ThrowOnError extends boolean = false>(
+  options: Options<SureApiGetQuestionnaireData, ThrowOnError>,
+) => {
+  return (options.client ?? client).get<SureApiGetQuestionnaireResponses, unknown, ThrowOnError>({
+    url: '/api/sure/questionnaires/{pk}/',
     ...options,
   })
 }
@@ -145,7 +246,7 @@ export const sureApiGetInternalQuestionnaire = <ThrowOnError extends boolean = f
         type: 'apiKey',
       },
     ],
-    url: '/api/sure/internal/questionnaires/{pk}',
+    url: '/api/sure/internal/questionnaires/{pk}/',
     ...options,
   })
 }

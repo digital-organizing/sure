@@ -1,17 +1,8 @@
 from modeltranslation.translator import TranslationOptions, translator
 
-from sure.models import (
-    ClientOption,
-    ClientQuestion,
-    ConsultantOption,
-    ConsultantQuestion,
-    Questionnaire,
-    Section,
-    TestBundle,
-    TestCategory,
-    TestKind,
-    TestResultOption,
-)
+from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
+                         ConsultantQuestion, Questionnaire, Section,
+                         TestBundle, TestCategory, TestKind, TestResultOption)
 
 
 class QuestionaireTranslationOptions(TranslationOptions):

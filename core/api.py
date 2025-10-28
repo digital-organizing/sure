@@ -4,7 +4,6 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from ninja import Form, NinjaAPI, Schema
 from ninja.security import django_auth
 
-
 import sure.api
 
 api = NinjaAPI(auth=django_auth)

@@ -1,5 +1,4 @@
-"""
-URL configuration for core project.
+"""URL configuration for core project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -16,12 +15,14 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.views.generic.base import TemplateView
+
 from .api import api
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("i18n/", include("django.conf.urls.i18n")),
     path("api/", api.urls),
     path("", TemplateView.as_view(template_name="index.html")),
     path("<path:path>", TemplateView.as_view(template_name="index.html")),

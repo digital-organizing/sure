@@ -10,6 +10,352 @@ export type CsrfTokenResponse = {
   csrfToken: string
 }
 
+/**
+ * ClientOptionSchema
+ */
+export type ClientOptionSchema = {
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the option in the question
+   */
+  order?: number
+  /**
+   * Option Text
+   */
+  text?: string | null
+  /**
+   * Code
+   * Unique code for the option
+   */
+  code: string
+  /**
+   * Choices
+   */
+  choices?: Array<unknown> | null
+  /**
+   * Allow Text
+   * Allow text input for this option
+   */
+  allow_text?: boolean
+}
+
+/**
+ * ClientQuestionSchema
+ */
+export type ClientQuestionSchema = {
+  /**
+   * Options
+   */
+  options: Array<ClientOptionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the question in the questionnaire
+   */
+  order?: number
+  /**
+   * Code
+   * Unique code for the question
+   */
+  code: string
+  /**
+   * Question Text
+   */
+  question_text: string
+  /**
+   * Format
+   */
+  format?: string
+  /**
+   * Validation
+   * Regex validation for open text questions
+   */
+  validation?: string | null
+  /**
+   * Show For Options
+   * Show this question only if one of these options is selected
+   */
+  show_for_options: Array<number>
+  /**
+   * Copy Paste
+   * Allow copy paste for this question
+   */
+  copy_paste?: boolean
+  /**
+   * Do Not Show Directly
+   * Do not show this question directly to the client
+   */
+  do_not_show_directly?: boolean
+}
+
+/**
+ * QuestionnaireSchema
+ */
+export type QuestionnaireSchema = {
+  /**
+   * Sections
+   */
+  sections: Array<SectionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Name
+   * Name of the questionnaire
+   */
+  name: string
+}
+
+/**
+ * SectionSchema
+ */
+export type SectionSchema = {
+  /**
+   * Client Questions
+   */
+  client_questions: Array<ClientQuestionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the section in the questionnaire
+   */
+  order?: number
+  /**
+   * Title
+   * Title of the section
+   */
+  title: string
+  /**
+   * Description
+   * Description of the section
+   */
+  description?: string | null
+}
+
+/**
+ * ConsultantOptionSchema
+ */
+export type ConsultantOptionSchema = {
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the option in the question
+   */
+  order?: number
+  /**
+   * Option Text
+   */
+  text?: string | null
+  /**
+   * Code
+   * Unique code for the option
+   */
+  code: string
+  /**
+   * Choices
+   */
+  choices?: Array<unknown> | null
+  /**
+   * Allow Text
+   * Allow text input for this option
+   */
+  allow_text?: boolean
+}
+
+/**
+ * ConsultantQuestionSchema
+ */
+export type ConsultantQuestionSchema = {
+  /**
+   * Options
+   */
+  options: Array<ConsultantOptionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Order
+   * Order of the question in the questionnaire
+   */
+  order?: number
+  /**
+   * Code
+   * Unique code for the question
+   */
+  code: string
+  /**
+   * Question Text
+   */
+  question_text: string
+  /**
+   * Format
+   */
+  format?: string
+  /**
+   * Validation
+   * Regex validation for open text questions
+   */
+  validation?: string | null
+  /**
+   * Copy Paste
+   * Allow copy paste for this question
+   */
+  copy_paste?: boolean
+}
+
+/**
+ * InternalQuestionnaireSchema
+ */
+export type InternalQuestionnaireSchema = {
+  /**
+   * Sections
+   */
+  sections: Array<SectionSchema>
+  /**
+   * ID
+   */
+  id?: number | null
+  /**
+   * Name
+   * Name of the questionnaire
+   */
+  name: string
+  /**
+   * Consultant Questions
+   */
+  consultant_questions: Array<ConsultantQuestionSchema>
+}
+
+/**
+ * ClientAnswerSchema
+ */
+export type ClientAnswerSchema = {
+  /**
+   * Question
+   */
+  question: number
+  /**
+   * Choices
+   */
+  choices?: Array<unknown> | null
+  /**
+   * Texts
+   */
+  texts?: Array<unknown> | null
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * User
+   * The user who recorded the answer (consultant)
+   */
+  user?: number | null
+}
+
+/**
+ * VisitSchema
+ */
+export type VisitSchema = {
+  /**
+   * Client Answers
+   */
+  client_answers: Array<ClientAnswerSchema>
+  /**
+   * Created At
+   */
+  created_at: string
+  /**
+   * Questionnaire
+   */
+  questionnaire: number
+  /**
+   * Status
+   */
+  status?: string
+}
+
+/**
+ * SubmitCaseResponse
+ */
+export type SubmitCaseResponse = {
+  /**
+   * Success
+   */
+  success: boolean
+}
+
+/**
+ * AnswerSchema
+ */
+export type AnswerSchema = {
+  /**
+   * Questionid
+   */
+  questionId: number
+  /**
+   * Choices
+   */
+  choices: Array<ChoiceSchema>
+}
+
+/**
+ * ChoiceSchema
+ */
+export type ChoiceSchema = {
+  /**
+   * Code
+   */
+  code: string
+  /**
+   * Text
+   */
+  text: string
+}
+
+/**
+ * SubmitCaseSchema
+ */
+export type SubmitCaseSchema = {
+  /**
+   * Answers
+   */
+  answers: Array<AnswerSchema>
+}
+
+/**
+ * CreateCaseSchema
+ */
+export type CreateCaseSchema = {
+  /**
+   * Location Id
+   */
+  location_id: number
+  /**
+   * Questionnaire Id
+   */
+  questionnaire_id: number
+  /**
+   * Phone
+   */
+  phone?: string | null
+}
+
 export type CoreApiGetCsrfTokenData = {
   body?: never
   path?: never
@@ -81,24 +427,149 @@ export type CoreApiAccountResponses = {
   200: unknown
 }
 
+export type SureApiGetCaseQuestionnaireData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/questionnaire/'
+}
+
+export type SureApiGetCaseQuestionnaireResponses = {
+  /**
+   * OK
+   */
+  200: QuestionnaireSchema
+}
+
+export type SureApiGetCaseQuestionnaireResponse =
+  SureApiGetCaseQuestionnaireResponses[keyof SureApiGetCaseQuestionnaireResponses]
+
+export type SureApiGetCaseInternalData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/internal/'
+}
+
+export type SureApiGetCaseInternalResponses = {
+  /**
+   * OK
+   */
+  200: InternalQuestionnaireSchema
+}
+
+export type SureApiGetCaseInternalResponse =
+  SureApiGetCaseInternalResponses[keyof SureApiGetCaseInternalResponses]
+
+export type SureApiGetVisitData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/visit/'
+}
+
+export type SureApiGetVisitResponses = {
+  /**
+   * OK
+   */
+  200: VisitSchema
+}
+
+export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses]
+
+export type SureApiSubmitCaseData = {
+  body: SubmitCaseSchema
+  path: {
+    /**
+     * Pk
+     */
+    pk: string
+  }
+  query?: never
+  url: '/api/sure/case/{pk}/submit/'
+}
+
+export type SureApiSubmitCaseResponses = {
+  /**
+   * OK
+   */
+  200: SubmitCaseResponse
+}
+
+export type SureApiSubmitCaseResponse = SureApiSubmitCaseResponses[keyof SureApiSubmitCaseResponses]
+
+export type SureApiCreateCaseViewData = {
+  body: CreateCaseSchema
+  path?: never
+  query?: never
+  url: '/api/sure/case/create/'
+}
+
+export type SureApiCreateCaseViewResponses = {
+  /**
+   * OK
+   */
+  200: unknown
+}
+
 export type SureApiGetQuestionnaireData = {
   body?: never
   path: {
     /**
-     * Slug
+     * Pk
      */
-    slug: string
+    pk: number
   }
   query?: never
-  url: '/api/sure/questionnaire/{slug}/'
+  url: '/api/sure/questionnaires/{pk}/'
 }
 
 export type SureApiGetQuestionnaireResponses = {
   /**
    * OK
    */
-  200: unknown
+  200: QuestionnaireSchema
 }
+
+export type SureApiGetQuestionnaireResponse =
+  SureApiGetQuestionnaireResponses[keyof SureApiGetQuestionnaireResponses]
+
+export type SureApiGetInternalQuestionnaireData = {
+  body?: never
+  path: {
+    /**
+     * Pk
+     */
+    pk: number
+  }
+  query?: never
+  url: '/api/sure/internal/questionnaires/{pk}/'
+}
+
+export type SureApiGetInternalQuestionnaireResponses = {
+  /**
+   * OK
+   */
+  200: InternalQuestionnaireSchema
+}
+
+export type SureApiGetInternalQuestionnaireResponse =
+  SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses]
 
 export type ClientOptions = {
   baseUrl: string

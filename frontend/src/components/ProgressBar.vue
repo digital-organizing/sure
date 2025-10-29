@@ -1,5 +1,4 @@
-<script setup> lang="ts">
-import { ref } from 'vue';
+<script setup lang="ts">
 
 const props = defineProps(
     {
@@ -11,7 +10,5 @@ const props = defineProps(
 </script>
 
 <template>
-    <div class="line">
-
-    </div>
+    <p>Progress: {{ props.value?.valueOf() }} / {{ props.total?.valueOf() }}</p>
 </template>

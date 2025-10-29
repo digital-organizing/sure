@@ -14,7 +14,8 @@ onMounted(async ()=> {formStructure.value = (await sureApiGetQuestionnaire({path
 
 <template>
   <div v-if="formStructure">
-    <h1>AA</h1>
+    <h1>Client Form</h1>
+    <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
     <ClientSection :section="formStructure?.sections[formIndex]!" />
     <button @click="formIndex--">Previous</button>
     <button @click="formIndex++">Next</button>

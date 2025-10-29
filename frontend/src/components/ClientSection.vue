@@ -8,7 +8,7 @@ const props = defineProps<{section: SectionSchema}>();
 
 <template>
   <div class="client-section">
-    <p>{{ props.section.title }}</p>
+    <h2>{{ props.section.title }}</h2>
     <ClientQuestion v-for="(question, idx) in props.section.client_questions" :key="question.id ?? idx" :question="question" />
   </div>
 </template>

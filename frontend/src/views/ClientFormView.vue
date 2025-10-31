@@ -18,6 +18,7 @@ onMounted(async ()=> {formStructure.value = (await sureApiGetQuestionnaire({path
 </script>
 
 <template>
+    <div id="client-form-view">
     <div id="nav-bar">
         Navbar
     </div>
@@ -26,9 +27,10 @@ onMounted(async ()=> {formStructure.value = (await sureApiGetQuestionnaire({path
     <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
     <ClientSection :section="formStructure?.sections[formIndex]!" />
     <div id="navi-bottom">
-        <Button @click="formIndex--" size="small" severity="secondary" rounded>Previous <IconLeftArrowSmall /></Button>
+        <Button @click="formIndex--" size="small" severity="secondary" variant="outlined" rounded>Previous <IconLeftArrowSmall /></Button>
         <Button @click="formIndex++" severity="primary" rounded >Next <IconRightArrow /></Button>
     </div>
+  </div>
   </div>
 </template>
 
@@ -43,5 +45,9 @@ onMounted(async ()=> {formStructure.value = (await sureApiGetQuestionnaire({path
         display: flex;
         justify-content: space-between;
         margin-top: 30px;
+    }
+    #client-form-view {
+        max-width: 800px;
+        margin: auto;
     }
 </style>

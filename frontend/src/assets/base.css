@@ -17,6 +17,9 @@
 :root {
   --color-background: var(--color-ahs-white);
   --color-text: var(--color-ahs-black);
+  --primary-color: var(--color-ahs-red);
+  --secondary-color: var(--color-ahs-white);
+  --font-family: "Circular Std"
 }
 
 /* @media (prefers-color-scheme: dark) {

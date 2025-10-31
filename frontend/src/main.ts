@@ -12,6 +12,11 @@ import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import Button from 'primevue/button'
+import { $dt, definePreset } from '@primeuix/themes'
+
+import '@/assets/base.css'
+import type { ButtonDesignTokens } from '@primeuix/themes/types/button'
+
 
 // Import stores for initialization
 
@@ -49,12 +54,70 @@ client.interceptors.response.use(async (response) => {
 
 const app = createApp(App)
 
+// Defining custom theme preset, unclear if this is the best way to do this
+const SurePreset = definePreset(Aura, {
+  components: {
+    button: {
+      extend: {
+        hover: {
+          backgroundColor: $dt('--color-ahs-middle-gray').value,
+          borderColor: 'var(--color-semantic-primary-600)',}
+      }
+    }
+  },
+  utilities: {},
+  semantic: { 
+        primary: {
+            50:  '#FFE5E7',
+            100: '#FFC6C9',
+            200: '#FF9BA0',
+            300: '#FF6E77',
+            400: '#F53A4B',
+            500: '#E20613',
+            600: '#C70510',
+            700: '#A0040D',
+            800: '#7A030A',
+            900: '#530207',
+            950: '#2E0104',
+        },
+        secondary: {
+            50:  '#ffffff',
+            100: '#646464',
+            200: '#646464',
+            300: '#646464',
+            400: '#646464',
+            500: '#646464',
+            600: '#646464',
+            700: '#646464',
+            800: '#646464',
+            900: '#646464',
+            950: '#646464',
+        },
+        colorScheme: {
+            light: {
+              semantic: {
+                background: '#E20613',
+                },
+            },
+            dark: {
+              semantic: {
+                background: $dt('--color-ahs-middle-gray').value,
+                },
+            },
+        }
+    },
+});
+
+
 const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(PrimeVue, {
   theme: {
-    preset: Aura,
+    preset: SurePreset,
+    options: {
+      darkModeSelector: false || 'none',
+    }
   },
 })
 

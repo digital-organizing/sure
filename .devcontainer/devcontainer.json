@@ -16,7 +16,7 @@
 	// "forwardPorts": [5000, 5432],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash &&  . /usr/local/share/nvm/nvm.sh && curl -LsSf https://astral.sh/uv/install.sh | sh && uv sync && nvm install --lts && nvm use --lts && npm i frontend/"
+	"postCreateCommand": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash &&  . /usr/local/share/nvm/nvm.sh && curl -LsSf https://astral.sh/uv/install.sh | sh && uv sync && nvm install --lts && nvm use --lts && cd frontend && npm i"
 
 	// Configure tool-specific properties.
 	// "customizations": {},

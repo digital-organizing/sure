@@ -10,10 +10,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   netcat-traditional \
   gettext
 
-COPY ./requirements.txt /requirements.txt
 
-RUN --mount=type=cache,target=/root/.cache pip install --upgrade pip
-RUN --mount=type=cache,target=/root/.cache pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache pip install --upgrade uv
 
 RUN useradd -ms /bin/bash app
 
@@ -21,16 +19,19 @@ ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
 
 RUN mkdir -p $APP_HOME $APP_HOME/static
+RUN chown -R app:app $APP_HOME 
 
 WORKDIR $APP_HOME
+# change to the app user
+USER app
+
+COPY pyproject.toml uv.lock ./
+
+RUN uv sync --frozen --no-dev
+ENV PATH="/home/app/web/.venv/bin:$PATH"
 
 # copy project
 COPY --chown=app:app . $APP_HOME
-
-RUN chown -R app:app $APP_HOME/static
-
-# change to the app user
-USER app
 
 RUN python manage.py collectstatic
 

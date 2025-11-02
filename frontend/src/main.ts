@@ -13,6 +13,10 @@ import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import Button from 'primevue/button'
 
+
+import * as Sentry from "@sentry/vue";
+import { createSentryPiniaPlugin } from "@sentry/vue";
+
 // Import stores for initialization
 
 function getCsrfToken() {
@@ -49,7 +53,17 @@ client.interceptors.response.use(async (response) => {
 
 const app = createApp(App)
 
+Sentry.init({
+  app,
+  dsn: "https://f23eef026dedb9d752fc45fc961f71a0@sentry.d-o.li/5",
+  tracesSampleRate: 1.0,
+  sendDefaultPii: true,
+});
+
 const pinia = createPinia()
+
+pinia.use(createSentryPiniaPlugin());
+
 app.use(pinia)
 app.use(router)
 app.use(PrimeVue, {

@@ -1,15 +1,49 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, ref, computed } from 'vue'
 import { type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
 import { Form } from '@primevue/forms'
-import { Select } from 'primevue'
+import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'
+import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.vue'
+import OpenTextQuestion from './questions/OpenTextQuestion.vue'
+import SingleChoiceTextQuestion from './questions/SingleChoiceTextQuestion.vue'
+import MultipleChoiceTextQuestion from './questions/MultipleChoiceTextQuestion.vue'
+import SingleChoiceDropdownQuestion from './questions/SingleChoiceDropdownQuestion.vue'
 
 const props = defineProps<{
   question: ClientQuestionSchema
 }>()
 
+const questionComponentRef = ref<{ getAnswer: () => ClientAnswerSchema } | null>(null)
+
+// Determine which component to use based on question format and options
+const questionComponent = computed(() => {
+  const format = props.question.format
+  const hasDropdowns = props.question.options?.some(
+    (option) => option.choices && option.choices.length > 0,
+  )
+
+  switch (format) {
+    case 'single choice':
+      return hasDropdowns ? SingleChoiceDropdownQuestion : SingleChoiceQuestion
+    case 'multiple choice':
+      return MultipleChoiceQuestion
+    case 'single choice + open text field':
+      return SingleChoiceTextQuestion
+    case 'multiple choice + open text field':
+      return MultipleChoiceTextQuestion
+    case 'open text field':
+      return OpenTextQuestion
+    default:
+      return SingleChoiceQuestion
+  }
+})
+
 function getClientAnswer(): ClientAnswerSchema {
-  // TODO: Implement logic to gather user's answer based on question format
+  if (questionComponentRef.value?.getAnswer) {
+    return questionComponentRef.value.getAnswer()
+  }
+
+  // Fallback
   return {
     question: props.question.id!,
     choices: [],
@@ -26,81 +60,7 @@ defineExpose({
 
 <template>
   <Form class="client-question">
-    <p>{{ props.question.question_text }}</p>
-    <template v-if="props.question.format == 'single choice'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <RadioButton
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-        <Select
-          v-if="option.choices && option.choices.length"
-          filter
-          :options="option.choices"
-          :placeholder="'Select an option for ' + option.text"
-        />
-      </div>
-    </template>
-    <template v-else-if="props.question.format == 'multiple choice'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <Checkbox
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-      </div>
-    </template>
-    <template v-else-if="props.question.format == 'multiple choice + open text field'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <Checkbox
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-        <InputText type="text" :id="'other-' + props.question.id" v-if="option.allow_text" />
-      </div>
-    </template>
-    <template v-else-if="props.question.format == 'single choice + open text field'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <RadioButton
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-        <InputText type="text" :id="'other-' + props.question.id" v-if="option.allow_text" />
-      </div>
-    </template>
-    <template v-else-if="props.question.format == 'open text field'">
-      <InputText type="text" />
-    </template>
+    <p>{{ question.question_text }}</p>
+    <component :is="questionComponent" ref="questionComponentRef" :question="question" />
   </Form>
 </template>

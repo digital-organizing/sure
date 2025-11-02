@@ -3,6 +3,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { resolve } from 'node:path'
+import Components from 'unplugin-vue-components/vite';
+import {PrimeVueResolver} from '@primevue/auto-import-resolver';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,7 +12,11 @@ export default defineConfig({
     org: "d-o",
     project: "sure",
     url: "https://sentry.d-o.li/"
-  })],
+  }),
+  Components({
+    resolvers: [PrimeVueResolver()],
+  })
+],
   resolve: {
     alias: {
       '@': resolve('./src')

@@ -1,16 +1,15 @@
 :root {
   --color-ahs-black: #000000;
-  --color-ahs-white: #FFFFFF;
-  --color-ahs-red: #E20613;
-  --color-ahs-gray: #3C3C3B;
-  --color-ahs-light-blue: #F0F8FF;
-  --color-ahs-red-dark: #8B030B;
+  --color-ahs-white: #ffffff;
+  --color-ahs-red: #e20613;
+  --color-ahs-gray: #3c3c3b;
+  --color-ahs-light-blue: #f0f8ff;
+  --color-ahs-red-dark: #8b030b;
   --color-ahs-middle-gray: #646464;
-  --color-ahs-light-gray: #BCBCBC;
-  --color-green: #D0EA2B;
-  --color-green-2: #66B032;
-  --color-orange: #FB9902;
-
+  --color-ahs-light-gray: #bcbcbc;
+  --color-green: #d0ea2b;
+  --color-green-2: #66b032;
+  --color-orange: #fb9902;
 }
 
 /* semantic color variables for this project */
@@ -19,7 +18,13 @@
   --color-text: var(--color-ahs-black);
   --primary-color: var(--color-ahs-red);
   --secondary-color: var(--color-ahs-white);
-  --font-family: "Circular Std"
+  --font-family: 'Circular Std';
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
 }
 
 /* @media (prefers-color-scheme: dark) {

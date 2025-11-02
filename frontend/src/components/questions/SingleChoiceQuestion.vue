@@ -1,0 +1,65 @@
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { RadioButton } from 'primevue'
+import { type ClientQuestionSchema } from '@/client'
+import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
+
+const props = defineProps<{
+  question: ClientQuestionSchema
+}>()
+
+const { answer, updateAnswer } = useQuestionAnswer(props.question)
+const selectedChoice = ref<number | null>(null)
+
+// Load existing answer
+if (answer.value.choices && answer.value.choices.length > 0) {
+  selectedChoice.value = answer.value.choices[0] as number
+}
+
+// Update store when selection changes
+watch(selectedChoice, (newChoice) => {
+  if (newChoice !== null) {
+    const option = props.question.options?.find((opt) => opt.id === newChoice)
+    updateAnswer([newChoice], [option?.text || ''])
+  } else {
+    updateAnswer([], [])
+  }
+})
+
+function getAnswer() {
+  return answer.value
+}
+
+defineExpose({
+  getAnswer,
+})
+</script>
+
+<template>
+  <div class="single-choice-question">
+    <div v-for="option in question.options" :key="option.id || 0" class="option-item">
+      <RadioButton
+        v-model="selectedChoice"
+        :value="option.id"
+        :inputId="`option-${option.id}`"
+        :name="`question-${question.id}`"
+      />
+      <label :for="`option-${option.id}`" class="option-label">
+        {{ option.text }}
+      </label>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.option-label {
+  cursor: pointer;
+}
+</style>

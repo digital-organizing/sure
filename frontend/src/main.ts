@@ -18,6 +18,10 @@ import '@/assets/base.css'
 import type { ButtonDesignTokens } from '@primeuix/themes/types/button'
 
 
+
+import * as Sentry from "@sentry/vue";
+import { createSentryPiniaPlugin } from "@sentry/vue";
+
 // Import stores for initialization
 
 function getCsrfToken() {
@@ -54,6 +58,7 @@ client.interceptors.response.use(async (response) => {
 
 const app = createApp(App)
 
+<<<<<<< HEAD
 // Defining custom theme preset, unclear if this is the best way to do this
 const SurePreset = definePreset(Aura, {
   components: {
@@ -109,7 +114,19 @@ const SurePreset = definePreset(Aura, {
 });
 
 
+=======
+Sentry.init({
+  app,
+  dsn: "https://f23eef026dedb9d752fc45fc961f71a0@sentry.d-o.li/5",
+  tracesSampleRate: 1.0,
+  sendDefaultPii: true,
+});
+
+>>>>>>> dev
 const pinia = createPinia()
+
+pinia.use(createSentryPiniaPlugin());
+
 app.use(pinia)
 app.use(router)
 app.use(PrimeVue, {

@@ -40,7 +40,6 @@ export const userAnswersStore = defineStore('answers', () => {
   }
 
   const isOptionSelected = (optionId: number) => {
-    console.log('Checking if option', optionId, 'is selected')
     const option = optionToQuestion.value.get(optionId)
     if (!option) return false
     const [questionId, optionCode] = option
@@ -48,7 +47,6 @@ export const userAnswersStore = defineStore('answers', () => {
     const answer = getAnswerForQuestion(questionId)
     if (!answer) return false
 
-    console.log('Checking option', optionCode, 'in answer', answer)
 
     const selected = answer.choices.some((choice) => choice.code === optionCode)
     if (selected) return true

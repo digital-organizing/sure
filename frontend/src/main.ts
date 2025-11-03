@@ -131,7 +131,6 @@ const initializeStores = () => {
   // Initialize key stores
 
   // Stores are automatically initialized when accessed
-  console.log('Pinia stores initialized')
 }
 
 app.mount('#app')

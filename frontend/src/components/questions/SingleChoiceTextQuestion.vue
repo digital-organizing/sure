@@ -73,7 +73,7 @@ defineExpose({
         {{ option.text }}
       </label>
       <InputText
-        v-if="option.allow_text && selectedChoice === option.id"
+        v-if="option.allow_text && selectedChoice === option.code"
         v-model="textInputs[option.id!]"
         type="text"
         :placeholder="'Additional text for ' + option.text"

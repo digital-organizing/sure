@@ -9,19 +9,19 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question)
-const selectedChoices = ref<number[]>([])
-const textInputs = ref<Record<number, string>>({})
+const selectedChoices = ref<string[]>([])
+const textInputs = ref<Record<string, string>>({})
 
 // Load existing answer
 if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoices.value = [...(answer.value.choices as number[])]
+  selectedChoices.value = [...answer.value.choices.map((choice) => choice.code)]
 
   // Load text inputs if they exist
-  if (answer.value.texts && answer.value.texts.length > 0) {
+  if (answer.value.choices && answer.value.choices.length > 0) {
     selectedChoices.value.forEach((choiceId, index) => {
-      const option = props.question.options?.find((opt) => opt.id === choiceId)
-      if (option?.allow_text && answer.value.texts![index]) {
-        textInputs.value[choiceId] = answer.value.texts![index] as string
+      const option = props.question.options?.find((opt) => opt.code === choiceId)
+      if (option?.allow_text && answer.value.choices[index].text) {
+        textInputs.value[choiceId] = answer.value.choices[index].text
       }
     })
   }
@@ -32,7 +32,7 @@ watch(
   [selectedChoices, textInputs],
   () => {
     const texts = selectedChoices.value.map((choiceId) => {
-      const option = props.question.options?.find((opt) => opt.id === choiceId)
+      const option = props.question.options?.find((opt) => opt.code === choiceId)
 
       // Use custom text if option allows it and text is provided
       if (option?.allow_text && textInputs.value[choiceId]) {
@@ -64,12 +64,12 @@ defineExpose({
       class="option-item"
       :class="{
         'with-text-input': option.allow_text,
-        active: selectedChoices.includes(option.id!),
+        active: selectedChoices.includes(option.code),
       }"
     >
       <Checkbox
         v-model="selectedChoices"
-        :value="option.id"
+        :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />
@@ -77,7 +77,7 @@ defineExpose({
         {{ option.text }}
       </label>
       <InputText
-        v-if="option.allow_text && selectedChoices.includes(option.id!)"
+        v-if="option.allow_text && selectedChoices.includes(option.code!)"
         v-model="textInputs[option.id!]"
         type="text"
         :placeholder="'Additional text for ' + option.text"

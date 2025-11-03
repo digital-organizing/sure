@@ -9,17 +9,17 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question)
-const selectedChoice = ref<number | null>(null)
+const selectedChoice = ref<string | null>(null)
 
 // Load existing answer
 if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoice.value = answer.value.choices[0] as number
+  selectedChoice.value = answer.value.choices[0].code
 }
 
 // Update store when selection changes
 watch(selectedChoice, (newChoice) => {
   if (newChoice !== null) {
-    const option = props.question.options?.find((opt) => opt.id === newChoice)
+    const option = props.question.options?.find((opt) => opt.code === newChoice)
     updateAnswer([newChoice], [option?.text || ''])
   } else {
     updateAnswer([], [])
@@ -40,7 +40,7 @@ defineExpose({
     <div v-for="option in question.options" :key="option.id || 0" class="option-item">
       <RadioButton
         v-model="selectedChoice"
-        :value="option.id"
+        :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />

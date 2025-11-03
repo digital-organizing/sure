@@ -9,11 +9,11 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question)
-const selectedChoices = ref<number[]>([])
+const selectedChoices = ref<string[]>([])
 
 // Load existing answer
 if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoices.value = [...(answer.value.choices as number[])]
+  selectedChoices.value = [...answer.value.choices.map((choice) => choice.code)]
 }
 
 // Update store when selection changes
@@ -21,7 +21,7 @@ watch(
   selectedChoices,
   (newChoices) => {
     const texts = newChoices.map((choiceId) => {
-      const option = props.question.options?.find((opt) => opt.id === choiceId)
+      const option = props.question.options?.find((opt) => opt.code === choiceId)
       return option?.text || ''
     })
     updateAnswer(newChoices, texts)
@@ -43,7 +43,7 @@ defineExpose({
     <div v-for="option in question.options" :key="option.id || 0" class="option-item">
       <Checkbox
         v-model="selectedChoices"
-        :value="option.id"
+        :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />

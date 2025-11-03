@@ -2,7 +2,7 @@
 import { type SectionSchema } from '@/client'
 import ClientQuestion from './ClientQuestion.vue'
 import { userAnswersStore } from '@/stores/answers'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{ section: SectionSchema; hasNext: boolean; hasPrevious: boolean }>()
 
@@ -28,6 +28,20 @@ function onPrevious() {
 function onSubmit() {
   emits('submit')
 }
+
+const visibleQuestions = computed(() => {
+  return props.section.client_questions.filter((q) => {
+    if (!q.show_for_options || q.show_for_options.length === 0) {
+      return true
+    }
+    for (const option of q.show_for_options) {
+      if (answersStore.isOptionSelected(option)) {
+        return true
+      }
+    }
+    return false
+  })
+})
 </script>
 
 <template>
@@ -35,7 +49,7 @@ function onSubmit() {
     <h2>{{ props.section.title }}</h2>
     <p>{{ props.section.description }}</p>
     <ClientQuestion
-      v-for="question in props.section.client_questions"
+      v-for="question in visibleQuestions"
       :key="question.id!"
       :question="question"
       ref="questions"

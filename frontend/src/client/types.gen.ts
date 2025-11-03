@@ -246,17 +246,17 @@ export type InternalQuestionnaireSchema = {
  */
 export type ClientAnswerSchema = {
     /**
-     * Question
-     */
-    question: number;
-    /**
      * Choices
      */
-    choices?: Array<unknown> | null;
+    choices: Array<number>;
     /**
      * Texts
      */
-    texts?: Array<unknown> | null;
+    texts: Array<string>;
+    /**
+     * Question
+     */
+    question: number;
     /**
      * Created At
      */

@@ -1,27 +1,24 @@
 import { computed, onMounted } from 'vue'
-import { type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
+import { type AnswerSchema, type ClientQuestionSchema } from '@/client'
 import { userAnswersStore } from '@/stores/answers'
 
 export function useQuestionAnswer(question: ClientQuestionSchema) {
   const answersStore = userAnswersStore()
 
   // Get or create answer for this question
-  const answer = computed<ClientAnswerSchema>({
+  const answer = computed<AnswerSchema>({
     get() {
       return answersStore.getAnswerForQuestion(question.id!) || createInitialAnswer()
     },
-    set(newAnswer: ClientAnswerSchema) {
-      answersStore.setAnswerForQuestion(question.id!, newAnswer)
+    set(newAnswer: AnswerSchema) {
+      answersStore.setAnswerForQuestion(question.id!, newAnswer.choices)
     },
   })
 
-  function createInitialAnswer(): ClientAnswerSchema {
+  function createInitialAnswer(): AnswerSchema {
     return {
-      question: question.id!,
+      questionId: question.id!,
       choices: [],
-      texts: [],
-      created_at: new Date().toISOString(),
-      user: null,
     }
   }
 
@@ -32,13 +29,17 @@ export function useQuestionAnswer(question: ClientQuestionSchema) {
     }
   })
 
-  function updateAnswer(choices: number[], texts: string[]) {
+  function updateAnswer(codes: string[], texts: string[]) {
+    const choices = codes.map((code, idx) => {
+      return {
+        code: code,
+        text: texts[idx] || '',
+      }
+    })
+
     answer.value = {
-      question: question.id!,
-      choices,
-      texts,
-      created_at: new Date().toISOString(),
-      user: null,
+      questionId: question.id!,
+      choices: choices,
     }
   }
 

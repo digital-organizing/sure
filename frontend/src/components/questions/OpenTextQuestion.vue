@@ -12,8 +12,8 @@ const { answer, updateAnswer } = useQuestionAnswer(props.question)
 const textInput = ref<string>('')
 
 // Load existing answer
-if (answer.value.texts && answer.value.texts.length > 0) {
-  textInput.value = answer.value.texts[0] as string
+if (answer.value.choices && answer.value.choices.length > 0) {
+  textInput.value = answer.value.choices[0].text
 }
 
 // Update store when text changes

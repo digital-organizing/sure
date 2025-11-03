@@ -3,15 +3,18 @@ import { sureApiGetQuestionnaire, type QuestionnaireSchema } from '@/client'
 import ClientSection from '@/components/ClientSection.vue'
 import ProgressBar from '@/components/ProgressBar.vue'
 import { useScroll } from '@/composables/useScroll'
+import { userAnswersStore } from '@/stores/answers'
 import { nextTick, onMounted, ref, watch } from 'vue'
 
 const formStructure = ref<QuestionnaireSchema | null>(null)
+const answersStore = userAnswersStore()
 const formIndex = ref<number>(0)
 
 const { scrollToTop } = useScroll()
 
 onMounted(async () => {
   formStructure.value = (await sureApiGetQuestionnaire({ path: { pk: 2 } })).data!
+  answersStore.setSchema(formStructure.value)
 
   const savedIndex = localStorage.getItem('clientFormIndex')
   if (savedIndex) {

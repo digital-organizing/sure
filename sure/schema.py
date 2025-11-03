@@ -145,6 +145,8 @@ class ClientAnswerSchema(ModelSchema):
             "created_at",
             "user",
         ]
+    choices: list[int]
+    texts: list[str]
 
 
 class SubmitCaseSchema(Schema):

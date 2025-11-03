@@ -9,18 +9,18 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question)
-const selectedChoice = ref<number | null>(null)
-const textInputs = ref<Record<number, string>>({})
+const selectedChoice = ref<string | null>(null)
+const textInputs = ref<Record<string, string>>({})
 
 // Load existing answer
 if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoice.value = answer.value.choices[0] as number
+  selectedChoice.value = answer.value.choices[0].code
 
   // Load text inputs if they exist
-  if (answer.value.texts && answer.value.texts.length > 0) {
-    const selectedOption = props.question.options?.find((opt) => opt.id === selectedChoice.value)
+  if (answer.value.choices && answer.value.choices.length > 0) {
+    const selectedOption = props.question.options?.find((opt) => opt.code === selectedChoice.value)
     if (selectedOption?.allow_text) {
-      textInputs.value[selectedChoice.value] = answer.value.texts[0] as string
+      textInputs.value[selectedChoice.value] = answer.value.choices[0].text
     }
   }
 }
@@ -61,11 +61,11 @@ defineExpose({
       v-for="option in question.options"
       :key="option.id || 0"
       class="option-item"
-      :class="{ 'with-text-input': option.allow_text, active: selectedChoice === option.id }"
+      :class="{ 'with-text-input': option.allow_text, active: selectedChoice === option.code }"
     >
       <RadioButton
         v-model="selectedChoice"
-        :value="option.id"
+        :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />

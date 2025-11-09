@@ -1,8 +1,20 @@
+from typing import Annotated, Any, Optional
+from django.conf import settings
 from ninja import ModelSchema, Schema
+import phonenumbers
+from pydantic import BeforeValidator
 
-from sure.models import (Case, ClientAnswer, ClientOption, ClientQuestion,
-                         ConsultantOption, ConsultantQuestion, Questionnaire,
-                         Section, Visit)
+from sure.models import (
+    Case,
+    ClientAnswer,
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    Visit,
+)
 
 
 class ClientOptionSchema(ModelSchema):
@@ -115,10 +127,26 @@ class InternalQuestionnaireSchema(QuestionnaireSchema):
         return list(questionnaire.consultant_questions.all())
 
 
+def validate_phone_number(value: Any) -> str | None:
+    if value is None:
+        return value
+    if isinstance(value, phonenumbers.PhoneNumber):
+        return phonenumbers.format_number(value, phonenumbers.PhoneNumberFormat.E164)
+    try:
+        phone_number = phonenumbers.parse(value, settings.DEFAULT_REGION)
+        if not phonenumbers.is_valid_number(phone_number):
+            raise ValueError("Invalid phone number")
+        return phonenumbers.format_number(
+            phone_number, phonenumbers.PhoneNumberFormat.E164
+        )
+    except phonenumbers.NumberParseException:
+        raise ValueError("Invalid phone number")
+
+
 class CreateCaseSchema(Schema):
     location_id: int
     questionnaire_id: int
-    phone: str | None = None
+    phone: Annotated[Optional[str], BeforeValidator(validate_phone_number)] = None
 
 
 class CreateCaseResponse(Schema):
@@ -145,6 +173,7 @@ class ClientAnswerSchema(ModelSchema):
             "created_at",
             "user",
         ]
+
     choices: list[int]
     texts: list[str]
 
@@ -176,3 +205,37 @@ class VisitSchema(ModelSchema):
         ]
 
     client_answers: list[ClientAnswerSchema]
+
+
+class CaseListingSchema(ModelSchema):
+    location: str
+    client: str | None
+    last_modified_at: str
+
+    class Meta:
+        model = Visit
+        fields = [
+            "case",
+            "id",
+            "tags",
+            "status",
+        ]
+
+    @staticmethod
+    def resolve_case_id(visit: Visit) -> int:
+        return visit.case.human_id
+
+    @staticmethod
+    def resolve_location(visit: Visit) -> str:
+        return visit.case.location.name
+
+    @staticmethod
+    def resolve_client(visit: Visit) -> str:
+        connection = getattr(visit.case, "connection", None)
+        if not connection:
+            return ""
+        return connection.client.humnan_id
+
+    @staticmethod
+    def resolve_last_modified_at(visit: Visit) -> str:
+        return getattr(visit, "last_modified_at", visit.created_at).isoformat()

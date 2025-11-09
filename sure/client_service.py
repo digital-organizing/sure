@@ -10,8 +10,16 @@ import tenants.models
 from sure.schema import AnswerSchema
 from sure.twilio import send_sms
 
-from .models import (Case, Client, Connection, ConsentChoice, Contact,
-                     Questionnaire, Visit, VisitStatus)
+from .models import (
+    Case,
+    Client,
+    Connection,
+    ConsentChoice,
+    Contact,
+    Questionnaire,
+    Visit,
+    VisitStatus,
+)
 
 
 def canonicalize_phone_number(phone_number: str) -> str:

@@ -1,15 +1,38 @@
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from ninja import Router
+from ninja.pagination import paginate, PageNumberPagination
 
-from sure.client_service import (create_case, create_visit, get_case_link,
-                                 record_client_answers, send_case_link,
-                                 strip_id, verify_access_to_location)
-from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
-                         ConsultantQuestion, Questionnaire, Section, Visit)
-from sure.schema import (CreateCaseResponse, CreateCaseSchema,
-                         InternalQuestionnaireSchema, QuestionnaireSchema,
-                         SubmitCaseResponse, SubmitCaseSchema, VisitSchema)
+from sure.cases import annotate_last_modified
+from sure.client_service import (
+    create_case,
+    create_visit,
+    get_case_link,
+    record_client_answers,
+    send_case_link,
+    strip_id,
+    verify_access_to_location,
+)
+from sure.models import (
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    Visit,
+)
+from sure.schema import (
+    CaseListingSchema,
+    CreateCaseResponse,
+    CreateCaseSchema,
+    InternalQuestionnaireSchema,
+    QuestionnaireSchema,
+    SubmitCaseResponse,
+    SubmitCaseSchema,
+    VisitSchema,
+)
+from tenants.models import Consultant
 
 router = Router()
 
@@ -106,7 +129,6 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
 @router.post("/case/create/")
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
-    print(data)
     case = create_case(data.location_id, request.user)
     create_visit(case, get_object_or_404(Questionnaire, pk=data.questionnaire_id))
 
@@ -130,3 +152,17 @@ def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argu
     """Get a questionnaire by its ID, including consultant questions."""
     questionnaire = _prefetch_questionnaire(internal=True).get(pk=pk)
     return questionnaire
+
+
+@router.get("/cases/", response=list[CaseListingSchema])
+@paginate(PageNumberPagination, page_size=20)
+def list_cases(request):
+    """List all cases the user has access to."""
+    consultant = get_object_or_404(Consultant, user=request.user)
+    visits = annotate_last_modified(
+        Visit.objects.filter(case__location__tenant=consultant.tenant)
+        .select_related("case", "questionnaire", "case__connection", "case__location")
+        .prefetch_related("client_answers", "consultant_answers", "test_results")
+    ).order_by("-last_modified_at")
+
+    return visits

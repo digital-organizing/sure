@@ -534,8 +534,11 @@ class Visit(models.Model):
         verbose_name=_("Status"),
     )
 
+    tags = ArrayField(models.CharField(max_length=50), blank=True, default=list)
+
     client_answers: models.QuerySet[ClientAnswer]
     consultant_answers: models.QuerySet[ConsultantAnswer]
+    test_results: models.QuerySet["Test"]
 
 
 class Test(models.Model):
@@ -557,6 +560,7 @@ class TestResult(models.Model):
     result_option = models.ForeignKey(
         TestResultOption, on_delete=models.CASCADE, related_name="test_results"
     )
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="results")
     note = models.TextField(
         blank=True,
         verbose_name=_("Note"),

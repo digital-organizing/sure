@@ -43,5 +43,7 @@ class Consultant(models.Model):
     )
     user = models.OneToOneField("auth.User", on_delete=models.CASCADE)
 
+    locations = models.ManyToManyField(Location, related_name="consultants")
+
     def __str__(self) -> str:
         return f"{self.user.get_full_name()} ({self.tenant.name})"

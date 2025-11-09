@@ -356,6 +356,68 @@ export type CreateCaseSchema = {
     phone?: string | null;
 };
 
+/**
+ * Input
+ */
+export type Input = {
+    /**
+     * Page
+     */
+    page?: number;
+    /**
+     * Page Size
+     */
+    page_size?: number | null;
+};
+
+/**
+ * CaseListingSchema
+ */
+export type CaseListingSchema = {
+    /**
+     * Location
+     */
+    location: string;
+    /**
+     * Client
+     */
+    client: string | null;
+    /**
+     * Last Modified At
+     */
+    last_modified_at: string;
+    /**
+     * Case
+     */
+    case: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Tags
+     */
+    tags?: Array<unknown> | null;
+    /**
+     * Status
+     */
+    status?: string;
+};
+
+/**
+ * PagedCaseListingSchema
+ */
+export type PagedCaseListingSchema = {
+    /**
+     * Items
+     */
+    items: Array<CaseListingSchema>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
 export type CoreApiGetCsrfTokenData = {
     body?: never;
     path?: never;
@@ -565,6 +627,31 @@ export type SureApiGetInternalQuestionnaireResponses = {
 };
 
 export type SureApiGetInternalQuestionnaireResponse = SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses];
+
+export type SureApiListCasesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number | null;
+    };
+    url: '/api/sure/cases/';
+};
+
+export type SureApiListCasesResponses = {
+    /**
+     * OK
+     */
+    200: PagedCaseListingSchema;
+};
+
+export type SureApiListCasesResponse = SureApiListCasesResponses[keyof SureApiListCasesResponses];
 
 export type ClientOptions = {
     baseUrl: string;

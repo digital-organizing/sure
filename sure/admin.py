@@ -4,27 +4,39 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group, User
 from django.db import models
-from django_celery_beat.admin import \
-    ClockedScheduleAdmin as BaseClockedScheduleAdmin
-from django_celery_beat.admin import \
-    CrontabScheduleAdmin as BaseCrontabScheduleAdmin
+from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
+from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
 from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
 from django_celery_beat.admin import PeriodicTaskForm, TaskSelectWidget
-from django_celery_beat.models import (ClockedSchedule, CrontabSchedule,
-                                       IntervalSchedule, PeriodicTask,
-                                       SolarSchedule)
-from modeltranslation.admin import (TabbedTranslationAdmin,
-                                    TranslationStackedInline,
-                                    TranslationTabularInline)
+from django_celery_beat.models import (
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule,
+)
+from modeltranslation.admin import (
+    TabbedTranslationAdmin,
+    TranslationStackedInline,
+    TranslationTabularInline,
+)
 from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
-from unfold.forms import (AdminPasswordChangeForm, UserChangeForm,
-                          UserCreationForm)
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
-from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
-                         ConsultantQuestion, Questionnaire, Section,
-                         TestBundle, TestCategory, TestKind, TestResultOption)
+from sure.models import (
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    TestBundle,
+    TestCategory,
+    TestKind,
+    TestResultOption,
+)
 
 
 @admin.register(ClientOption)

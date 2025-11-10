@@ -1,10 +1,10 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type {
-  SubmitCaseSchema,
-  ChoiceSchema,
-  ClientAnswerSchema,
-  QuestionnaireSchema,
+import {
+  type SubmitCaseSchema,
+  type ChoiceSchema,
+  type ClientAnswerSchema,
+  type QuestionnaireSchema,
 } from '@/client'
 
 export const userAnswersStore = defineStore('answers', () => {
@@ -47,7 +47,6 @@ export const userAnswersStore = defineStore('answers', () => {
     const answer = getAnswerForQuestion(questionId)
     if (!answer) return false
 
-
     const selected = answer.choices.some((choice) => choice.code === optionCode)
     if (selected) return true
   }
@@ -82,5 +81,16 @@ export const userAnswersStore = defineStore('answers', () => {
     setAnswerForQuestion,
     isOptionSelected,
     setSchema,
+  }
+})
+
+export const consultantAnswersStore = defineStore('answers', () => {
+  function getAnswerForQuestion(questionId: number) {}
+
+  function setAnswerForQuestion(questionId: number, choices: ChoiceSchema[]) {}
+
+  return {
+    getAnswerForQuestion,
+    setAnswerForQuestion,
   }
 })

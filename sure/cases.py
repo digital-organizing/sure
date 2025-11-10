@@ -1,5 +1,6 @@
-from django.db.models import QuerySet, F, OuterRef, Subquery
+from django.db.models import F, OuterRef, QuerySet, Subquery
 from django.db.models.functions import Greatest
+
 from sure.models import ClientAnswer, ConsultantAnswer, Test, TestResult, Visit
 
 

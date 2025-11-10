@@ -1,14 +1,39 @@
 import { computed, onMounted } from 'vue'
-import { type AnswerSchema, type ClientQuestionSchema } from '@/client'
-import { userAnswersStore } from '@/stores/answers'
+import {
+  type AnswerSchema,
+  type ClientAnswerSchema,
+  type ClientQuestionSchema,
+  type ConsultantAnswerSchema,
+  type ConsultantQuestionSchema,
+} from '@/client'
+import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
 
-export function useQuestionAnswer(question: ClientQuestionSchema) {
-  const answersStore = userAnswersStore()
+export function useQuestionAnswer(
+  question: ClientQuestionSchema | ConsultantQuestionSchema,
+  remote: ClientAnswerSchema | ConsultantAnswerSchema | null | undefined = undefined,
+  consultant: boolean = false,
+) {
+  const answersStore = consultant ? userAnswersStore() : consultantAnswersStore()
 
   // Get or create answer for this question
   const answer = computed<AnswerSchema>({
     get() {
-      return answersStore.getAnswerForQuestion(question.id!) || createInitialAnswer()
+      if (remote === undefined) {
+        return answersStore.getAnswerForQuestion(question.id!) || createInitialAnswer()
+      }
+
+      if (remote === null) {
+        return createInitialAnswer()
+      }
+      return {
+        questionId: question.id!,
+        choices: remote.choices.map((choice, idx) => {
+          return {
+            code: '' + choice,
+            text: remote.texts[idx] || '',
+          }
+        }),
+      }
     },
     set(newAnswer: AnswerSchema) {
       answersStore.setAnswerForQuestion(question.id!, newAnswer.choices)

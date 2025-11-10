@@ -1,5 +1,3 @@
 <template>
-    <div>
-        Support View Content
-    </div>
+  <div>Support View Content</div>
 </template>

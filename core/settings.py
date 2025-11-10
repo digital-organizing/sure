@@ -13,9 +13,8 @@ import os
 import re
 from pathlib import Path
 
-from environ import Env
 import sentry_sdk
-
+from environ import Env
 
 env = Env()
 

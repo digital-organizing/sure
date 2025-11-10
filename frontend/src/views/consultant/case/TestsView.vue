@@ -1,4 +1,1 @@
-
-<template>
-    Empty
-</template>
+<template>Empty</template>

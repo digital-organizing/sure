@@ -29,13 +29,24 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
-      path: '/client-form',
+      path: '/client/:caseId',
       name: 'client-form',
       component: () => import('../views/ClientFormView.vue'),
+      props: true,
     },
     {
-     path: '/consultant',
-     component: ConsultantView,
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/user/LoginView.vue'),
+    },
+    {
+      path: '/logout',
+      name: 'logout',
+      component: () => import('../views/user/LogoutView.vue'),
+    },
+    {
+      path: '/consultant',
+      component: ConsultantView,
       children: [
         {
           path: '',
@@ -46,33 +57,41 @@ const router = createRouter({
           path: 'case/:caseId',
           name: 'consultant-case',
           component: CaseView,
+          props: true,
           children: [
             {
               path: 'client-answers',
-              name: 'consultant-case-client-answers',
+              name: 'consultant-client-answers',
               component: ClientQuestionnaire,
             },
             {
               path: 'consultant-questionnaire',
+              name: 'consultant-questionnaire',
               component: ConsultantQuestionnaire,
             },
             {
               path: 'tests',
+              name: 'consultant-tests',
               component: TestsView,
             },
             {
               path: 'results',
               component: ResultView,
+              name: 'consultant-results',
             },
             {
               path: 'communication',
+              name: 'consultant-communication',
               component: CommunicationView,
+              props: true,
             },
             {
               path: 'history',
+              name: 'consultant-case-history',
               component: CaseHistory,
-            }
-          ]
+              props: true,
+            },
+          ],
         },
         {
           path: 'new-case',
@@ -83,9 +102,9 @@ const router = createRouter({
           path: 'support',
           name: 'consultant-support',
           component: SupportView,
-        }
+        },
       ],
-    }
+    },
   ],
 })
 

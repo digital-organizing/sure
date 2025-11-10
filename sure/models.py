@@ -508,7 +508,10 @@ class VisitStatus(models.TextChoices):
     CONSULTANT_SUBMITTED = "consultant_submitted", _("Consultant Submitted")
 
     RESULTS_RECORDED = "results_recorded", _("Results Recorded")
+    RESULTS_SENT = "results_sent", _("Results Sent")
     CLOSED = "closed", _("Closed")
+
+    CANCELED = "canceled", _("Canceled")
 
 
 class Visit(models.Model):

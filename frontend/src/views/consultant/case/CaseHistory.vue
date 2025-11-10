@@ -1,3 +1,1 @@
-<template>
-    Support View
-</template>
+<template>Support View</template>

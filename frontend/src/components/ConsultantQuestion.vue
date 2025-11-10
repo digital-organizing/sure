@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineProps, ref, computed } from 'vue'
-import { type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
+import { type ConsultantAnswerSchema, type ConsultantQuestionSchema } from '@/client'
 import { Form } from '@primevue/forms'
 import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'
 import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.vue'
@@ -10,11 +10,11 @@ import MultipleChoiceTextQuestion from './questions/MultipleChoiceTextQuestion.v
 import SingleChoiceDropdownQuestion from './questions/SingleChoiceDropdownQuestion.vue'
 
 const props = defineProps<{
-  question: ClientQuestionSchema
-  remote?: ClientAnswerSchema | null
+  question: ConsultantQuestionSchema
+  remote?: ConsultantAnswerSchema | null
 }>()
 
-const questionComponentRef = ref<{ getAnswer: () => ClientAnswerSchema } | null>(null)
+const questionComponentRef = ref<{ getAnswer: () => ConsultantAnswerSchema } | null>(null)
 
 // Determine which component to use based on question format and options
 const questionComponent = computed(() => {
@@ -39,7 +39,7 @@ const questionComponent = computed(() => {
   }
 })
 
-function getClientAnswer(): ClientAnswerSchema {
+function getConsultantAnswer(): ConsultantAnswerSchema {
   if (questionComponentRef.value?.getAnswer) {
     return questionComponentRef.value.getAnswer()
   }
@@ -55,18 +55,19 @@ function getClientAnswer(): ClientAnswerSchema {
 }
 
 defineExpose({
-  getClientAnswer,
+  getConsultantAnswer,
 })
 </script>
 
 <template>
-  <Form class="client-question">
+  <Form class="consultant-question">
     <p>{{ question.question_text }}</p>
     <component
       :is="questionComponent"
       ref="questionComponentRef"
       :question="question"
       :remote="remote"
+      :consultant="true"
     />
   </Form>
 </template>

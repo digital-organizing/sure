@@ -1,7 +1,7 @@
-from django.db.models import Prefetch
+from django.db.models import F, Func, Prefetch
 from django.shortcuts import get_object_or_404
 from ninja import Router
-from ninja.pagination import paginate, PageNumberPagination
+from ninja.pagination import PageNumberPagination, paginate
 
 from sure.cases import annotate_last_modified
 from sure.client_service import (
@@ -21,16 +21,21 @@ from sure.models import (
     Questionnaire,
     Section,
     Visit,
+    VisitStatus,
 )
 from sure.schema import (
+    CaseFilters,
+    CaseHistory,
     CaseListingSchema,
+    ClientAnswerSchema,
+    ConsultantAnswerSchema,
     CreateCaseResponse,
     CreateCaseSchema,
     InternalQuestionnaireSchema,
+    OptionSchema,
     QuestionnaireSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
-    VisitSchema,
 )
 from tenants.models import Consultant
 
@@ -96,7 +101,7 @@ def get_case_internal(request, pk: str):
     return questionnaire
 
 
-@router.get("/case/{pk}/visit/", response=VisitSchema)
+@router.get("/case/{pk}/visit/", response=CaseListingSchema)
 def get_visit(request, pk: str):
     """Get the client answers for a case."""
     pk = strip_id(pk)
@@ -107,6 +112,52 @@ def get_visit(request, pk: str):
         raise PermissionError("User does not have access to this location")
 
     return visit
+
+
+@router.get("/case/{pk}/visit/client-answers/", response=list[ClientAnswerSchema])
+def get_visit_client_answers(request, pk: str):
+    pk = strip_id(pk)
+    visit = get_object_or_404(Visit, case_id=pk)
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    # Only get latest per querstion_id
+    return (
+        visit.client_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+    )
+
+
+@router.get(
+    "/case/{pk}/visit/consultant-answers/", response=list[ConsultantAnswerSchema]
+)
+def get_visit_consultant_answers(request, pk: str):
+    pk = strip_id(pk)
+    visit = get_object_or_404(Visit, case_id=pk)
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    return (
+        visit.consultant_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+    )
+
+
+@router.get("/case/{pk}/visit/history/", response=CaseHistory)
+def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
+    pk = strip_id(pk)
+    visit = get_object_or_404(Visit, case_id=pk)
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    client_answers = visit.client_answers.all()
+    consultant_answers = visit.consultant_answers.all()
+    return {
+        "client_answers": client_answers[offset : offset + limit],
+        "consultant_answers": consultant_answers[offset : offset + limit],
+    }
 
 
 @router.post("/case/{pk}/submit/", auth=None, response=SubmitCaseResponse)
@@ -154,13 +205,69 @@ def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argu
     return questionnaire
 
 
-@router.get("/cases/", response=list[CaseListingSchema])
+@router.post("/cases/", response=list[CaseListingSchema])
 @paginate(PageNumberPagination, page_size=20)
-def list_cases(request):
+def list_cases(request, filters: CaseFilters):
     """List all cases the user has access to."""
     consultant = get_object_or_404(Consultant, user=request.user)
+    django_filters = filters.get_django_filters()
+
+    visits = (
+        annotate_last_modified(
+            Visit.objects.filter(case__location__in=consultant.locations.all())
+            .select_related(
+                "case", "questionnaire", "case__connection", "case__location"
+            )
+            .prefetch_related("client_answers", "consultant_answers", "test_results")
+        )
+        .order_by("-last_modified_at")
+        .filter(django_filters)
+    )
+
+    return visits
+
+
+@router.get("/case/status/options/", response=list[OptionSchema])
+def get_case_status_options(request):
+    """Get options for case status."""
+    return [
+        {"label": str(label), "value": str(value)}
+        for value, label in VisitStatus.choices
+    ]
+
+
+@router.get("/case/tags/options/", response=list[str])
+def get_case_tags_options(request):
+    """Get options for case tags."""
+    consultant = get_object_or_404(Consultant, user=request.user)
+    visits = (
+        Visit.objects.filter(case__location__in=consultant.locations.all())
+        .exclude(tags__isnull=True)
+        .exclude(tags=[])
+    )
+
+    distinct_tags = (
+        visits.annotate(tag=Func(F("tags"), function="unnest"))
+        .values("tag")
+        .distinct()
+        .values_list("tag", flat=True)
+    )
+
+    return sorted(distinct_tags)
+
+
+@router.get("/client/{pk}/cases/", response=list[CaseListingSchema])
+@paginate(PageNumberPagination, page_size=20)
+def list_client_cases(request, pk: str):
+    """List all cases for a specific client the user has access to."""
+    consultant = get_object_or_404(Consultant, user=request.user)
+    client_id = strip_id(pk)
+
     visits = annotate_last_modified(
-        Visit.objects.filter(case__location__tenant=consultant.tenant)
+        Visit.objects.filter(
+            case__location__in=consultant.locations.all(),
+            case__connection__client__id=client_id,
+        )
         .select_related("case", "questionnaire", "case__connection", "case__location")
         .prefetch_related("client_answers", "consultant_answers", "test_results")
     ).order_by("-last_modified_at")

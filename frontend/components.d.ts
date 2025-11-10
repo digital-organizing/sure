@@ -18,6 +18,7 @@ declare module 'vue' {
     ClientQuestion: typeof import('./src/components/ClientQuestion.vue')['default']
     ClientSection: typeof import('./src/components/ClientSection.vue')['default']
     Column: typeof import('primevue/column')['default']
+    ConsultantQuestion: typeof import('./src/components/ConsultantQuestion.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Form: typeof import('@primevue/forms/form')['default']
@@ -32,9 +33,12 @@ declare module 'vue' {
     IconSupport: typeof import('./src/components/icons/IconSupport.vue')['default']
     IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
     InputText: typeof import('primevue/inputtext')['default']
+    Message: typeof import('primevue/message')['default']
     MultipleChoiceQuestion: typeof import('./src/components/questions/MultipleChoiceQuestion.vue')['default']
     MultipleChoiceTextQuestion: typeof import('./src/components/questions/MultipleChoiceTextQuestion.vue')['default']
+    MultiSelect: typeof import('primevue/multiselect')['default']
     OpenTextQuestion: typeof import('./src/components/questions/OpenTextQuestion.vue')['default']
+    PastVisitsComponent: typeof import('./src/components/PastVisitsComponent.vue')['default']
     ProgressBar: typeof import('./src/components/ProgressBar.vue')['default']
     RadioButton: typeof import('primevue/radiobutton')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -43,5 +47,7 @@ declare module 'vue' {
     SingleChoiceDropdownQuestion: typeof import('./src/components/questions/SingleChoiceDropdownQuestion.vue')['default']
     SingleChoiceQuestion: typeof import('./src/components/questions/SingleChoiceQuestion.vue')['default']
     SingleChoiceTextQuestion: typeof import('./src/components/questions/SingleChoiceTextQuestion.vue')['default']
+    StatusTag: typeof import('./src/components/StatusTag.vue')['default']
+    Tag: typeof import('primevue/tag')['default']
   }
 }

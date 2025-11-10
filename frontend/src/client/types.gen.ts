@@ -11,6 +11,24 @@ export type CsrfTokenResponse = {
 };
 
 /**
+ * AccountResponse
+ */
+export type AccountResponse = {
+    /**
+     * Username
+     */
+    username: string | null;
+    /**
+     * Is Staff
+     */
+    is_staff?: boolean | null;
+    /**
+     * Is Superuser
+     */
+    is_superuser?: boolean | null;
+};
+
+/**
  * ClientOptionSchema
  */
 export type ClientOptionSchema = {
@@ -242,6 +260,40 @@ export type InternalQuestionnaireSchema = {
 };
 
 /**
+ * CaseListingSchema
+ */
+export type CaseListingSchema = {
+    /**
+     * Location
+     */
+    location: string;
+    /**
+     * Client
+     */
+    client: string | null;
+    /**
+     * Last Modified At
+     */
+    last_modified_at: string;
+    /**
+     * Case
+     */
+    case: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Tags
+     */
+    tags?: Array<unknown> | null;
+    /**
+     * Status
+     */
+    status?: string;
+};
+
+/**
  * ClientAnswerSchema
  */
 export type ClientAnswerSchema = {
@@ -269,25 +321,44 @@ export type ClientAnswerSchema = {
 };
 
 /**
- * VisitSchema
+ * ConsultantAnswerSchema
  */
-export type VisitSchema = {
+export type ConsultantAnswerSchema = {
     /**
-     * Client Answers
+     * Choices
      */
-    client_answers: Array<ClientAnswerSchema>;
+    choices: Array<number>;
+    /**
+     * Texts
+     */
+    texts: Array<string>;
+    /**
+     * Question
+     */
+    question: number;
     /**
      * Created At
      */
     created_at: string;
     /**
-     * Questionnaire
+     * User
+     * The user who recorded the answer (consultant)
      */
-    questionnaire: number;
+    user?: number | null;
+};
+
+/**
+ * CaseHistory
+ */
+export type CaseHistory = {
     /**
-     * Status
+     * Client Answers
      */
-    status?: string;
+    client_answers: Array<ClientAnswerSchema>;
+    /**
+     * Consultant Answers
+     */
+    consultant_answers: Array<ConsultantAnswerSchema>;
 };
 
 /**
@@ -371,40 +442,6 @@ export type Input = {
 };
 
 /**
- * CaseListingSchema
- */
-export type CaseListingSchema = {
-    /**
-     * Location
-     */
-    location: string;
-    /**
-     * Client
-     */
-    client: string | null;
-    /**
-     * Last Modified At
-     */
-    last_modified_at: string;
-    /**
-     * Case
-     */
-    case: string;
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Tags
-     */
-    tags?: Array<unknown> | null;
-    /**
-     * Status
-     */
-    status?: string;
-};
-
-/**
  * PagedCaseListingSchema
  */
 export type PagedCaseListingSchema = {
@@ -416,6 +453,93 @@ export type PagedCaseListingSchema = {
      * Count
      */
     count: number;
+};
+
+/**
+ * CaseFilters
+ */
+export type CaseFilters = {
+    case: FilterData;
+    client_id: FilterData;
+    tags: FilterData;
+    location: FilterOperator;
+    status: FilterData;
+    last_modified_at: FilterOperator;
+};
+
+/**
+ * FilterData
+ */
+export type FilterData = {
+    /**
+     * Value
+     */
+    value: unknown | null;
+    matchMode: MatchModes;
+};
+
+/**
+ * FilterOperator
+ */
+export type FilterOperator = {
+    operator: Operator;
+    /**
+     * Constraints
+     */
+    constraints: Array<FilterData>;
+};
+
+/**
+ * MatchModes
+ */
+export type MatchModes = 'startsWith' | 'contains' | 'notContains' | 'endsWith' | 'equals' | 'notEquals' | 'in' | 'lt' | 'lte' | 'gt' | 'gte' | 'between' | 'dateIs' | 'dateIsNot' | 'dateBefore' | 'dateAfter';
+
+/**
+ * Operator
+ */
+export type Operator = 'and' | 'or';
+
+/**
+ * OptionSchema
+ */
+export type OptionSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Value
+     */
+    value: string;
+};
+
+/**
+ * LocationSchema
+ */
+export type LocationSchema = {
+    tenant: TenantSchema;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TenantSchema
+ */
+export type TenantSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
 };
 
 export type CoreApiGetCsrfTokenData = {
@@ -485,8 +609,10 @@ export type CoreApiAccountResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: AccountResponse;
 };
+
+export type CoreApiAccountResponse = CoreApiAccountResponses[keyof CoreApiAccountResponses];
 
 export type SureApiGetCaseQuestionnaireData = {
     body?: never;
@@ -546,10 +672,84 @@ export type SureApiGetVisitResponses = {
     /**
      * OK
      */
-    200: VisitSchema;
+    200: CaseListingSchema;
 };
 
 export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses];
+
+export type SureApiGetVisitClientAnswersData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/visit/client-answers/';
+};
+
+export type SureApiGetVisitClientAnswersResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<ClientAnswerSchema>;
+};
+
+export type SureApiGetVisitClientAnswersResponse = SureApiGetVisitClientAnswersResponses[keyof SureApiGetVisitClientAnswersResponses];
+
+export type SureApiGetVisitConsultantAnswersData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/visit/consultant-answers/';
+};
+
+export type SureApiGetVisitConsultantAnswersResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<ConsultantAnswerSchema>;
+};
+
+export type SureApiGetVisitConsultantAnswersResponse = SureApiGetVisitConsultantAnswersResponses[keyof SureApiGetVisitConsultantAnswersResponses];
+
+export type SureApiGetVisitHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Offset
+         */
+        offset?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/sure/case/{pk}/visit/history/';
+};
+
+export type SureApiGetVisitHistoryResponses = {
+    /**
+     * OK
+     */
+    200: CaseHistory;
+};
+
+export type SureApiGetVisitHistoryResponse = SureApiGetVisitHistoryResponses[keyof SureApiGetVisitHistoryResponses];
 
 export type SureApiSubmitCaseData = {
     body: SubmitCaseSchema;
@@ -629,7 +829,7 @@ export type SureApiGetInternalQuestionnaireResponses = {
 export type SureApiGetInternalQuestionnaireResponse = SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses];
 
 export type SureApiListCasesData = {
-    body?: never;
+    body: CaseFilters;
     path?: never;
     query?: {
         /**
@@ -652,6 +852,87 @@ export type SureApiListCasesResponses = {
 };
 
 export type SureApiListCasesResponse = SureApiListCasesResponses[keyof SureApiListCasesResponses];
+
+export type SureApiGetCaseStatusOptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sure/case/status/options/';
+};
+
+export type SureApiGetCaseStatusOptionsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<OptionSchema>;
+};
+
+export type SureApiGetCaseStatusOptionsResponse = SureApiGetCaseStatusOptionsResponses[keyof SureApiGetCaseStatusOptionsResponses];
+
+export type SureApiGetCaseTagsOptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sure/case/tags/options/';
+};
+
+export type SureApiGetCaseTagsOptionsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type SureApiGetCaseTagsOptionsResponse = SureApiGetCaseTagsOptionsResponses[keyof SureApiGetCaseTagsOptionsResponses];
+
+export type SureApiListClientCasesData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number | null;
+    };
+    url: '/api/sure/client/{id}/cases/';
+};
+
+export type SureApiListClientCasesResponses = {
+    /**
+     * OK
+     */
+    200: PagedCaseListingSchema;
+};
+
+export type SureApiListClientCasesResponse = SureApiListClientCasesResponses[keyof SureApiListClientCasesResponses];
+
+export type TenantsApiListLocationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/tenants/locations';
+};
+
+export type TenantsApiListLocationsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<LocationSchema>;
+};
+
+export type TenantsApiListLocationsResponse = TenantsApiListLocationsResponses[keyof TenantsApiListLocationsResponses];
 
 export type ClientOptions = {
     baseUrl: string;

@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { RadioButton } from 'primevue'
-import { type ClientQuestionSchema } from '@/client'
+import {
+  type ClientAnswerSchema,
+  type ClientQuestionSchema,
+  type ConsultantAnswerSchema,
+  type ConsultantQuestionSchema,
+} from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 
 const props = defineProps<{
-  question: ClientQuestionSchema
+  question: ClientQuestionSchema | ConsultantQuestionSchema
+  remote?: ClientAnswerSchema | ConsultantAnswerSchema | null
+  consultant?: boolean
 }>()
 
-const { answer, updateAnswer } = useQuestionAnswer(props.question)
+const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
 const selectedChoice = ref<string | null>(null)
 
 // Load existing answer

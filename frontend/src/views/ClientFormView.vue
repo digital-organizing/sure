@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { sureApiGetQuestionnaire, type QuestionnaireSchema } from '@/client'
+import { sureApiGetCaseQuestionnaire, type QuestionnaireSchema } from '@/client'
 import ClientSection from '@/components/ClientSection.vue'
 import ProgressBar from '@/components/ProgressBar.vue'
 import { useScroll } from '@/composables/useScroll'
@@ -10,13 +10,22 @@ const formStructure = ref<QuestionnaireSchema | null>(null)
 const answersStore = userAnswersStore()
 const formIndex = ref<number>(0)
 
+const props = defineProps<{
+  caseId: string
+}>()
+
 const { scrollToTop } = useScroll()
 
 onMounted(async () => {
-  formStructure.value = (await sureApiGetQuestionnaire({ path: { pk: 2 } })).data!
+  formStructure.value = (await sureApiGetCaseQuestionnaire({ path: { pk: props.caseId } })).data!
   answersStore.setSchema(formStructure.value)
 
   const savedIndex = localStorage.getItem('clientFormIndex')
+  const savedId = localStorage.getItem('clientFormCaseId')
+  if (savedId !== props.caseId) {
+    localStorage.setItem('clientFormCaseId', props.caseId)
+    localStorage.setItem('clientFormIndex', '0')
+  }
   if (savedIndex) {
     formIndex.value = parseInt(savedIndex, 10)
   }

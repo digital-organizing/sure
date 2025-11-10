@@ -47,7 +47,7 @@ client.interceptors.request.use(async (request) => {
 
 client.interceptors.response.use(async (response) => {
   if (response.status == 401) {
-    router.push({ name: 'login' })
+    router.push({ path: '/login', query: { next: router.currentRoute.value.fullPath } })
   }
   return response
 })
@@ -129,7 +129,6 @@ app.use(PrimeVue, {
 // Initialize stores after Pinia is set up
 const initializeStores = () => {
   // Initialize key stores
-
   // Stores are automatically initialized when accessed
 }
 

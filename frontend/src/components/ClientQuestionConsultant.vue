@@ -10,12 +10,14 @@ const props = defineProps<{
 
 const questionComponentRef = ref<{ getClientAnswer: () => AnswerSchema } | null>(null)
 
-const { answerForClientQuestion, mapAnswersForClientQuestion, submitClientAnswer } = useCase()
+const { answerForClientQuestion, mapAnswersForClientQuestion, submitClientAnswer, fetchVisitDetails } = useCase()
 
 function onSubmit() {
   if (questionComponentRef.value) {
     const answer = questionComponentRef.value.getClientAnswer()
-    submitClientAnswer(answer)
+    submitClientAnswer(answer).then(() => {
+        fetchVisitDetails()
+    })
   }
 }
 </script>

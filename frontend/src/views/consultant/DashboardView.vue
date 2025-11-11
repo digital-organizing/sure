@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { sureApiGetCaseTagsOptions, sureApiListCases, type CaseFilters } from '@/client'
+import {
+  sureApiGetCaseTagsOptions,
+  sureApiListCases,
+  type CaseFilters,
+  type FilterData,
+} from '@/client'
 import { type PagedCaseListingSchema } from '@/client'
 import type { DataTableFilterMeta } from 'primevue/datatable'
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
@@ -9,6 +14,7 @@ import { useStatus } from '@/composables/useStatus'
 import { useDateFormat } from '@vueuse/core'
 import { useLocations } from '@/composables/useLocations'
 import { useRouter } from 'vue-router'
+import { useDebounceFn } from '@vueuse/core'
 
 const router = useRouter()
 
@@ -23,13 +29,16 @@ const loading = ref<boolean>(false)
 
 const { statusChoices } = useStatus()
 const { locations: locationChoices } = useLocations()
-const tagChoices = ref<string[]>([])
+const tagChoices = ref<{ label: string; value: string[] }[]>([])
 
 function fetchTagChoices() {
   // Placeholder for fetching tag choices
   sureApiGetCaseTagsOptions().then((response) => {
     if (response.data) {
-      tagChoices.value = response.data
+      tagChoices.value = response.data.map((tag) => ({
+        label: tag,
+        value: [tag],
+      }))
     }
   })
 }
@@ -46,10 +55,14 @@ const cases = ref<PagedCaseListingSchema>({
 })
 
 const filters = ref<DataTableFilterMeta>({
+  search: { value: null, matchMode: 'contains' },
   case: { value: null, matchMode: 'contains' },
   client_id: { value: null, matchMode: 'contains' },
-  tags: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  location: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: 'equals' }] },
+  tags: {
+    operator: FilterOperator.OR,
+    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
+  },
+  location: { value: null, matchMode: 'equals' },
   status: { value: null, matchMode: 'in' },
   last_modified_at: {
     operator: FilterOperator.AND,
@@ -57,7 +70,7 @@ const filters = ref<DataTableFilterMeta>({
   },
 })
 
-function fetchCases() {
+const fetchCases = useDebounceFn(() => {
   loading.value = true
   sureApiListCases({
     query: { page: page.value, page_size: 2 },
@@ -68,7 +81,7 @@ function fetchCases() {
     }
     loading.value = false
   })
-}
+})
 
 watch(page, () => {
   fetchCases()
@@ -108,6 +121,20 @@ async function selectCase(event: { data: { case: string } }) {
     selection-mode="single"
     @row-select="selectCase"
   >
+    <template #header>
+      <div class="flex justify-end">
+        <IconField>
+          <InputIcon>
+            <i class="pi pi-search" />
+          </InputIcon>
+          <InputText
+            v-model="(filters['search'] as unknown as FilterData).value as string"
+            placeholder="Search by Case or Client ID"
+            @input="onFilterChange"
+          />
+        </IconField>
+      </div>
+    </template>
     <Column field="case" header="Case" :show-filter-match-modes="false">
       <template #body="{ data }">
         {{ data.case }}
@@ -136,11 +163,17 @@ async function selectCase(event: { data: { case: string } }) {
         />
       </template>
       <template #filter="{ filterModel }">
-        <MultiSelect v-model="filterModel.value" :options="tagChoices" :show-toggle-all="false">
+        <Select
+          v-model="filterModel.value"
+          :options="tagChoices"
+          :show-toggle-all="false"
+          option-label="label"
+          option-value="value"
+        >
           <template #option="slotProps">
-            <span>{{ slotProps.option }}</span>
+            <span><Tag :value="slotProps.option.label" /></span>
           </template>
-        </MultiSelect>
+        </Select>
       </template>
     </Column>
     <Column field="last_modified_at" header="Last Modified" data-type="date">
@@ -156,14 +189,15 @@ async function selectCase(event: { data: { case: string } }) {
         />
       </template>
     </Column>
-    <Column field="location" header="Location">
+    <Column field="location" header="Location" :show-filter-match-modes="false">
       <template #body="{ data }">
         {{ data.location }}
       </template>
       <template #filter="{ filterModel }">
-        <Select
+        <MultiSelect
           v-model="filterModel.value"
           :options="locationChoices"
+          :show-toggle-all="false"
           option-label="name"
           option-value="id"
           type="text"

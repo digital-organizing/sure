@@ -4,9 +4,10 @@ from django.db.models.functions import Greatest
 from sure.models import ClientAnswer, ConsultantAnswer, Test, TestResult, Visit
 
 
+
+
 def annotate_last_modified(queryset: QuerySet[Visit]) -> QuerySet[Visit]:
-    """
-    Annotates each Visit with its last_modified timestamp, which is the
+    """Annotates each Visit with its last_modified timestamp, which is the
     latest created_at among:
     - The Visit itself
     - Related ClientAnswers

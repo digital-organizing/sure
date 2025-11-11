@@ -37,9 +37,8 @@ watch(
   [selectedChoice, textInputs],
   () => {
     if (selectedChoice.value !== null) {
-      const option = props.question.options?.find((opt) => opt.id === selectedChoice.value)
+      const option = props.question.options?.find((opt) => opt.code === selectedChoice.value)
       let text = option?.text || ''
-
       // Use custom text if option allows it and text is provided
       if (option?.allow_text && textInputs.value[selectedChoice.value]) {
         text = textInputs.value[selectedChoice.value]
@@ -81,7 +80,7 @@ defineExpose({
       </label>
       <InputText
         v-if="option.allow_text && selectedChoice === option.code"
-        v-model="textInputs[option.id!]"
+        v-model="textInputs[option.code!]"
         type="text"
         :placeholder="'Additional text for ' + option.text"
         class="text-input"

@@ -5,6 +5,7 @@ import {
   type ChoiceSchema,
   type ClientAnswerSchema,
   type QuestionnaireSchema,
+  type AnswerSchema,
 } from '@/client'
 
 export const userAnswersStore = defineStore('answers', () => {
@@ -84,12 +85,20 @@ export const userAnswersStore = defineStore('answers', () => {
   }
 })
 
-export const consultantAnswersStore = defineStore('answers', () => {
-  function getAnswerForQuestion(questionId: number) {}
+export const consultantAnswersStore = defineStore('consultant-answers', () => {
+  const answers = ref<AnswerSchema[]>([])
 
-  function setAnswerForQuestion(questionId: number, choices: ChoiceSchema[]) {}
+  function getAnswerForQuestion(questionId: number) {
+    return answers.value.find((answer) => answer.questionId === questionId) || null
+  }
+
+  function setAnswerForQuestion(questionId: number, choices: ChoiceSchema[]) {
+    answers.value = answers.value.filter((a) => a.questionId !== questionId)
+    answers.value.push({ questionId, choices })
+  }
 
   return {
+    answers,
     getAnswerForQuestion,
     setAnswerForQuestion,
   }

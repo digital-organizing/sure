@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineProps, ref, computed } from 'vue'
 import { type ConsultantAnswerSchema, type ConsultantQuestionSchema } from '@/client'
-import { Form } from '@primevue/forms'
 import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'
 import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.vue'
 import OpenTextQuestion from './questions/OpenTextQuestion.vue'
 import SingleChoiceTextQuestion from './questions/SingleChoiceTextQuestion.vue'
 import MultipleChoiceTextQuestion from './questions/MultipleChoiceTextQuestion.vue'
 import SingleChoiceDropdownQuestion from './questions/SingleChoiceDropdownQuestion.vue'
+import MultiChoiceMultiTextQuestion from './questions/MultiChoiceMultiTextQuestion.vue'
 
 const props = defineProps<{
   question: ConsultantQuestionSchema
@@ -34,6 +34,8 @@ const questionComponent = computed(() => {
       return MultipleChoiceTextQuestion
     case 'open text field':
       return OpenTextQuestion
+    case 'multiple choice + multiple open text field':
+      return MultiChoiceMultiTextQuestion
     default:
       return SingleChoiceQuestion
   }
@@ -60,14 +62,11 @@ defineExpose({
 </script>
 
 <template>
-  <Form class="consultant-question">
-    <p>{{ question.question_text }}</p>
-    <component
-      :is="questionComponent"
-      ref="questionComponentRef"
-      :question="question"
-      :remote="remote"
-      :consultant="true"
-    />
-  </Form>
+  <component
+    :is="questionComponent"
+    ref="questionComponentRef"
+    :question="question"
+    :remote="remote"
+    :consultant="true"
+  />
 </template>

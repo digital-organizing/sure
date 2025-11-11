@@ -1,7 +1,6 @@
 import {
   type ClientAnswerSchema,
   type InternalQuestionnaireSchema,
-  type QuestionnaireSchema,
   sureApiGetCaseQuestionnaire,
   sureApiGetVisit,
   sureApiGetVisitClientAnswers,
@@ -11,16 +10,22 @@ import {
   type ConsultantAnswerSchema,
   type PagedCaseListingSchema,
   sureApiGetCaseInternal,
+  sureApiSubmitCase,
+  type AnswerSchema,
+  sureApiSubmitConsultantCase,
+  sureApiUpdateCaseTags,
 } from '@/client'
 import { nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
+import { userAnswersStore } from '@/stores/answers'
 
 export const useCase = createGlobalState(() => {
   const visit = ref<CaseListingSchema | null>(null)
   const clientAnswers = ref<ClientAnswerSchema[]>([])
   const consultantAnswers = ref<ConsultantAnswerSchema[]>([])
 
-  const clientQuestionnaire = ref<QuestionnaireSchema | null>(null)
+  const store = userAnswersStore()
+
   const consultantQuestionnaire = ref<InternalQuestionnaireSchema | null>(null)
 
   const pastVisits = ref<PagedCaseListingSchema | null>(null)
@@ -45,12 +50,9 @@ export const useCase = createGlobalState(() => {
 
   function onCaseId(callback: (caseId: string | null) => void) {
     if (selectedVisitId.value) {
-      console.log('onCaseId immediate callback with:', selectedVisitId.value)
       callback(selectedVisitId.value)
       return
     }
-
-    console.log('onCaseId registering callback')
 
     callbacks.value.push(callback)
   }
@@ -68,7 +70,6 @@ export const useCase = createGlobalState(() => {
         }
       })
       .catch((error) => {
-        console.error('Failed to fetch visit details:', error)
         error.value = 'Failed to fetch visit details: ' + error.message
       })
       .finally(() => {
@@ -77,19 +78,16 @@ export const useCase = createGlobalState(() => {
   }
 
   async function fetchClientSchema() {
-    console.log('fetchClientSchema called', visit.value)
     if (!visit.value) {
-      clientQuestionnaire.value = null
       return
     }
-    console.log('fetchClientSchema fetching for case:', visit.value.case)
 
     loading.value = true
 
     await sureApiGetCaseQuestionnaire({ path: { pk: visit.value.case } })
       .then((response) => {
         if (response.data) {
-          clientQuestionnaire.value = response.data!
+          store.setSchema(response.data!)
         }
       })
       .catch((error) => {
@@ -229,7 +227,7 @@ export const useCase = createGlobalState(() => {
 
   async function fetchPastVisits() {
     if (visit.value && visit.value.client) {
-      await sureApiListClientCases({ path: { id: visit.value.client } })
+      await sureApiListClientCases({ path: { pk: visit.value.client } })
         .then((response) => {
           if (response.data) {
             pastVisits.value = response.data!
@@ -242,6 +240,39 @@ export const useCase = createGlobalState(() => {
     }
   }
 
+  async function submitClientAnswer(answer: AnswerSchema) {
+    await sureApiSubmitCase({ body: { answers: [answer] }, path: { pk: visit.value!.case } })
+      .then(() => {})
+      .catch((error) => {
+        error.value = 'Failed to submit client answer: ' + error.message
+      })
+      .then(() => {
+        fetchClientAnswers()
+      })
+  }
+
+  async function submitConsultantAnswers(answers: AnswerSchema[]) {
+    await sureApiSubmitConsultantCase({
+      path: { pk: visit.value!.case },
+      body: { answers: answers },
+    })
+      .then(() => {})
+      .catch((error) => {
+        error.value = 'Failed to submit consultant answers: ' + error.message
+      })
+      .then(() => {
+        fetchConsultantAnswers()
+      })
+  }
+
+  async function setCaseTags(tags: string[]) {
+    await sureApiUpdateCaseTags({ path: { pk: visit.value!.case }, body: tags })
+      .then(() => {})
+      .catch((error) => {
+        error.value = 'Failed to update case tags: ' + error.message
+      })
+  }
+
   return {
     visit,
     error,
@@ -249,7 +280,7 @@ export const useCase = createGlobalState(() => {
     clientAnswers,
     consultantAnswers,
     consultantQuestionnaire,
-    clientQuestionnaire,
+    clientQuestionnaire: store.schema,
     pastVisits,
     setCaseId,
     fetchVisitDetails,
@@ -263,5 +294,8 @@ export const useCase = createGlobalState(() => {
     answerForClientQuestion,
     answerForConsultantQuestion,
     onCaseId,
+    submitClientAnswer,
+    submitConsultantAnswers,
+    setCaseTags,
   }
 })

@@ -11,6 +11,20 @@ export type CsrfTokenResponse = {
 };
 
 /**
+ * LoginResponse
+ */
+export type LoginResponse = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * Error
+     */
+    error?: string | null;
+};
+
+/**
  * AccountResponse
  */
 export type AccountResponse = {
@@ -276,6 +290,10 @@ export type CaseListingSchema = {
      */
     last_modified_at: string;
     /**
+     * Tags
+     */
+    tags: Array<string>;
+    /**
      * Case
      */
     case: string;
@@ -283,10 +301,6 @@ export type CaseListingSchema = {
      * ID
      */
     id?: number | null;
-    /**
-     * Tags
-     */
-    tags?: Array<unknown> | null;
     /**
      * Status
      */
@@ -369,6 +383,10 @@ export type SubmitCaseResponse = {
      * Success
      */
     success: boolean;
+    /**
+     * Warnings
+     */
+    warnings?: Array<string> | null;
 };
 
 /**
@@ -459,10 +477,11 @@ export type PagedCaseListingSchema = {
  * CaseFilters
  */
 export type CaseFilters = {
+    search: FilterData;
     case: FilterData;
     client_id: FilterData;
-    tags: FilterData;
-    location: FilterOperator;
+    tags: FilterOperator;
+    location: FilterData;
     status: FilterData;
     last_modified_at: FilterOperator;
 };
@@ -542,6 +561,24 @@ export type TenantSchema = {
     name: string;
 };
 
+/**
+ * TagSchema
+ */
+export type TagSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
 export type CoreApiGetCsrfTokenData = {
     body?: never;
     path?: never;
@@ -577,12 +614,23 @@ export type CoreApiLoginViewData = {
     url: '/api/login';
 };
 
+export type CoreApiLoginViewErrors = {
+    /**
+     * Unknown Status Code
+     */
+    4: LoginResponse;
+};
+
+export type CoreApiLoginViewError = CoreApiLoginViewErrors[keyof CoreApiLoginViewErrors];
+
 export type CoreApiLoginViewResponses = {
     /**
-     * OK
+     * Unknown Status Code
      */
-    200: unknown;
+    2: LoginResponse;
 };
+
+export type CoreApiLoginViewResponse = CoreApiLoginViewResponses[keyof CoreApiLoginViewResponses];
 
 export type CoreApiLogoutViewData = {
     body?: never;
@@ -772,6 +820,51 @@ export type SureApiSubmitCaseResponses = {
 
 export type SureApiSubmitCaseResponse = SureApiSubmitCaseResponses[keyof SureApiSubmitCaseResponses];
 
+export type SureApiSubmitConsultantCaseData = {
+    body: SubmitCaseSchema;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/consultant/submit/';
+};
+
+export type SureApiSubmitConsultantCaseResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiSubmitConsultantCaseResponse = SureApiSubmitConsultantCaseResponses[keyof SureApiSubmitConsultantCaseResponses];
+
+export type SureApiUpdateCaseTagsData = {
+    /**
+     * Tags
+     */
+    body: Array<string>;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/tags/';
+};
+
+export type SureApiUpdateCaseTagsResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiUpdateCaseTagsResponse = SureApiUpdateCaseTagsResponses[keyof SureApiUpdateCaseTagsResponses];
+
 export type SureApiCreateCaseViewData = {
     body: CreateCaseSchema;
     path?: never;
@@ -891,9 +984,9 @@ export type SureApiListClientCasesData = {
     body?: never;
     path: {
         /**
-         * Id
+         * Pk
          */
-        id: string;
+        pk: string;
     };
     query?: {
         /**
@@ -905,7 +998,7 @@ export type SureApiListClientCasesData = {
          */
         page_size?: number | null;
     };
-    url: '/api/sure/client/{id}/cases/';
+    url: '/api/sure/client/{pk}/cases/';
 };
 
 export type SureApiListClientCasesResponses = {
@@ -933,6 +1026,23 @@ export type TenantsApiListLocationsResponses = {
 };
 
 export type TenantsApiListLocationsResponse = TenantsApiListLocationsResponses[keyof TenantsApiListLocationsResponses];
+
+export type TenantsApiListTagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/tenants/tags';
+};
+
+export type TenantsApiListTagsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TagSchema>;
+};
+
+export type TenantsApiListTagsResponse = TenantsApiListTagsResponses[keyof TenantsApiListTagsResponses];
 
 export type ClientOptions = {
     baseUrl: string;

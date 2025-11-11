@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import Enum, StrEnum
+from enum import StrEnum
 from typing import Annotated, Any
 
 import phonenumbers
@@ -144,9 +144,7 @@ def validate_phone_number(value: Any) -> str | None:
         raise ValueError("Invalid phone number") from exc
     if not phonenumbers.is_valid_number(phone_number):
         raise ValueError("Invalid phone number")
-    return phonenumbers.format_number(
-        phone_number, phonenumbers.PhoneNumberFormat.E164
-    )
+    return phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.E164)
 
 
 class CreateCaseSchema(Schema):
@@ -210,6 +208,7 @@ class SubmitCaseSchema(Schema):
 
 class SubmitCaseResponse(Schema):
     success: bool
+    warnings: list[str] | None = None
 
 
 class CaseSchema(ModelSchema):
@@ -317,7 +316,7 @@ class FilterData(Schema):
         return Q(**filter_dict)
 
 
-class Operator(Enum):
+class Operator(StrEnum):
     AND = "and"
     OR = "or"
 
@@ -344,30 +343,35 @@ class FilterOperator(Schema):
 
 
 class CaseFilters(Schema):
+    search: FilterData
     case: FilterData
     client_id: FilterData
-    tags: FilterData
-    location: FilterOperator
+    tags: FilterOperator
+    location: FilterData
     status: FilterData
     last_modified_at: FilterOperator
 
     def get_django_filters(self) -> Q:
-        print("Hallo")
         q_objects = Q()
 
         q_objects &= self.case.get_filter("case__id")
-        print(q_objects)
         q_objects &= self.client_id.get_filter("case__connection__client__id")
-        print(q_objects)
         q_objects &= self.tags.get_filter("tags")
-        print(q_objects)
         q_objects &= self.location.get_filter("case__location_id")
-        print(q_objects)
         q_objects &= self.status.get_filter("status")
-        print(q_objects)
         q_objects &= self.last_modified_at.get_filter("last_modified_at")
 
-        print(q_objects)
+        if self.search.value:
+            if self.search.value.lower().startswith("suf-"):
+                self.search.value = self.search.value[4:]
+                q_objects &= self.search.get_filter("case__id")
+            elif self.search.value.lower().startswith("suc-"):
+                self.search.value = self.search.value[4:]
+                q_objects &= self.search.get_filter("case__connection__client__id")
+            else:
+                q_objects &= self.search.get_filter(
+                    "case__id"
+                ) | self.search.get_filter("case__connection__client__id")
 
         return q_objects
 
@@ -381,6 +385,7 @@ class CaseListingSchema(ModelSchema):
     location: str
     client: str | None
     last_modified_at: str
+    tags: list[str]
 
     class Meta:
         model = Visit

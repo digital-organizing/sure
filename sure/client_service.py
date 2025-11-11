@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 import tenants.models
+from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
 from sure.twilio import send_sms
 
@@ -174,9 +175,23 @@ def record_client_answers(
             "Cannot record answers for a visit that is not in the CREATED status"
         )
 
+    current_answers = (
+        visit.client_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+    )
+    current_answer_map = {ans.question.pk: ans for ans in current_answers}
+
     for answer in answers:
-        choices = [choice.code for choice in answer.choices]
+        choices = [int(choice.code) for choice in answer.choices]
         texts = [choice.text or "-" for choice in answer.choices]
+
+        if answer.questionId in current_answer_map:
+            existing_answer = current_answer_map[answer.questionId]
+            if _compare_lists(existing_answer.choices, choices) and _compare_lists(
+                existing_answer.texts, texts
+            ):
+                continue
         visit.client_answers.create(
             question_id=answer.questionId,
             choices=choices,
@@ -186,3 +201,57 @@ def record_client_answers(
 
     visit.status = VisitStatus.CLIENT_SUBMITTED
     visit.save()
+
+
+def _compare_lists(list1: list, list2: list) -> bool:
+    """Compare two lists for equality, ignoring order."""
+    return sorted(list1) == sorted(list2)
+
+
+def record_consultant_answers(visit: Visit, answers: list[AnswerSchema], user: User):
+    """Record consultant answers for a visit."""
+    warnings = []
+    if visit.status != VisitStatus.CLIENT_SUBMITTED:
+        warnings.append(
+            "Recording consultant answers for a visit that is not in the CLIENT_SUBMITTED status"
+        )
+
+    current_answers = (
+        visit.consultant_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+        .prefetch_related("question")
+    )
+
+    current_answer_map = {ans.question.pk: ans for ans in current_answers}
+
+    for answer in answers:
+        choices = [int(choice.code) for choice in answer.choices]
+        texts = [choice.text or "-" for choice in answer.choices]
+        if answer.questionId in current_answer_map:
+            existing_answer = current_answer_map[answer.questionId]
+            if _compare_lists(existing_answer.choices, choices) and _compare_lists(
+                existing_answer.texts, texts
+            ):
+                continue
+        visit.consultant_answers.create(
+            question_id=answer.questionId,
+            choices=choices,
+            texts=texts,
+            user=user,
+        )
+    visit.status = VisitStatus.CONSULTANT_SUBMITTED
+    visit.save()
+
+    return warnings
+
+
+def get_case(request, pk):
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
+
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    return visit

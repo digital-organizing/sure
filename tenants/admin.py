@@ -3,7 +3,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 
-from tenants.models import Consultant, Location, Tenant
+from tenants.models import Consultant, Location, Tag, Tenant
 
 
 class LocationInline(TabularInline):
@@ -54,3 +54,19 @@ class TenantAdmin(ModelAdmin):
         if request.user.is_superuser:
             return super().get_queryset(request)
         return super().get_queryset(request).filter(admins=request.user)
+
+
+@admin.register(Tag)
+class TagAdmin(ModelAdmin):
+    """Admin for tags."""
+
+    list_display = ("name", "owner")
+    search_fields = ("name", "owner__username", "owner__email")
+
+    autocomplete_fields = ("owner", "available_in")
+
+    def get_queryset(self, request):
+        """Limit queryset based on user permissions."""
+        if request.user.is_superuser:
+            return super().get_queryset(request)
+        return super().get_queryset(request).filter(owner=request.user)

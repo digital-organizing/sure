@@ -31,9 +31,9 @@ export function useAccount() {
         is_staff: response.data.is_staff!,
         is_superuser: response.data.is_superuser!,
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e)
-      error.value = 'Failed to fetch account information: ' + e.message
+      error.value = 'Failed to fetch account information: ' + (e as Error).message
     } finally {
       loading.value = false
     }
@@ -50,11 +50,11 @@ export function useAccount() {
         },
       })
       if (response.error) {
-        throw new Error(response.error!.message)
+        throw new Error(response.error.error!)
       }
       await fetchAccount()
-    } catch (e) {
-      error.value = e.message
+    } catch (e: unknown) {
+      error.value = (e as Error).message
     } finally {
       loading.value = false
     }

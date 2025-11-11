@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { sureApiGetCaseQuestionnaire, type QuestionnaireSchema } from '@/client'
+import { sureApiGetCaseQuestionnaire, sureApiSubmitCase, type QuestionnaireSchema } from '@/client'
 import ClientSection from '@/components/ClientSection.vue'
 import ProgressBar from '@/components/ProgressBar.vue'
 import { useScroll } from '@/composables/useScroll'
@@ -49,6 +49,16 @@ function previousQuestion() {
     formIndex.value--
   }
 }
+
+function onSubmit() {
+  sureApiSubmitCase({ path: { pk: props.caseId }, body: answersStore.answers })
+    .then(() => {
+      alert('Form submitted successfully!')
+    })
+    .catch(() => {
+      alert('Error submitting form. Please try again.')
+    })
+}
 </script>
 
 <template>
@@ -60,10 +70,14 @@ function previousQuestion() {
       <ClientSection
         @next="nextQuestion"
         @previous="previousQuestion"
+        @submit="onSubmit"
         :section="formStructure?.sections[formIndex]!"
         :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1"
         :has-previous="formIndex > 0"
       />
+      <pre v-if="formIndex == formStructure?.sections.length - 1">
+        {{ answersStore.answers }}
+      </pre>
     </div>
   </div>
 </template>

@@ -1,6 +1,6 @@
 from ninja import ModelSchema
 
-from tenants.models import Location, Tenant
+from tenants.models import Location, Tag, Tenant
 
 
 class TenantSchema(ModelSchema):
@@ -15,3 +15,9 @@ class LocationSchema(ModelSchema):
         model_fields = ["id", "name", "tenant"]
 
     tenant: TenantSchema
+
+
+class TagSchema(ModelSchema):
+    class Config:
+        model = Tag
+        model_fields = ["id", "name", "note"]

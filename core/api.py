@@ -28,7 +28,7 @@ class LoginResponse(Schema):
     error: str | None = None
 
 
-@api.post("/login", auth=None)
+@api.post("/login", auth=None, response={"200": LoginResponse, "401": LoginResponse})
 def login_view(request, username: Form[str], password: Form[str]):
     if (
         user := authenticate(request, username=username, password=password)
@@ -37,7 +37,7 @@ def login_view(request, username: Form[str], password: Form[str]):
         return {"success": True}
     return api.create_response(
         request,
-        {"message": "Invalid username or password."},
+        data=LoginResponse(success=False, error="Invalid credentials"),
         status=401,
     )
 

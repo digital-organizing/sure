@@ -7,8 +7,10 @@ from sure.cases import annotate_last_modified
 from sure.client_service import (
     create_case,
     create_visit,
+    get_case,
     get_case_link,
     record_client_answers,
+    record_consultant_answers,
     send_case_link,
     strip_id,
     verify_access_to_location,
@@ -87,12 +89,7 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
 @router.get("/case/{pk}/internal/", response=InternalQuestionnaireSchema)
 def get_case_internal(request, pk: str):
     """Get the internal questionnaire associated with a case."""
-    pk = strip_id(pk)
-
-    visit = get_object_or_404(Visit, case_id=pk)
-
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
+    visit = get_case(request, pk)
 
     questionnaire = _prefetch_questionnaire(internal=True).get(
         pk=visit.questionnaire.pk
@@ -104,23 +101,14 @@ def get_case_internal(request, pk: str):
 @router.get("/case/{pk}/visit/", response=CaseListingSchema)
 def get_visit(request, pk: str):
     """Get the client answers for a case."""
-    pk = strip_id(pk)
 
-    visit = get_object_or_404(Visit, case_id=pk)
-
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
-
+    visit = get_case(request, pk)
     return visit
 
 
 @router.get("/case/{pk}/visit/client-answers/", response=list[ClientAnswerSchema])
 def get_visit_client_answers(request, pk: str):
-    pk = strip_id(pk)
-    visit = get_object_or_404(Visit, case_id=pk)
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
-
+    visit = get_case(request, pk)
     # Only get latest per querstion_id
     return (
         visit.client_answers.all()
@@ -133,11 +121,7 @@ def get_visit_client_answers(request, pk: str):
     "/case/{pk}/visit/consultant-answers/", response=list[ConsultantAnswerSchema]
 )
 def get_visit_consultant_answers(request, pk: str):
-    pk = strip_id(pk)
-    visit = get_object_or_404(Visit, case_id=pk)
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
-
+    visit = get_case(request, pk)
     return (
         visit.consultant_answers.all()
         .order_by("question_id", "-created_at")
@@ -147,10 +131,7 @@ def get_visit_consultant_answers(request, pk: str):
 
 @router.get("/case/{pk}/visit/history/", response=CaseHistory)
 def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
-    pk = strip_id(pk)
-    visit = get_object_or_404(Visit, case_id=pk)
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
+    visit = get_case(request, pk)
 
     client_answers = visit.client_answers.all()
     consultant_answers = visit.consultant_answers.all()
@@ -174,6 +155,26 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
         visit, answers.answers, request.user if request.user.is_authenticated else None
     )
 
+    return {"success": True}
+
+
+@router.post("/case/{pk}/consultant/submit/", response=SubmitCaseResponse)
+def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
+    visit = get_case(request, pk)
+    warnings = record_consultant_answers(visit, answers.answers, request.user)
+
+    return {"success": True, "warnings": warnings}
+
+
+@router.post("/case/{pk}/tags/", response=SubmitCaseResponse)
+def update_case_tags(request, pk: str, tags: list[str]):
+    """Update tags for a case."""
+    visit = get_case(request, pk)
+    visit.tags.clear()
+    # This is necessary for some reason, otherwise changes are not stored
+    visit.save()
+    visit.tags = tags
+    visit.save()
     return {"success": True}
 
 
@@ -228,7 +229,7 @@ def list_cases(request, filters: CaseFilters):
 
 
 @router.get("/case/status/options/", response=list[OptionSchema])
-def get_case_status_options(request):
+def get_case_status_options(request):  # pylint: disable=unused-argument
     """Get options for case status."""
     return [
         {"label": str(label), "value": str(value)}

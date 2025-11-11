@@ -25,7 +25,7 @@ if (answer.value.choices && answer.value.choices.length > 0) {
 
 // Update store when text changes
 watch(textInput, (newText) => {
-  updateAnswer([], [newText])
+  updateAnswer(['1'], [newText])
 })
 
 function getAnswer() {

@@ -156,6 +156,9 @@ STATIC_ROOT = BASE_DIR / "static/"
 
 STATICFILES_DIRS = [BASE_DIR / "frontend/dist", BASE_DIR / "frontend/public"]
 
+if DEBUG:
+    STATICFILES_DIRS.append(BASE_DIR / "frontend")
+
 DJANGO_VITE = {
     "default": {
         "dev_mode": env.bool("VITE_DEV_MODE", default=DEBUG),

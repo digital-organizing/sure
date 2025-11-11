@@ -40,7 +40,7 @@ watch(
   [selectedChoice, dropdownSelections],
   () => {
     if (selectedChoice.value !== null) {
-      const option = props.question.options?.find((opt) => opt.id === selectedChoice.value)
+      const option = props.question.options?.find((opt) => opt.code == selectedChoice.value)
       let text = option?.text || ''
 
       // Use dropdown selection if available

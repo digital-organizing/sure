@@ -1,49 +1,41 @@
 <script setup lang="ts">
-import ClientQuestion from '@/components/ClientQuestion.vue'
+import type { ClientQuestionSchema } from '@/client'
+import ClientQuestionConsultant from '@/components/ClientQuestionConsultant.vue'
 import { useCase } from '@/composables/useCase'
+import { userAnswersStore } from '@/stores/answers'
 import { onMounted } from 'vue'
 
-const {
-  onCaseId,
-  loading,
-  clientQuestionnaire,
-  answerForClientQuestion,
-  mapAnswersForClientQuestion,
-  fetchClientSchema,
-  fetchClientAnswers,
-  clientAnswers,
-} = useCase()
+const { onCaseId, loading, fetchClientSchema, fetchClientAnswers, clientAnswers } = useCase()
+
+const answerStore = userAnswersStore()
 
 onMounted(() => {
   onCaseId(() => {
-    console.log('Fetching client questionnaire for caseId')
     fetchClientAnswers()
     fetchClientSchema()
   })
 })
+
+function showQuestion(q: ClientQuestionSchema) {
+  if (!q.show_for_options || q.show_for_options.length === 0) {
+    return true
+  }
+
+  return q.show_for_options.some((option) => answerStore.isOptionSelected(option))
+}
 </script>
 <template>
   <section v-if="loading">Loading client questionnaire...</section>
 
-  <section v-if="!loading && clientQuestionnaire && clientAnswers">
-    <div v-for="section in clientQuestionnaire.sections" :key="section.id!">
+  <section v-if="answerStore.schema && clientAnswers">
+    <div v-for="section in answerStore.schema.sections" :key="section.id!">
       <h2>{{ section.title }}</h2>
       <div
         v-for="question in section.client_questions"
         :key="question.id!"
         style="margin-bottom: 20px"
       >
-        <h3>{{ question.question_text }}</h3>
-        <div v-for="answers in mapAnswersForClientQuestion(question.id!)" :key="answers.id">
-          <p>
-            <strong>Answer (code: {{ answers.code }}):</strong> {{ answers.text }}
-          </p>
-        </div>
-        <ClientQuestion
-          :question="question"
-          :remote="answerForClientQuestion(question.id!)"
-          ref="questionComponentRef"
-        />
+        <ClientQuestionConsultant v-if="showQuestion(question)" :question="question" />
       </div>
     </div>
   </section>

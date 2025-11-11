@@ -85,7 +85,7 @@ defineExpose({
       </label>
       <InputText
         v-if="option.allow_text && selectedChoices.includes(option.code!)"
-        v-model="textInputs[option.id!]"
+        v-model="textInputs[option.code!]"
         type="text"
         :placeholder="'Additional text for ' + option.text"
         class="text-input"

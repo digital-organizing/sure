@@ -76,6 +76,7 @@ defineExpose({
       <label :for="`option-${option.id}`">
         {{ option.text }}
       </label>
+      <br v-if="selectedChoices.includes(option.code!)">
       <InputText
         v-if="option.allow_text && selectedChoices.includes(option.code!)"
         v-model="textInputs[option.id!]"
@@ -86,3 +87,23 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+/* .multiple-choice-text-question .inputtext {
+  margin-bottom: 0.75rem;
+} */
+.inputtext.with-text-input {
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+  width: calc(100% - 1.5rem);
+}
+.option-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.option-item label {
+  margin-left: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+</style>

@@ -26,10 +26,3 @@ body {
   color: var(--color-text);
   font-family: var(--font-family);
 }
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--color-black);
-    --color-text: var(--color-white);
-  }
-} */

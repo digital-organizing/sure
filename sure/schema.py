@@ -89,6 +89,14 @@ class QuestionnaireSchema(ModelSchema):
     def resolve_sections(questionnaire: Questionnaire) -> list[Section]:
         return list(questionnaire.sections.all())
 
+class QuestionnaireListingSchema(ModelSchema):
+    class Meta:
+        model = Questionnaire
+        fields = [
+            "id",
+            "name",
+        ]
+
 
 class ConsultantOptionSchema(ModelSchema):
     class Meta:
@@ -134,7 +142,7 @@ class InternalQuestionnaireSchema(QuestionnaireSchema):
 
 
 def validate_phone_number(value: Any) -> str | None:
-    if value is None:
+    if value is None or value == "":
         return value
     if isinstance(value, phonenumbers.PhoneNumber):
         return phonenumbers.format_number(value, phonenumbers.PhoneNumberFormat.E164)
@@ -151,10 +159,12 @@ class CreateCaseSchema(Schema):
     location_id: int
     questionnaire_id: int
     phone: Annotated[str | None, BeforeValidator(validate_phone_number)] = None
+    external_id: Annotated[str | None, BeforeValidator(str.strip)] = None
 
 
 class CreateCaseResponse(Schema):
     link: str
+    case_id: str
 
 
 class ChoiceSchema(Schema):
@@ -171,6 +181,7 @@ class ClientAnswerSchema(ModelSchema):
     class Meta:
         model = ClientAnswer
         fields = [
+                "id",
             "question",
             "choices",
             "texts",
@@ -186,6 +197,7 @@ class ConsultantAnswerSchema(ModelSchema):
     class Meta:
         model = ConsultantAnswer
         fields = [
+                "id",
             "question",
             "choices",
             "texts",

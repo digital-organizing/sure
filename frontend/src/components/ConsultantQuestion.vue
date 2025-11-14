@@ -8,13 +8,15 @@ import SingleChoiceTextQuestion from './questions/SingleChoiceTextQuestion.vue'
 import MultipleChoiceTextQuestion from './questions/MultipleChoiceTextQuestion.vue'
 import SingleChoiceDropdownQuestion from './questions/SingleChoiceDropdownQuestion.vue'
 import MultiChoiceMultiTextQuestion from './questions/MultiChoiceMultiTextQuestion.vue'
+import { useCase } from '@/composables/useCase'
 
 const props = defineProps<{
   question: ConsultantQuestionSchema
-  remote?: ConsultantAnswerSchema | null
 }>()
 
 const questionComponentRef = ref<{ getAnswer: () => ConsultantAnswerSchema } | null>(null)
+
+const { answerForConsultantQuestion } = useCase()
 
 // Determine which component to use based on question format and options
 const questionComponent = computed(() => {
@@ -55,6 +57,10 @@ function getConsultantAnswer(): ConsultantAnswerSchema {
     user: null,
   }
 }
+
+const remote = computed(() => {
+  return answerForConsultantQuestion(props.question.id!)
+})
 
 defineExpose({
   getConsultantAnswer,

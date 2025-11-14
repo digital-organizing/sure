@@ -1,4 +1,4 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, type ComputedRef, type Ref, type WritableComputedRef } from 'vue'
 import {
   type AnswerSchema,
   type ClientAnswerSchema,
@@ -10,45 +10,49 @@ import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
 
 export function useQuestionAnswer(
   question: ClientQuestionSchema | ConsultantQuestionSchema,
-  remote: ClientAnswerSchema | ConsultantAnswerSchema | null | undefined = undefined,
+  remote: Ref<ClientAnswerSchema | ConsultantAnswerSchema | null> | null =null,
   consultant: boolean = false,
 ) {
   const answersStore = consultant === true ? consultantAnswersStore() : userAnswersStore()
+  
+  const remoteRef = remote !== null ? remote : ref(null)
 
   const dirty = ref(false)
 
   // Get or create answer for this question
   const answer = computed<AnswerSchema>({
     get() {
+      console.log('Computing answer for question ID', question.id)
+
+      if(!dirty.value && remoteRef.value) {
+        console.log('Using remote answer for question ID', question.id, remote)
+        return createInitialAnswer();
+      }
       return answersStore.getAnswerForQuestion(question.id!) || createInitialAnswer()
     },
     set(newAnswer: AnswerSchema) {
       answersStore.setAnswerForQuestion(question.id!, newAnswer.choices)
     },
+    
   })
+  
 
   function createInitialAnswer(): AnswerSchema {
-    return {
-      questionId: question.id!,
-      choices: [],
+    if (remoteRef.value) {
+      return {
+        questionId: question.id!,
+        choices: remoteRef.value.choices.map((choice, idx) => ({
+          code: '' + choice,
+          text: remoteRef.value!.texts[idx] || '',
+        })),
+      }
     }
-  }
-  if (remote) {
-    answer.value = {
-      questionId: question.id!,
-      choices: remote.choices.map((choice, idx) => ({
-        code: '' + choice,
-        text: remote.texts[idx] || '',
-      })),
-    }
-  }
+      return {
+        questionId: question.id!,
+        choices: [],
+      }
 
-  // Initialize answer in store if it doesn't exist
-  onMounted(() => {
-    if (!answersStore.getAnswerForQuestion(question.id!)) {
-      answer.value = createInitialAnswer()
-    }
-  })
+}
 
   function updateAnswer(codes: string[], texts: string[]) {
     // Sort based on codes

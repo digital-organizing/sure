@@ -43,6 +43,7 @@ dev = [
   "pylint[spelling]>=3.3.8",
   "pyre-check>=0.9.21",
   "ruff>=0.13.1",
+  "strix-agent>=0.3.3",
   "ty>=0.0.1a21",
 ]
 

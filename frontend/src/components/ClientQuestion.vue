@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref, computed } from 'vue'
+import { defineProps, ref, computed, onMounted, type Ref, type ComputedRef } from 'vue'
 import { type AnswerSchema, type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
 import { Form } from '@primevue/forms'
 import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'
@@ -12,7 +12,7 @@ import MultiChoiceMultiTextQuestion from './questions/MultiChoiceMultiTextQuesti
 
 const props = defineProps<{
   question: ClientQuestionSchema
-  remote?: ClientAnswerSchema | null
+  remote?: ComputedRef<ClientAnswerSchema | null>,
 }>()
 
 const questionComponentRef = ref<{ getAnswer: () => AnswerSchema } | null>(null)
@@ -43,6 +43,7 @@ const questionComponent = computed(() => {
   }
 })
 
+
 function getClientAnswer(): AnswerSchema {
   if (questionComponentRef.value?.getAnswer) {
     return questionComponentRef.value.getAnswer()
@@ -54,6 +55,7 @@ function getClientAnswer(): AnswerSchema {
     questionId: props.question.id!,
   }
 }
+
 
 defineExpose({
   getClientAnswer,

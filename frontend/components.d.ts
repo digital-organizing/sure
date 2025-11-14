@@ -23,6 +23,8 @@ declare module 'vue' {
     DatePicker: typeof import('primevue/datepicker')['default']
     Form: typeof import('@primevue/forms/form')['default']
     HelloComponent: typeof import('./src/components/HelloComponent.vue')['default']
+    HistoryComponent: typeof import('./src/components/HistoryComponent.vue')['default']
+    HistoryItem: typeof import('./src/components/HistoryItem.vue')['default']
     IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
     IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
     IconEcosystem: typeof import('./src/components/icons/IconEcosystem.vue')['default']

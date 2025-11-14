@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch, type ComputedRef } from 'vue'
 import { RadioButton } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -11,27 +11,26 @@ import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
-  remote?: ClientAnswerSchema | ConsultantAnswerSchema | null
+  remote?: ComputedRef<ClientAnswerSchema | ConsultantAnswerSchema | null>
   consultant?: boolean
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
-const selectedChoice = ref<string | null>(null)
+const selectedChoice = computed<string | null>({
+  get() {
+    return answer.value.choices[0]?.code || null
+  },
+  set(newChoice: string | null) {
+    if (newChoice !== null) {
+      const option = props.question.options?.find((opt) => opt.code == newChoice)
+      updateAnswer([newChoice], [option?.text || ''])
+    } else {
+      updateAnswer([], [])
+    }
+  } 
+})
 
 // Load existing answer
-if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoice.value = answer.value.choices[0].code
-}
-
-// Update store when selection changes
-watch(selectedChoice, (newChoice) => {
-  if (newChoice !== null) {
-    const option = props.question.options?.find((opt) => opt.code === newChoice)
-    updateAnswer([newChoice], [option?.text || ''])
-  } else {
-    updateAnswer([], [])
-  }
-})
 
 function getAnswer() {
   return answer.value

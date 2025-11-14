@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch, type ComputedRef } from 'vue'
 import { InputText } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -11,21 +11,18 @@ import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
-  remote?: ClientAnswerSchema | ConsultantAnswerSchema | null
+  remote?: ComputedRef<ClientAnswerSchema | ConsultantAnswerSchema | null>
   consultant?: boolean
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
-const textInput = ref<string>('')
-
-// Load existing answer
-if (answer.value.choices && answer.value.choices.length > 0) {
-  textInput.value = answer.value.choices[0].text
-}
-
-// Update store when text changes
-watch(textInput, (newText) => {
-  updateAnswer(['1'], [newText])
+const textInput = computed<string>({
+  get() {
+return answer.value.choices[0]?.text || ''
+  },
+  set(newText: string) {
+    updateAnswer(['1'], [newText])
+  }
 })
 
 function getAnswer() {

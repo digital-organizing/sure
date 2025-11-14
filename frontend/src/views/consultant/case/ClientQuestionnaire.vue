@@ -27,7 +27,7 @@ function showQuestion(q: ClientQuestionSchema) {
 <template>
   <section v-if="loading">Loading client questionnaire...</section>
 
-  <section v-if="answerStore.schema && clientAnswers">
+  <section v-if="answerStore.schema && clientAnswers !== null">
     <div v-for="section in answerStore.schema.sections" :key="section.id!">
       <h2>{{ section.title }}</h2>
       <div

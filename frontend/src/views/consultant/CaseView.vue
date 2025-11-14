@@ -4,6 +4,7 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTitle } from '@vueuse/core'
 import PastVisitsComponent from '@/components/PastVisitsComponent.vue'
+import HistoryComponent from '@/components/HistoryComponent.vue'
 
 const router = useRouter()
 
@@ -22,7 +23,7 @@ onMounted(() => {
     }
     switch (visit.value!.status) {
       case 'consultant_submitted':
-        router.replace({ name: 'tests', params: { caseId: props.caseId } })
+        router.replace({ name: 'consultant-tests', params: { caseId: props.caseId } })
         break
       case 'results_recorded':
       case 'communication':
@@ -46,7 +47,9 @@ onMounted(() => {
         Past Visits
         <PastVisitsComponent />
       </section>
-      <section>History</section>
+      <section>
+        <HistoryComponent :caseId="props.caseId" />
+    </section>
     </aside>
     <nav>
       Case navigation

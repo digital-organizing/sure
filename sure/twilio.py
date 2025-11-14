@@ -6,6 +6,7 @@ from twilio.rest import Client as TwilioClient
 
 def send_sms(to: str, body: str):
     """Send an SMS message via Twilio, uses settings from Django settings."""
+    return 
     twilio_client = TwilioClient(
         settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN
     )

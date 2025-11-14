@@ -35,6 +35,7 @@ from sure.schema import (
     CreateCaseSchema,
     InternalQuestionnaireSchema,
     OptionSchema,
+    QuestionnaireListingSchema,
     QuestionnaireSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
@@ -133,8 +134,8 @@ def get_visit_consultant_answers(request, pk: str):
 def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
     visit = get_case(request, pk)
 
-    client_answers = visit.client_answers.all()
-    consultant_answers = visit.consultant_answers.all()
+    client_answers = visit.client_answers.all().order_by("-created_at")
+    consultant_answers = visit.consultant_answers.all().order_by("-created_at")
     return {
         "client_answers": client_answers[offset : offset + limit],
         "consultant_answers": consultant_answers[offset : offset + limit],
@@ -178,10 +179,10 @@ def update_case_tags(request, pk: str, tags: list[str]):
     return {"success": True}
 
 
-@router.post("/case/create/")
+@router.post("/case/create/", response=CreateCaseResponse)
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
-    case = create_case(data.location_id, request.user)
+    case = create_case(data.location_id, request.user, data.external_id)
     create_visit(case, get_object_or_404(Questionnaire, pk=data.questionnaire_id))
 
     link = get_case_link(case)
@@ -189,7 +190,7 @@ def create_case_view(request, data: CreateCaseSchema):
     if data.phone:
         send_case_link(case, data.phone)
 
-    return CreateCaseResponse(link=link)
+    return CreateCaseResponse(link=link, case_id=case.human_id)
 
 
 @router.get("/questionnaires/{pk}/", response=QuestionnaireSchema, auth=None)
@@ -274,3 +275,10 @@ def list_client_cases(request, pk: str):
     ).order_by("-last_modified_at")
 
     return visits
+
+
+@router.get("/questionnaires/", response=list[QuestionnaireListingSchema], auth=None)
+def list_questionnaires(request):  # pylint: disable=unused-argument
+    """List all questionnaires."""
+    questionnaires = Questionnaire.objects.all().only("id", "name")
+    return questionnaires

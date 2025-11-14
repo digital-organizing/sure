@@ -8,7 +8,7 @@ import ClientQuestionnaire from '@/views/consultant/case/ClientQuestionnaire.vue
 import TestsView from '@/views/consultant/case/TestsView.vue'
 import ResultView from '@/views/consultant/case/ResultView.vue'
 import CommunicationView from '@/views/consultant/case/CommunicationView.vue'
-import CaseHistory from '@/views/consultant/case/CaseHistory.vue'
+import CaseHistoryView from '@/views/consultant/case/CaseHistoryView.vue'
 import CreateCaseView from '@/views/consultant/CreateCaseView.vue'
 import SupportView from '@/views/consultant/SupportView.vue'
 
@@ -88,7 +88,7 @@ const router = createRouter({
             {
               path: 'history',
               name: 'consultant-case-history',
-              component: CaseHistory,
+              component: CaseHistoryView,
               props: true,
             },
           ],

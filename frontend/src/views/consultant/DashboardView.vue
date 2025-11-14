@@ -73,7 +73,7 @@ const filters = ref<DataTableFilterMeta>({
 const fetchCases = useDebounceFn(() => {
   loading.value = true
   sureApiListCases({
-    query: { page: page.value, page_size: 2 },
+    query: { page: page.value, page_size: 20 },
     body: filters.value as CaseFilters,
   }).then((response) => {
     if (response.data) {
@@ -111,7 +111,7 @@ async function selectCase(event: { data: { case: string } }) {
     lazy
     :value="cases.items"
     paginator
-    :rows="2"
+    :rows="20"
     :total-records="cases.count"
     @page="onPageChange($event)"
     @filter="onFilterChange()"

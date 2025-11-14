@@ -320,6 +320,10 @@ export type ClientAnswerSchema = {
      */
     texts: Array<string>;
     /**
+     * ID
+     */
+    id?: number | null;
+    /**
      * Question
      */
     question: number;
@@ -346,6 +350,10 @@ export type ConsultantAnswerSchema = {
      * Texts
      */
     texts: Array<string>;
+    /**
+     * ID
+     */
+    id?: number | null;
     /**
      * Question
      */
@@ -428,6 +436,20 @@ export type SubmitCaseSchema = {
 };
 
 /**
+ * CreateCaseResponse
+ */
+export type CreateCaseResponse = {
+    /**
+     * Link
+     */
+    link: string;
+    /**
+     * Case Id
+     */
+    case_id: string;
+};
+
+/**
  * CreateCaseSchema
  */
 export type CreateCaseSchema = {
@@ -443,6 +465,10 @@ export type CreateCaseSchema = {
      * Phone
      */
     phone?: string | null;
+    /**
+     * External Id
+     */
+    external_id?: string | null;
 };
 
 /**
@@ -533,6 +559,21 @@ export type OptionSchema = {
 };
 
 /**
+ * QuestionnaireListingSchema
+ */
+export type QuestionnaireListingSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     * Name of the questionnaire
+     */
+    name: string;
+};
+
+/**
  * LocationSchema
  */
 export type LocationSchema = {
@@ -577,6 +618,29 @@ export type TagSchema = {
      * Note
      */
     note?: string | null;
+};
+
+/**
+ * UserSchema
+ */
+export type UserSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Username
+     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     */
+    username: string;
+    /**
+     * First Name
+     */
+    first_name?: string | null;
+    /**
+     * Last Name
+     */
+    last_name?: string | null;
 };
 
 export type CoreApiGetCsrfTokenData = {
@@ -876,8 +940,10 @@ export type SureApiCreateCaseViewResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: CreateCaseResponse;
 };
+
+export type SureApiCreateCaseViewResponse = SureApiCreateCaseViewResponses[keyof SureApiCreateCaseViewResponses];
 
 export type SureApiGetQuestionnaireData = {
     body?: never;
@@ -1010,6 +1076,23 @@ export type SureApiListClientCasesResponses = {
 
 export type SureApiListClientCasesResponse = SureApiListClientCasesResponses[keyof SureApiListClientCasesResponses];
 
+export type SureApiListQuestionnairesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sure/questionnaires/';
+};
+
+export type SureApiListQuestionnairesResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<QuestionnaireListingSchema>;
+};
+
+export type SureApiListQuestionnairesResponse = SureApiListQuestionnairesResponses[keyof SureApiListQuestionnairesResponses];
+
 export type TenantsApiListLocationsData = {
     body?: never;
     path?: never;
@@ -1043,6 +1126,27 @@ export type TenantsApiListTagsResponses = {
 };
 
 export type TenantsApiListTagsResponse = TenantsApiListTagsResponses[keyof TenantsApiListTagsResponses];
+
+export type TenantsApiGetConsultantData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: number;
+    };
+    query?: never;
+    url: '/api/tenants/consultants/{pk}/';
+};
+
+export type TenantsApiGetConsultantResponses = {
+    /**
+     * OK
+     */
+    200: UserSchema;
+};
+
+export type TenantsApiGetConsultantResponse = TenantsApiGetConsultantResponses[keyof TenantsApiGetConsultantResponses];
 
 export type ClientOptions = {
     baseUrl: string;

@@ -2,7 +2,7 @@
 import type { AnswerSchema, ClientQuestionSchema } from '@/client'
 import { useCase } from '@/composables/useCase'
 import ClientQuestion from './ClientQuestion.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   question: ClientQuestionSchema
@@ -20,6 +20,12 @@ function onSubmit() {
     })
   }
 }
+
+const remote = computed(() => {
+  console.log('Fetching remote answer for question id:', props.question.id)
+  return answerForClientQuestion(props.question.id!)
+})
+
 </script>
 
 <template>
@@ -31,7 +37,7 @@ function onSubmit() {
   </div>
   <ClientQuestion
     :question="question"
-    :remote="answerForClientQuestion(question.id!)"
+    :remote="remote"
     ref="questionComponentRef"
   />
   <Button label="Submit Answer" @click.prevent="onSubmit()" />

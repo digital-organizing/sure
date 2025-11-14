@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Checkbox, InputText } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -8,41 +8,30 @@ import {
   type ConsultantQuestionSchema,
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
+import type { ComputedRef } from 'vue';
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
-  remote?: ClientAnswerSchema | ConsultantAnswerSchema | null
+  remote?: ComputedRef<ClientAnswerSchema | ConsultantAnswerSchema | null>
   consultant?: boolean
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
-const selectedChoices = ref<string[]>([])
-const textInputs = ref<Record<string, string[]>>({})
-
-if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoices.value = []
-  answer.value.choices.forEach((choice, idx) => {
-    if (!selectedChoices.value.includes(choice.code)) {
-      selectedChoices.value.push(choice.code)
-    }
-    const option = props.question.options?.find((opt) => opt.code === choice.code)
-    if (option?.allow_text) {
-      if (textInputs.value[choice.code] === undefined) {
-        textInputs.value[choice.code] = []
+const selectedChoices = computed<string[]>({
+  get() {
+    const choices: string[] = [];
+    answer.value.choices.forEach((choice) => {
+      if (!choices.includes(choice.code)) {
+        choices.push(choice.code)
       }
-      textInputs.value[choice.code].push(answer.value.choices[idx].text)
-    }
-  })
-}
-
-// Update store when selection or text changes
-watch(
-  [selectedChoices, textInputs, props.remote],
-  () => {
+    })
+    return choices
+  },
+  set(newChoices: string[]) {
     const texts: string[] = []
     const codes: string[] = []
 
-    selectedChoices.value.forEach((choiceId) => {
+    newChoices.forEach((choiceId) => {
       const option = props.question.options?.find((opt) => opt.code === choiceId)
 
       // Use custom text if option allows it and text is provided
@@ -52,12 +41,48 @@ watch(
           codes.push(choiceId)
         }
         return
+      } else if (option?.allow_text) {
+        texts.push('')
+        codes.push(choiceId)
+      } else {
+          texts.push(option?.text || '')
+        codes.push(choiceId)
       }
-      if (
-        option?.allow_text &&
-        (!textInputs.value[choiceId] || textInputs.value[choiceId].length === 0)
-      ) {
-        textInputs.value[choiceId] = ['']
+
+    })
+
+    updateAnswer(codes, texts)
+ 
+  }
+})
+
+const textInputs = computed<Record<string, string[]>>({
+  get() {
+    const inputs: Record<string, string[]> = {}
+    answer.value.choices.forEach((choice, idx) => {
+      const option = props.question.options?.find((opt) => opt.code === choice.code)
+      if (option?.allow_text) {
+        if (inputs[choice.code] === undefined) {
+          inputs[choice.code] = []
+        }
+        inputs[choice.code].push(answer.value.choices[idx].text)
+      }
+    })
+    return inputs
+  },
+  set(newInputs: Record<string, string[]>) {
+    const codes: string[] = []
+    const texts: string[] = []
+
+    selectedChoices.value.forEach((choiceId) => {
+      const option = props.question.options?.find((opt) => opt.code === choiceId)
+
+      // Use custom text if option allows it and text is provided
+      if (option?.allow_text && newInputs[choiceId].length > 0) {
+        for (const text of newInputs[choiceId]) {
+          texts.push(text)
+          codes.push(choiceId)
+        }
         return
       }
 
@@ -65,13 +90,35 @@ watch(
       codes.push(choiceId)
     })
 
-    updateAnswer(codes, texts)
-  },
-  { deep: true },
-)
+  updateAnswer(codes, texts)
+  }
+})
+
 
 function getAnswer() {
   return answer.value
+}
+
+function triggerTextUpdate() {
+  // Trigger the computed setters to update the answer
+  textInputs.value = textInputs.value
+}
+
+function addTextField(choiceId: string) {
+  const newTextInputs = { ...textInputs.value }
+  if (!newTextInputs[choiceId]) {
+    newTextInputs[choiceId] = []
+  }
+  newTextInputs[choiceId].push('')
+  textInputs.value = newTextInputs
+}
+
+function removeTextField(choiceId: string, index: number) {
+  const newTextInputs = { ...textInputs.value }
+  if (newTextInputs[choiceId]) {
+    newTextInputs[choiceId].splice(index, 1)
+    textInputs.value = newTextInputs
+  }
 }
 
 defineExpose({
@@ -106,7 +153,9 @@ defineExpose({
           class="text-input-wrapper"
         >
           <InputText
+            :inputId="`option-${option.id}-text-${index}`"
             v-model="textInputs[option.code!][index]"
+            @input="triggerTextUpdate()"
             type="text"
             :placeholder="'Additional text for ' + option.text"
             class="text-input"
@@ -116,14 +165,14 @@ defineExpose({
             type="button"
             icon="pi pi-times"
             class="p-button-text p-button-danger delete-text-input-button"
-            @click="textInputs[option.code!].splice(index, 1)"
+            @click="removeTextField(option.code!, index)"
             >Remove</Button
           >
         </div>
         <button
           v-if="textInputs[option.code!].at(-1) != ''"
           type="button"
-          @click="textInputs[option.code!] = [...(textInputs[option.code!] || []), '']"
+          @click="addTextField(option.code!)"
           class="add-text-input-button"
         >
           Add another

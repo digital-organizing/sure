@@ -36,6 +36,12 @@ class Case(models.Model):
         default=generate_case_id,
         verbose_name=_("Case ID"),
     )
+    external_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("External ID"),
+        help_text=_("An optional external ID for the case"),
+    )
     location = models.ForeignKey(
         "tenants.Location",
         on_delete=models.CASCADE,

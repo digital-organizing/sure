@@ -28,8 +28,6 @@ const selectedTags = ref<TagSchema[]>([])
 
 onMounted(() => {
   onCaseId(() => {
-    fetchConsultantSchema()
-    fetchConsultantAnswers()
     selectedTags.value = tags.value.filter((tag) => visit.value?.tags.includes(tag.name))
   })
 })
@@ -55,7 +53,6 @@ async function onSubmit() {
       <h3>{{ question.question_text }}</h3>
       <ConsultantQuestion
         :question="question"
-        :remote="answerForConsultantQuestion(question.id!)"
       />
     </div>
     <div>

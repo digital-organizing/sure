@@ -6,6 +6,7 @@ import secrets
 import uuid
 
 import phonenumbers
+from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -36,6 +37,12 @@ class Case(models.Model):
         default=generate_case_id,
         verbose_name=_("Case ID"),
     )
+    external_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("External ID"),
+        help_text=_("An optional external ID for the case"),
+    )
     location = models.ForeignKey(
         "tenants.Location",
         on_delete=models.CASCADE,
@@ -48,6 +55,10 @@ class Case(models.Model):
     def human_id(self):
         """SUF: Sure 'Fall' or Form/Formulaire"""
         return f"SUF-{self.id}"
+
+    @property
+    def show_external_id(self):
+        return "EXT-" + self.external_id if self.external_id else ""
 
     class Meta:
         verbose_name = _("Case")
@@ -465,6 +476,9 @@ class TestKind(models.Model):
         help_text=_("Additional notes about the test"),
     )
 
+    test_bundles: models.QuerySet["TestBundle"]
+    result_options: models.QuerySet["TestResultOption"]
+
     class Meta:
         ordering = ["number"]
 
@@ -488,6 +502,13 @@ class TestResultOption(models.Model):
         help_text=_("Information text to be sent to the client"),
     )
 
+    color = ColorField(
+        max_length=7,
+        blank=True,
+        verbose_name=_("Color"),
+        help_text=_("Color associated with this result option (hex code)"),
+    )
+
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
 
@@ -508,7 +529,10 @@ class VisitStatus(models.TextChoices):
     CONSULTANT_SUBMITTED = "consultant_submitted", _("Consultant Submitted")
 
     RESULTS_RECORDED = "results_recorded", _("Results Recorded")
+    RESULTS_SENT = "results_sent", _("Results Sent")
     CLOSED = "closed", _("Closed")
+
+    CANCELED = "canceled", _("Canceled")
 
 
 class Visit(models.Model):
@@ -534,14 +558,15 @@ class Visit(models.Model):
         verbose_name=_("Status"),
     )
 
+    tags = ArrayField(models.CharField(max_length=50), blank=True, default=list)
+
     client_answers: models.QuerySet[ClientAnswer]
     consultant_answers: models.QuerySet[ConsultantAnswer]
+    tests: models.QuerySet["Test"]
 
 
 class Test(models.Model):
-    visit = models.ForeignKey(
-        Visit, on_delete=models.CASCADE, related_name="test_results"
-    )
+    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
     test_kind = models.ForeignKey(
         TestKind, on_delete=models.CASCADE, related_name="test_results"
     )
@@ -552,11 +577,31 @@ class Test(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("User"),
+        help_text=_("The user who recorded the test"),
+    )
+
+    test_results: models.QuerySet["TestResult"]
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["visit", "test_kind"],
+                name="unique_test_per_visit_and_kind",
+            )
+        ]
+
 
 class TestResult(models.Model):
     result_option = models.ForeignKey(
         TestResultOption, on_delete=models.CASCADE, related_name="test_results"
     )
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="results")
     note = models.TextField(
         blank=True,
         verbose_name=_("Note"),

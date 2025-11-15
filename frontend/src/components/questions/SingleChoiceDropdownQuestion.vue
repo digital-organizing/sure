@@ -1,53 +1,76 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 import { RadioButton, Select } from 'primevue'
-import { type ClientQuestionSchema } from '@/client'
+import {
+  type ClientAnswerSchema,
+  type ClientQuestionSchema,
+  type ConsultantAnswerSchema,
+  type ConsultantQuestionSchema,
+} from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
+import type { ComputedRef } from 'vue'
 
 const props = defineProps<{
-  question: ClientQuestionSchema
+  question: ClientQuestionSchema | ConsultantQuestionSchema
+  remote?: ComputedRef<ClientAnswerSchema | ConsultantAnswerSchema | null>
+  consultant?: boolean
 }>()
 
-const { answer, updateAnswer } = useQuestionAnswer(props.question)
-const selectedChoice = ref<string | null>(null)
-const dropdownSelections = ref<Record<string, string>>({})
-
-// Load existing answer
-if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoice.value = answer.value.choices[0].code
-
-  // Load dropdown selection if it exists
-  if (answer.value.choices && answer.value.choices.length > 0) {
-    const selectedOption = props.question.options?.find((opt) => opt.code === selectedChoice.value)
-    const text = answer.value.choices[0].text
-
-    // Check if this is a dropdown selection (not the default option text)
-    if (selectedOption?.choices && text !== selectedOption.text) {
-      dropdownSelections.value[selectedChoice.value] = text
-    }
-  }
-}
-
-// Update store when selection changes
-watch(
-  [selectedChoice, dropdownSelections],
-  () => {
-    if (selectedChoice.value !== null) {
-      const option = props.question.options?.find((opt) => opt.id === selectedChoice.value)
+const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
+const selectedChoice = computed<string | null>({
+  get() {
+    return answer.value.choices[0]?.code || null
+  },
+  set(newChoice: string | null) {
+    if (newChoice !== null) {
+      const option = props.question.options?.find((opt) => opt.code == newChoice)
       let text = option?.text || ''
 
       // Use dropdown selection if available
-      if (option?.choices && dropdownSelections.value[selectedChoice.value]) {
-        text = dropdownSelections.value[selectedChoice.value]
+      if (option?.choices && dropdownSelections.value[newChoice]) {
+        text = dropdownSelections.value[newChoice]
       }
 
-      updateAnswer([selectedChoice.value], [text])
+      updateAnswer([newChoice], [text])
     } else {
       updateAnswer([], [])
     }
   },
-  { deep: true },
-)
+})
+const dropdownSelections = computed<Record<string, string>>({
+  get() {
+    const selections: Record<string, string> = {}
+    if (answer.value.choices && answer.value.choices.length > 0) {
+      const selectedCode = answer.value.choices[0].code
+      const selectedText = answer.value.choices[0].text
+      const selectedOption = props.question.options?.find((opt) => opt.code === selectedCode)
+
+      // Only return dropdown selection if it differs from the default option text
+      if (selectedOption?.choices && selectedText !== selectedOption.text) {
+        selections[selectedCode] = selectedText
+      }
+    }
+    return selections
+  },
+  set(newSelections: Record<string, string>) {
+    if (selectedChoice.value !== null) {
+      const option = props.question.options?.find((opt) => opt.code == selectedChoice.value)
+      let text = option?.text || ''
+
+      // Use dropdown selection if available
+      if (option?.choices && newSelections[selectedChoice.value]) {
+        text = newSelections[selectedChoice.value]
+      }
+
+      updateAnswer([selectedChoice.value], [text])
+    }
+  },
+})
+
+function triggerDropdownUpdate() {
+  // Trigger the computed setters to update the answer
+  dropdownSelections.value = dropdownSelections.value
+}
 
 function getAnswer() {
   return answer.value
@@ -65,7 +88,7 @@ defineExpose({
       :key="option.code || 0"
       class="option-item"
       :class="{
-        'with-dropdown': option.choices && option.choices.length > 0,
+        'with-text-input': option.choices && option.choices.length > 0,
         active: selectedChoice === option.code,
       }"
     >
@@ -81,6 +104,7 @@ defineExpose({
       <Select
         v-if="option.choices && option.choices.length && selectedChoice === option.code"
         v-model="dropdownSelections[option.code!]"
+        @change="triggerDropdownUpdate"
         filter
         :options="option.choices"
         :placeholder="'Select an option for ' + option.text"
@@ -89,3 +113,21 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+.option-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+.option-item .text-inputs {
+  grid-area: textinput;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dropdown-select {
+  grid-area: textinput;
+}
+</style>

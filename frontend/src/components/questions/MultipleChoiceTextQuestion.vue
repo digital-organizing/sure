@@ -1,37 +1,27 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { Checkbox, InputText } from 'primevue'
-import { type ClientQuestionSchema } from '@/client'
+import {
+  type ClientAnswerSchema,
+  type ClientQuestionSchema,
+  type ConsultantAnswerSchema,
+  type ConsultantQuestionSchema,
+} from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 
 const props = defineProps<{
-  question: ClientQuestionSchema
+  question: ClientQuestionSchema | ConsultantQuestionSchema
+  remote?: ComputedRef<ClientAnswerSchema | ConsultantAnswerSchema | null>
+  consultant?: boolean
 }>()
 
-const { answer, updateAnswer } = useQuestionAnswer(props.question)
-const selectedChoices = ref<string[]>([])
-const textInputs = ref<Record<string, string>>({})
-
-// Load existing answer
-if (answer.value.choices && answer.value.choices.length > 0) {
-  selectedChoices.value = [...answer.value.choices.map((choice) => choice.code)]
-
-  // Load text inputs if they exist
-  if (answer.value.choices && answer.value.choices.length > 0) {
-    selectedChoices.value.forEach((choiceId, index) => {
-      const option = props.question.options?.find((opt) => opt.code === choiceId)
-      if (option?.allow_text && answer.value.choices[index].text) {
-        textInputs.value[choiceId] = answer.value.choices[index].text
-      }
-    })
-  }
-}
-
-// Update store when selection or text changes
-watch(
-  [selectedChoices, textInputs],
-  () => {
-    const texts = selectedChoices.value.map((choiceId) => {
+const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
+const selectedChoices = computed<string[]>({
+  get() {
+    return [...answer.value.choices.map((choice) => choice.code)]
+  },
+  set(newChoices: string[]) {
+    const texts = newChoices.map((choiceId) => {
       const option = props.question.options?.find((opt) => opt.code === choiceId)
 
       // Use custom text if option allows it and text is provided
@@ -39,13 +29,48 @@ watch(
         return textInputs.value[choiceId]
       }
 
+      if (option?.allow_text) return ''
+
+      return option?.text || ''
+    })
+
+    updateAnswer(newChoices, texts)
+  },
+})
+
+const textInputs = computed<Record<string, string>>({
+  get() {
+    const texts: Record<string, string> = {}
+    if (answer.value.choices && answer.value.choices.length > 0) {
+      selectedChoices.value.forEach((choiceId, index) => {
+        const option = props.question.options?.find((opt) => opt.code === choiceId)
+        if (option?.allow_text && answer.value.choices[index].text) {
+          texts[choiceId] = answer.value.choices[index].text
+        }
+      })
+    }
+    return texts
+  },
+  set(newTexts: Record<string, string>) {
+    const texts = selectedChoices.value.map((choiceId) => {
+      const option = props.question.options?.find((opt) => opt.code === choiceId)
+
+      // Use custom text if option allows it and text is provided
+      if (option?.allow_text && newTexts[choiceId]) {
+        return newTexts[choiceId]
+      }
+
       return option?.text || ''
     })
 
     updateAnswer(selectedChoices.value, texts)
   },
-  { deep: true },
-)
+})
+
+function triggerTextUpdate() {
+  // Trigger the computed setters to update the answer
+  textInputs.value = textInputs.value
+}
 
 function getAnswer() {
   return answer.value
@@ -78,11 +103,21 @@ defineExpose({
       </label>
       <InputText
         v-if="option.allow_text && selectedChoices.includes(option.code!)"
-        v-model="textInputs[option.id!]"
+        v-model="textInputs[option.code!]"
         type="text"
+        @input="triggerTextUpdate()"
         :placeholder="'Additional text for ' + option.text"
         class="text-input"
       />
     </div>
   </div>
 </template>
+
+<style scoped>
+.option-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+</style>

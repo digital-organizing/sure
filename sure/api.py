@@ -1,15 +1,102 @@
-from django.db.models import Prefetch
-from django.shortcuts import get_object_or_404
-from ninja import Router
+import logging
+from collections.abc import Callable
+from functools import wraps
+from typing import Any, Optional
 
-from sure.client_service import (create_case, create_visit, get_case_link,
-                                 record_client_answers, send_case_link,
-                                 strip_id, verify_access_to_location)
-from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
-                         ConsultantQuestion, Questionnaire, Section, Visit)
-from sure.schema import (CreateCaseResponse, CreateCaseSchema,
-                         InternalQuestionnaireSchema, QuestionnaireSchema,
-                         SubmitCaseResponse, SubmitCaseSchema, VisitSchema)
+from django.conf import settings
+from django.db.models import F, Func, Prefetch
+from django.http import HttpRequest
+from django.shortcuts import get_object_or_404
+from django.utils import translation
+from django.utils.translation import get_language_from_request
+from ninja import Query, Router, Schema
+from ninja.errors import HttpError
+from ninja.pagination import PageNumberPagination, paginate
+from ninja.utils import contribute_operation_args
+
+from sure.cases import annotate_last_modified
+from sure.client_service import (
+    create_case,
+    create_visit,
+    get_case,
+    get_case_link,
+    record_client_answers,
+    record_consultant_answers,
+    send_case_link,
+    strip_id,
+    verify_access_to_location,
+)
+from sure.models import (
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    Test,
+    TestCategory,
+    TestKind,
+    Visit,
+    VisitStatus,
+)
+from sure.schema import (
+    CaseFilters,
+    CaseHistory,
+    CaseListingSchema,
+    ClientAnswerSchema,
+    ConsultantAnswerSchema,
+    CreateCaseResponse,
+    CreateCaseSchema,
+    InternalQuestionnaireSchema,
+    OptionSchema,
+    QuestionnaireListingSchema,
+    QuestionnaireSchema,
+    SubmitCaseResponse,
+    SubmitCaseSchema,
+    TestCategorySchema,
+    TestResultOptionSchema,
+)
+from tenants.models import Consultant
+
+logger = logging.getLogger(__name__)
+
+
+def _activate_language_for_request(request, lang: str | None = None):
+    if lang is None:
+        lang = (
+            get_language_from_request(request)
+            or settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+        )
+
+    if lang:
+        translation.activate(lang)
+
+
+class LangSchema(Schema):
+    lang: Optional[str] = settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+
+
+def inject_language(func: Callable) -> Callable:
+    """Inject language parameter into Django Ninja endpoint."""
+
+    @wraps(func)
+    def view_with_language(request: HttpRequest, **kwargs: Any) -> Any:
+        # Extract the language parameter that Ninja injected
+        lang = kwargs.pop("lang", None)
+
+        _activate_language_for_request(request, lang.lang)
+
+        return func(request, **kwargs)
+
+    contribute_operation_args(
+        view_with_language,
+        arg_name="lang",
+        arg_type=LangSchema,
+        arg_source=Query(...),  # type: ignore
+    )
+
+    return view_with_language
+
 
 router = Router()
 
@@ -46,25 +133,25 @@ def _prefetch_questionnaire(internal=False):
 
 
 @router.get("/case/{pk}/questionnaire/", response=QuestionnaireSchema, auth=None)
+@inject_language
 def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     """Get the questionnaire associated with a case."""
     pk = strip_id(pk)
 
     visit = get_object_or_404(Visit, case_id=pk)
+    if visit.status != VisitStatus.CREATED and request.user.is_authenticated is False:
+        raise HttpError(403, "Questionnaire already submitted")
+
     questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
 
     return questionnaire
 
 
 @router.get("/case/{pk}/internal/", response=InternalQuestionnaireSchema)
+@inject_language
 def get_case_internal(request, pk: str):
     """Get the internal questionnaire associated with a case."""
-    pk = strip_id(pk)
-
-    visit = get_object_or_404(Visit, case_id=pk)
-
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
+    visit = get_case(request, pk)
 
     questionnaire = _prefetch_questionnaire(internal=True).get(
         pk=visit.questionnaire.pk
@@ -73,20 +160,55 @@ def get_case_internal(request, pk: str):
     return questionnaire
 
 
-@router.get("/case/{pk}/visit/", response=VisitSchema)
+@router.get("/case/{pk}/visit/", response=CaseListingSchema)
+@inject_language
 def get_visit(request, pk: str):
     """Get the client answers for a case."""
-    pk = strip_id(pk)
 
-    visit = get_object_or_404(Visit, case_id=pk)
-
-    if not verify_access_to_location(visit.case.location, request.user):
-        raise PermissionError("User does not have access to this location")
-
+    visit = get_case(request, pk)
     return visit
 
 
+@router.get("/case/{pk}/visit/client-answers/", response=list[ClientAnswerSchema])
+@inject_language
+def get_visit_client_answers(request, pk: str):
+    visit = get_case(request, pk)
+    # Only get latest per querstion_id
+    return (
+        visit.client_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+    )
+
+
+@router.get(
+    "/case/{pk}/visit/consultant-answers/", response=list[ConsultantAnswerSchema]
+)
+@inject_language
+def get_visit_consultant_answers(request, pk: str):
+    visit = get_case(request, pk)
+    return (
+        visit.consultant_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+    )
+
+
+@router.get("/case/{pk}/visit/history/", response=CaseHistory)
+@inject_language
+def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
+    visit = get_case(request, pk)
+
+    client_answers = visit.client_answers.all().order_by("-created_at")
+    consultant_answers = visit.consultant_answers.all().order_by("-created_at")
+    return {
+        "client_answers": client_answers[offset : offset + limit],
+        "consultant_answers": consultant_answers[offset : offset + limit],
+    }
+
+
 @router.post("/case/{pk}/submit/", auth=None, response=SubmitCaseResponse)
+@inject_language
 def submit_case(request, pk: str, answers: SubmitCaseSchema):
     """Submit client answers for a case."""
     pk = strip_id(pk)
@@ -96,29 +218,119 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
         if not verify_access_to_location(visit.case.location, request.user):
             raise PermissionError("User does not have access to this location")
 
-    record_client_answers(
-        visit, answers.answers, request.user if request.user.is_authenticated else None
-    )
+    try:
+        record_client_answers(
+            visit,
+            answers.answers,
+            request.user if request.user.is_authenticated else None,
+        )
+    except ValueError as e:
+        raise HttpError(400, str(e)) from e
 
     return {"success": True}
 
 
-@router.post("/case/create/")
+@router.post("/case/{pk}/consultant/submit/", response=SubmitCaseResponse)
+@inject_language
+def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
+    visit = get_case(request, pk)
+    warnings = record_consultant_answers(visit, answers.answers, request.user)
+
+    return {"success": True, "warnings": warnings}
+
+
+@router.post("/case/{pk}/tests/", response=SubmitCaseResponse)
+@inject_language
+def update_case_tests(request, pk: str, test_pks: list[int]):
+    visit = get_case(request, pk)
+    warnings = []
+
+    exisitng = set(visit.tests.values_list("test_kind_id", flat=True))
+    new = set(test_pks) - exisitng
+
+    tests = [Test(visit=visit, test_kind_id=test_kind_id) for test_kind_id in new]
+    Test.objects.bulk_create(tests)
+
+    visit.status = VisitStatus.CONSULTANT_SUBMITTED
+    visit.save()
+
+    return {"success": True, "warnings": warnings}
+
+
+@router.post("/case/{pk}/status/", response=SubmitCaseResponse)
+@inject_language
+def update_case_status(request, pk: str, status: str):
+    """Update status for a case."""
+    visit = get_case(request, pk)
+    if status not in dict(VisitStatus.choices):
+        raise ValueError(f"Invalid status: {status}")
+    visit.status = status
+    visit.save()
+    return {"success": True}
+
+
+@router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
+@inject_language
+def update_case_test_results(request, pk: str, test_results: dict[int, str]):
+    visit = get_case(request, pk)
+    test_kinds = visit.tests.all()
+    warnings = []
+
+    for nr, label in test_results.items():
+        test = test_kinds.filter(test_kind__number=nr).first()
+        if not test:
+            warnings.append(
+                f"No test found for test kind number {nr} in case {visit.case.human_id}."
+            )
+            continue
+
+        option = test.test_kind.result_options.filter(label=label).first()
+
+        if not option:
+            warnings.append(
+                f"No option found for label '{label}' in "
+                f"test kind {test.test_kind.name} for case {visit.case.human_id}."
+            )
+            continue
+
+        test.test_results.create(result_option=option, user=request.user)
+
+
+@router.post("/case/{pk}/tags/", response=SubmitCaseResponse)
+@inject_language
+def update_case_tags(request, pk: str, tags: list[str]):
+    """Update tags for a case."""
+    visit = get_case(request, pk)
+    visit.tags.clear()
+    # This is necessary for some reason, otherwise changes are not stored
+    visit.save()
+    visit.tags = tags
+    visit.save()
+    return {"success": True}
+
+
+@router.post("/case/create/", response=CreateCaseResponse)
+@inject_language
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
-    print(data)
-    case = create_case(data.location_id, request.user)
+    case = create_case(data.location_id, request.user, data.external_id)
     create_visit(case, get_object_or_404(Questionnaire, pk=data.questionnaire_id))
 
     link = get_case_link(case)
 
     if data.phone:
-        send_case_link(case, data.phone)
+        try:
+            send_case_link(case, data.phone)
+        except Exception as e:
+            logger.error(
+                "Failed to send case link to phone number %s: %s", data.phone, e
+            )
 
-    return CreateCaseResponse(link=link)
+    return CreateCaseResponse(link=link, case_id=case.human_id)
 
 
 @router.get("/questionnaires/{pk}/", response=QuestionnaireSchema, auth=None)
+@inject_language
 def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID."""
     questionnaire = _prefetch_questionnaire().get(pk=pk)
@@ -126,7 +338,110 @@ def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
 
 
 @router.get("/internal/questionnaires/{pk}/", response=InternalQuestionnaireSchema)
+@inject_language
 def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID, including consultant questions."""
     questionnaire = _prefetch_questionnaire(internal=True).get(pk=pk)
     return questionnaire
+
+
+@router.post("/cases/", response=list[CaseListingSchema])
+@inject_language
+@paginate(PageNumberPagination, page_size=20)
+def list_cases(request, filters: CaseFilters):
+    """List all cases the user has access to."""
+    consultant = get_object_or_404(Consultant, user=request.user)
+    django_filters = filters.get_django_filters()
+
+    visits = (
+        annotate_last_modified(
+            Visit.objects.filter(case__location__in=consultant.locations.all())
+            .select_related(
+                "case", "questionnaire", "case__connection", "case__location"
+            )
+            .prefetch_related("client_answers", "consultant_answers", "tests")
+        )
+        .order_by("-last_modified_at")
+        .filter(django_filters)
+    )
+
+    return visits
+
+
+@router.get("/case/status/options/", response=list[OptionSchema])
+@inject_language
+def get_case_status_options(request):  # pylint: disable=unused-argument
+    """Get options for case status."""
+    return [
+        {"label": str(label), "value": str(value)}
+        for value, label in VisitStatus.choices
+    ]
+
+
+@router.get("/case/tags/options/", response=list[str])
+@inject_language
+def get_case_tags_options(request):
+    """Get options for case tags."""
+    consultant = get_object_or_404(Consultant, user=request.user)
+    visits = (
+        Visit.objects.filter(case__location__in=consultant.locations.all())
+        .exclude(tags__isnull=True)
+        .exclude(tags=[])
+    )
+
+    distinct_tags = (
+        visits.annotate(tag=Func(F("tags"), function="unnest"))
+        .values("tag")
+        .distinct()
+        .values_list("tag", flat=True)
+    )
+
+    return sorted(distinct_tags)
+
+
+@router.get("/client/{pk}/cases/", response=list[CaseListingSchema])
+@inject_language
+@paginate(PageNumberPagination, page_size=20)
+def list_client_cases(request, pk: str):
+    """List all cases for a specific client the user has access to."""
+    consultant = get_object_or_404(Consultant, user=request.user)
+    client_id = strip_id(pk)
+
+    visits = annotate_last_modified(
+        Visit.objects.filter(
+            case__location__in=consultant.locations.all(),
+            case__connection__client__id=client_id,
+        )
+        .select_related("case", "questionnaire", "case__connection", "case__location")
+        .prefetch_related("client_answers", "consultant_answers", "test_results")
+    ).order_by("-last_modified_at")
+
+    return visits
+
+
+@router.get("/questionnaires/", response=list[QuestionnaireListingSchema], auth=None)
+@inject_language
+def list_questionnaires(request):  # pylint: disable=unused-argument
+    """List all questionnaires."""
+    questionnaires = Questionnaire.objects.all().only("id", "name")
+    return questionnaires
+
+
+@router.get("/tests/", response=list[TestCategorySchema])
+@inject_language
+def list_tests(request):  # pylint: disable=unused-argument
+    """List all tests."""
+    return TestCategory.objects.prefetch_related(
+        "test_kinds",
+        "test_kinds__test_bundles",
+    ).all()
+
+
+@router.get("/tests/{pk}/result-options/", response=list[TestResultOptionSchema])
+@inject_language
+def list_test_result_options(request, pk: int):  # pylint: disable=unused-argument
+    """List all test result options for a given test kind."""
+    test_kind = get_object_or_404(
+        TestKind.objects.prefetch_related("result_options"), pk=pk
+    )
+    return test_kind.result_options.all()

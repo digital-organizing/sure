@@ -11,6 +11,38 @@ export type CsrfTokenResponse = {
 };
 
 /**
+ * LoginResponse
+ */
+export type LoginResponse = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * Error
+     */
+    error?: string | null;
+};
+
+/**
+ * AccountResponse
+ */
+export type AccountResponse = {
+    /**
+     * Username
+     */
+    username: string | null;
+    /**
+     * Is Staff
+     */
+    is_staff?: boolean | null;
+    /**
+     * Is Superuser
+     */
+    is_superuser?: boolean | null;
+};
+
+/**
  * ClientOptionSchema
  */
 export type ClientOptionSchema = {
@@ -242,6 +274,40 @@ export type InternalQuestionnaireSchema = {
 };
 
 /**
+ * CaseListingSchema
+ */
+export type CaseListingSchema = {
+    /**
+     * Location
+     */
+    location: string;
+    /**
+     * Client
+     */
+    client: string | null;
+    /**
+     * Last Modified At
+     */
+    last_modified_at: string;
+    /**
+     * Tags
+     */
+    tags: Array<string>;
+    /**
+     * Case
+     */
+    case: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Status
+     */
+    status?: string;
+};
+
+/**
  * ClientAnswerSchema
  */
 export type ClientAnswerSchema = {
@@ -253,6 +319,10 @@ export type ClientAnswerSchema = {
      * Texts
      */
     texts: Array<string>;
+    /**
+     * ID
+     */
+    id?: number | null;
     /**
      * Question
      */
@@ -269,25 +339,48 @@ export type ClientAnswerSchema = {
 };
 
 /**
- * VisitSchema
+ * ConsultantAnswerSchema
  */
-export type VisitSchema = {
+export type ConsultantAnswerSchema = {
     /**
-     * Client Answers
+     * Choices
      */
-    client_answers: Array<ClientAnswerSchema>;
+    choices: Array<number>;
+    /**
+     * Texts
+     */
+    texts: Array<string>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Question
+     */
+    question: number;
     /**
      * Created At
      */
     created_at: string;
     /**
-     * Questionnaire
+     * User
+     * The user who recorded the answer (consultant)
      */
-    questionnaire: number;
+    user?: number | null;
+};
+
+/**
+ * CaseHistory
+ */
+export type CaseHistory = {
     /**
-     * Status
+     * Client Answers
      */
-    status?: string;
+    client_answers: Array<ClientAnswerSchema>;
+    /**
+     * Consultant Answers
+     */
+    consultant_answers: Array<ConsultantAnswerSchema>;
 };
 
 /**
@@ -298,6 +391,10 @@ export type SubmitCaseResponse = {
      * Success
      */
     success: boolean;
+    /**
+     * Warnings
+     */
+    warnings?: Array<string> | null;
 };
 
 /**
@@ -339,6 +436,20 @@ export type SubmitCaseSchema = {
 };
 
 /**
+ * CreateCaseResponse
+ */
+export type CreateCaseResponse = {
+    /**
+     * Link
+     */
+    link: string;
+    /**
+     * Case Id
+     */
+    case_id: string;
+};
+
+/**
  * CreateCaseSchema
  */
 export type CreateCaseSchema = {
@@ -354,6 +465,182 @@ export type CreateCaseSchema = {
      * Phone
      */
     phone?: string | null;
+    /**
+     * External Id
+     */
+    external_id?: string | null;
+};
+
+/**
+ * Input
+ */
+export type Input = {
+    /**
+     * Page
+     */
+    page?: number;
+    /**
+     * Page Size
+     */
+    page_size?: number | null;
+};
+
+/**
+ * PagedCaseListingSchema
+ */
+export type PagedCaseListingSchema = {
+    /**
+     * Items
+     */
+    items: Array<CaseListingSchema>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
+ * CaseFilters
+ */
+export type CaseFilters = {
+    search: FilterData;
+    case: FilterData;
+    client_id: FilterData;
+    tags: FilterOperator;
+    location: FilterData;
+    status: FilterData;
+    last_modified_at: FilterOperator;
+};
+
+/**
+ * FilterData
+ */
+export type FilterData = {
+    /**
+     * Value
+     */
+    value: unknown | null;
+    matchMode: MatchModes;
+};
+
+/**
+ * FilterOperator
+ */
+export type FilterOperator = {
+    operator: Operator;
+    /**
+     * Constraints
+     */
+    constraints: Array<FilterData>;
+};
+
+/**
+ * MatchModes
+ */
+export type MatchModes = 'startsWith' | 'contains' | 'notContains' | 'endsWith' | 'equals' | 'notEquals' | 'in' | 'lt' | 'lte' | 'gt' | 'gte' | 'between' | 'dateIs' | 'dateIsNot' | 'dateBefore' | 'dateAfter';
+
+/**
+ * Operator
+ */
+export type Operator = 'and' | 'or';
+
+/**
+ * OptionSchema
+ */
+export type OptionSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Value
+     */
+    value: string;
+};
+
+/**
+ * QuestionnaireListingSchema
+ */
+export type QuestionnaireListingSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     * Name of the questionnaire
+     */
+    name: string;
+};
+
+/**
+ * LocationSchema
+ */
+export type LocationSchema = {
+    tenant: TenantSchema;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TenantSchema
+ */
+export type TenantSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TagSchema
+ */
+export type TagSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Note
+     */
+    note?: string | null;
+};
+
+/**
+ * UserSchema
+ */
+export type UserSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Username
+     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     */
+    username: string;
+    /**
+     * First Name
+     */
+    first_name?: string | null;
+    /**
+     * Last Name
+     */
+    last_name?: string | null;
 };
 
 export type CoreApiGetCsrfTokenData = {
@@ -391,12 +678,23 @@ export type CoreApiLoginViewData = {
     url: '/api/login';
 };
 
+export type CoreApiLoginViewErrors = {
+    /**
+     * Unknown Status Code
+     */
+    4: LoginResponse;
+};
+
+export type CoreApiLoginViewError = CoreApiLoginViewErrors[keyof CoreApiLoginViewErrors];
+
 export type CoreApiLoginViewResponses = {
     /**
-     * OK
+     * Unknown Status Code
      */
-    200: unknown;
+    2: LoginResponse;
 };
+
+export type CoreApiLoginViewResponse = CoreApiLoginViewResponses[keyof CoreApiLoginViewResponses];
 
 export type CoreApiLogoutViewData = {
     body?: never;
@@ -423,8 +721,10 @@ export type CoreApiAccountResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: AccountResponse;
 };
+
+export type CoreApiAccountResponse = CoreApiAccountResponses[keyof CoreApiAccountResponses];
 
 export type SureApiGetCaseQuestionnaireData = {
     body?: never;
@@ -484,10 +784,84 @@ export type SureApiGetVisitResponses = {
     /**
      * OK
      */
-    200: VisitSchema;
+    200: CaseListingSchema;
 };
 
 export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses];
+
+export type SureApiGetVisitClientAnswersData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/visit/client-answers/';
+};
+
+export type SureApiGetVisitClientAnswersResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<ClientAnswerSchema>;
+};
+
+export type SureApiGetVisitClientAnswersResponse = SureApiGetVisitClientAnswersResponses[keyof SureApiGetVisitClientAnswersResponses];
+
+export type SureApiGetVisitConsultantAnswersData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/visit/consultant-answers/';
+};
+
+export type SureApiGetVisitConsultantAnswersResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<ConsultantAnswerSchema>;
+};
+
+export type SureApiGetVisitConsultantAnswersResponse = SureApiGetVisitConsultantAnswersResponses[keyof SureApiGetVisitConsultantAnswersResponses];
+
+export type SureApiGetVisitHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Offset
+         */
+        offset?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/sure/case/{pk}/visit/history/';
+};
+
+export type SureApiGetVisitHistoryResponses = {
+    /**
+     * OK
+     */
+    200: CaseHistory;
+};
+
+export type SureApiGetVisitHistoryResponse = SureApiGetVisitHistoryResponses[keyof SureApiGetVisitHistoryResponses];
 
 export type SureApiSubmitCaseData = {
     body: SubmitCaseSchema;
@@ -510,6 +884,51 @@ export type SureApiSubmitCaseResponses = {
 
 export type SureApiSubmitCaseResponse = SureApiSubmitCaseResponses[keyof SureApiSubmitCaseResponses];
 
+export type SureApiSubmitConsultantCaseData = {
+    body: SubmitCaseSchema;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/consultant/submit/';
+};
+
+export type SureApiSubmitConsultantCaseResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiSubmitConsultantCaseResponse = SureApiSubmitConsultantCaseResponses[keyof SureApiSubmitConsultantCaseResponses];
+
+export type SureApiUpdateCaseTagsData = {
+    /**
+     * Tags
+     */
+    body: Array<string>;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/tags/';
+};
+
+export type SureApiUpdateCaseTagsResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiUpdateCaseTagsResponse = SureApiUpdateCaseTagsResponses[keyof SureApiUpdateCaseTagsResponses];
+
 export type SureApiCreateCaseViewData = {
     body: CreateCaseSchema;
     path?: never;
@@ -521,8 +940,10 @@ export type SureApiCreateCaseViewResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: CreateCaseResponse;
 };
+
+export type SureApiCreateCaseViewResponse = SureApiCreateCaseViewResponses[keyof SureApiCreateCaseViewResponses];
 
 export type SureApiGetQuestionnaireData = {
     body?: never;
@@ -565,6 +986,167 @@ export type SureApiGetInternalQuestionnaireResponses = {
 };
 
 export type SureApiGetInternalQuestionnaireResponse = SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses];
+
+export type SureApiListCasesData = {
+    body: CaseFilters;
+    path?: never;
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number | null;
+    };
+    url: '/api/sure/cases/';
+};
+
+export type SureApiListCasesResponses = {
+    /**
+     * OK
+     */
+    200: PagedCaseListingSchema;
+};
+
+export type SureApiListCasesResponse = SureApiListCasesResponses[keyof SureApiListCasesResponses];
+
+export type SureApiGetCaseStatusOptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sure/case/status/options/';
+};
+
+export type SureApiGetCaseStatusOptionsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<OptionSchema>;
+};
+
+export type SureApiGetCaseStatusOptionsResponse = SureApiGetCaseStatusOptionsResponses[keyof SureApiGetCaseStatusOptionsResponses];
+
+export type SureApiGetCaseTagsOptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sure/case/tags/options/';
+};
+
+export type SureApiGetCaseTagsOptionsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type SureApiGetCaseTagsOptionsResponse = SureApiGetCaseTagsOptionsResponses[keyof SureApiGetCaseTagsOptionsResponses];
+
+export type SureApiListClientCasesData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Page
+         */
+        page?: number;
+        /**
+         * Page Size
+         */
+        page_size?: number | null;
+    };
+    url: '/api/sure/client/{pk}/cases/';
+};
+
+export type SureApiListClientCasesResponses = {
+    /**
+     * OK
+     */
+    200: PagedCaseListingSchema;
+};
+
+export type SureApiListClientCasesResponse = SureApiListClientCasesResponses[keyof SureApiListClientCasesResponses];
+
+export type SureApiListQuestionnairesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/sure/questionnaires/';
+};
+
+export type SureApiListQuestionnairesResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<QuestionnaireListingSchema>;
+};
+
+export type SureApiListQuestionnairesResponse = SureApiListQuestionnairesResponses[keyof SureApiListQuestionnairesResponses];
+
+export type TenantsApiListLocationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/tenants/locations';
+};
+
+export type TenantsApiListLocationsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<LocationSchema>;
+};
+
+export type TenantsApiListLocationsResponse = TenantsApiListLocationsResponses[keyof TenantsApiListLocationsResponses];
+
+export type TenantsApiListTagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/tenants/tags';
+};
+
+export type TenantsApiListTagsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TagSchema>;
+};
+
+export type TenantsApiListTagsResponse = TenantsApiListTagsResponses[keyof TenantsApiListTagsResponses];
+
+export type TenantsApiGetConsultantData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: number;
+    };
+    query?: never;
+    url: '/api/tenants/consultants/{pk}/';
+};
+
+export type TenantsApiGetConsultantResponses = {
+    /**
+     * OK
+     */
+    200: UserSchema;
+};
+
+export type TenantsApiGetConsultantResponse = TenantsApiGetConsultantResponses[keyof TenantsApiGetConsultantResponses];
 
 export type ClientOptions = {
     baseUrl: string;

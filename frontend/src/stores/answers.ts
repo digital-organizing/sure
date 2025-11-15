@@ -1,10 +1,11 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
-import type {
-  SubmitCaseSchema,
-  ChoiceSchema,
-  ClientAnswerSchema,
-  QuestionnaireSchema,
+import {
+  type SubmitCaseSchema,
+  type ChoiceSchema,
+  type ClientAnswerSchema,
+  type QuestionnaireSchema,
+  type AnswerSchema,
 } from '@/client'
 
 export const userAnswersStore = defineStore('answers', () => {
@@ -47,7 +48,6 @@ export const userAnswersStore = defineStore('answers', () => {
     const answer = getAnswerForQuestion(questionId)
     if (!answer) return false
 
-
     const selected = answer.choices.some((choice) => choice.code === optionCode)
     if (selected) return true
   }
@@ -59,7 +59,10 @@ export const userAnswersStore = defineStore('answers', () => {
   const loadAnswers = () => {
     const stored = localStorage.getItem('userAnswers')
     if (stored) {
-      answers.value = JSON.parse(stored)
+      const parsed = JSON.parse(stored)
+      if (parsed && Array.isArray(parsed.answers)) {
+        answers.value = parsed
+      }
     }
   }
 
@@ -70,6 +73,12 @@ export const userAnswersStore = defineStore('answers', () => {
   const setAnswersForSection = (sectionId: number, answers: Array<ClientAnswerSchema>) => {
     sections.value.set(sectionId, answers)
   }
+
+  const clearAnswers = () => {
+    answers.value = { answers: [] }
+    saveAnswers()
+  }
+
   loadAnswers()
 
   return {
@@ -82,5 +91,65 @@ export const userAnswersStore = defineStore('answers', () => {
     setAnswerForQuestion,
     isOptionSelected,
     setSchema,
+    clearAnswers,
+  }
+})
+
+export const consultantAnswersStore = defineStore('consultant-answers', () => {
+  const answers = ref<AnswerSchema[]>([])
+  const caseId = ref<string | null>(null)
+
+  function setCaseId(newCaseId: string | null) {
+    if (newCaseId) caseId.value = newCaseId
+  }
+
+  function clearAnswers() {
+    answers.value = []
+    saveAnswers()
+  }
+
+  function getAnswerForQuestion(questionId: number) {
+    return answers.value.find((answer) => answer.questionId === questionId) || null
+  }
+
+  function setAnswerForQuestion(questionId: number, choices: ChoiceSchema[]) {
+    answers.value = answers.value.filter((a) => a.questionId !== questionId)
+    answers.value.push({ questionId, choices })
+    saveAnswers()
+  }
+
+  function saveAnswers() {
+    localStorage.setItem(
+      'consultantAnswers',
+      JSON.stringify({
+        answers: answers.value,
+        caseId: caseId.value,
+      }),
+    )
+  }
+
+  function loadAnswers() {
+    const stored = localStorage.getItem('consultantAnswers')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed && Array.isArray(parsed.answers)) {
+        answers.value = parsed.answers
+        caseId.value = parsed.caseId || null
+      }
+    }
+  }
+  loadAnswers()
+
+  watch(caseId, (newId, oldId) => {
+    if (newId !== oldId) clearAnswers()
+  })
+
+  return {
+    answers,
+    caseId,
+    getAnswerForQuestion,
+    setAnswerForQuestion,
+    clearAnswers,
+    setCaseId,
   }
 })

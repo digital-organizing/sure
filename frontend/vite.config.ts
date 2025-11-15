@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [vue(), vueDevTools(), sentryVitePlugin({
     org: "d-o",
     project: "sure",
-    url: "https://sentry.d-o.li/"
+    url: "https://sentry.d-o.li"
   }),
   Components({
     resolvers: [PrimeVueResolver()],

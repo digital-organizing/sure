@@ -13,9 +13,8 @@ import os
 import re
 from pathlib import Path
 
-from environ import Env
 import sentry_sdk
-
+from environ import Env
 
 env = Env()
 
@@ -47,6 +46,8 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
     "unfold",
+    "guard",
+    "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.location_field",  # optional, if django-location-field package is used
@@ -63,6 +64,14 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "django.contrib.postgres",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations",
+    "health_check.contrib.celery",
+    "health_check.contrib.redis",
+    "health_check.contrib.psutil",
 ]
 
 MIDDLEWARE = [
@@ -75,6 +84,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "guard.middleware.NotFoundRateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -161,12 +171,27 @@ DJANGO_VITE = {
     "default": {
         "dev_mode": env.bool("VITE_DEV_MODE", default=DEBUG),
         "dev_server_port": env("DJANGO_VITE_DEV_SERVER_PORT", default="5173"),
+        "manifest_path": BASE_DIR / "frontend/dist/manifest.json",
     }
 }
 
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": env.str("S3_ACCESS_KEY", default=""),
+            "secret_key": env.str("S3_SECRET_KEY", default=""),
+            "bucket_name": env.str("S3_BUCKET_NAME", default=""),
+            "querystring_auth": True,
+            "file_overwrite": True,
+            "region_name": env.str("S3_REGION", default="us-east-1"),
+            "endpoint_url": env.str("S3_ENDPOINT", ""),
+            # "custom_domain": env.str("S3_DOMAIN", ""),
+            "addressing_style": "auto",
+        },
     },
 }
 
@@ -205,6 +230,14 @@ CELERY_CACHE_BACKEND = "django-cache"
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+HEALTH_CHECK = {
+    "DISK_USAGE_MAX": 90,
+    "MEMORY_MIN": 100,  # in MB
+    "SUBSETS": {
+        "startup-probe": ["MigrationsHealthCheck", "DatabaseBackend"],
+        "liveness-probe": ["DatabaseBackend"],
+    },
+}
 
 # SURE Settings
 

@@ -1,5 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import ConsultantView from '@/views/consultant/ConsultantView.vue'
+import DashboardView from '@/views/consultant/DashboardView.vue'
+import CaseView from '@/views/consultant/CaseView.vue'
+import ConsultantQuestionnaire from '@/views/consultant/case/ConsultantQuestionnaire.vue'
+import ClientQuestionnaire from '@/views/consultant/case/ClientQuestionnaire.vue'
+import TestsView from '@/views/consultant/case/TestsView.vue'
+import ResultView from '@/views/consultant/case/ResultView.vue'
+import CommunicationView from '@/views/consultant/case/CommunicationView.vue'
+import CaseHistoryView from '@/views/consultant/case/CaseHistoryView.vue'
+import CreateCaseView from '@/views/consultant/CreateCaseView.vue'
+import SupportView from '@/views/consultant/SupportView.vue'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -18,9 +29,81 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
-      path: '/client-form',
+      path: '/client/:caseId',
       name: 'client-form',
       component: () => import('../views/ClientFormView.vue'),
+      props: true,
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/user/LoginView.vue'),
+    },
+    {
+      path: '/logout',
+      name: 'logout',
+      component: () => import('../views/user/LogoutView.vue'),
+    },
+    {
+      path: '/consultant',
+      component: ConsultantView,
+      children: [
+        {
+          path: '',
+          name: 'consultant-dashboard',
+          component: DashboardView,
+        },
+        {
+          path: 'case/:caseId',
+          name: 'consultant-case',
+          component: CaseView,
+          props: true,
+          children: [
+            {
+              path: 'client-answers',
+              name: 'consultant-client-answers',
+              component: ClientQuestionnaire,
+            },
+            {
+              path: 'consultant-questionnaire',
+              name: 'consultant-questionnaire',
+              component: ConsultantQuestionnaire,
+            },
+            {
+              path: 'tests',
+              name: 'consultant-tests',
+              component: TestsView,
+            },
+            {
+              path: 'results',
+              component: ResultView,
+              name: 'consultant-results',
+            },
+            {
+              path: 'communication',
+              name: 'consultant-communication',
+              component: CommunicationView,
+              props: true,
+            },
+            {
+              path: 'history',
+              name: 'consultant-case-history',
+              component: CaseHistoryView,
+              props: true,
+            },
+          ],
+        },
+        {
+          path: 'new-case',
+          name: 'consultant-new-case',
+          component: CreateCaseView,
+        },
+        {
+          path: 'support',
+          name: 'consultant-support',
+          component: SupportView,
+        },
+      ],
     },
   ],
 })

@@ -1,13 +1,29 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from sure.client_service import (canonicalize_phone_number, connect_case,
-                                 create_case, create_visit, generate_token,
-                                 get_case_link, get_cases, get_client_by_id,
-                                 record_client_answers,
-                                 verify_access_to_location, verify_token)
-from sure.models import (Client, ClientQuestion, ConsentChoice, Contact,
-                         Questionnaire, Section, Token, VisitStatus)
+from sure.client_service import (
+    canonicalize_phone_number,
+    connect_case,
+    create_case,
+    create_visit,
+    generate_token,
+    get_case_link,
+    get_cases,
+    get_client_by_id,
+    record_client_answers,
+    verify_access_to_location,
+    verify_token,
+)
+from sure.models import (
+    Client,
+    ClientQuestion,
+    ConsentChoice,
+    Contact,
+    Questionnaire,
+    Section,
+    Token,
+    VisitStatus,
+)
 from sure.schema import AnswerSchema, ChoiceSchema
 from tenants.models import Tenant
 
@@ -136,7 +152,9 @@ class CaseManagementTest(TestCase):
     def test_record_client_answers(self):
         # Build a minimal questionnaire with one client question
         questionnaire = Questionnaire.objects.create(name="Q with client question")
-        section = Section.objects.create(questionnaire=questionnaire, order=0, title="S")
+        section = Section.objects.create(
+            questionnaire=questionnaire, order=0, title="S"
+        )
         client_question = ClientQuestion.objects.create(
             section=section, question_text="How are you?", code="Q1", order=0
         )
@@ -159,7 +177,7 @@ class CaseManagementTest(TestCase):
         ca = visit.client_answers.first()
         assert ca is not None
         self.assertEqual(ca.choices, [1])
-        self.assertEqual(ca.texts, ["fine"]) 
+        self.assertEqual(ca.texts, ["fine"])
 
     def test_get_cases(self):
         case1 = create_case(self.location.pk, self.user)

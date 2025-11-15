@@ -25,7 +25,7 @@ class BlockedEndpointHit(models.Model):
 
 
 class BlockedIdentifier(models.Model):
-    identifier = models.CharField(max_length=255, unique=True)
+    identifier = models.CharField(max_length=255)
     blocked_at = models.DateTimeField(auto_now_add=True)
     
     reason = models.ForeignKey(

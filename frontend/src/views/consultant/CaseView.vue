@@ -42,6 +42,7 @@ onMounted(() => {
       <section>
         General case information
         {{ visit }}
+        <Button label="Refresh" @click="setCaseId(props.caseId)" />
       </section>
       <section>
         Past Visits

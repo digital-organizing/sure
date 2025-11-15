@@ -16,6 +16,7 @@ export const userAnswersStore = defineStore('answers', () => {
   const optionToQuestion = ref<Map<number, [number, string]>>(new Map())
 
   const getAnswerForQuestion = (questionId: number) => {
+    console.log(answers.value)
     return answers.value.answers.find((answer) => answer.questionId === questionId) || null
   }
 
@@ -59,7 +60,10 @@ export const userAnswersStore = defineStore('answers', () => {
   const loadAnswers = () => {
     const stored = localStorage.getItem('userAnswers')
     if (stored) {
-      answers.value = JSON.parse(stored)
+      const parsed = JSON.parse(stored)
+      if (parsed && Array.isArray(parsed.answers)){
+        answers.value = parsed
+      }
     }
   }
 

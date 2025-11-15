@@ -5,6 +5,9 @@ from django.utils import timezone
 import re
 from .models import BlockedIdentifier, ProtectedEndpoint, BlockedEndpointHit
 
+import logging
+logger = logging.getLogger(__name__)
+
 def check_blocked(identifier: str) -> bool:
     """Check if the identifier is currently blocked"""
     return BlockedIdentifier.objects.filter(
@@ -22,7 +25,10 @@ def check_hit(request, response):
         return None
     
     for endpoint in endpoints:
+        logger.info(f"Checking endpoint {endpoint} against request path {request.path}")
+
         if endpoint.path_matcher and re.match(endpoint.path_matcher, request.path):
+            logger.info(f"Matched path matcher for endpoint {endpoint}")
             return endpoint
 
     return None
@@ -57,7 +63,7 @@ def block_identifier(identifier: str, endpoint: ProtectedEndpoint):
     else:
         block_until = None
 
-    BlockedIdentifier.objects.get_or_create(
+    BlockedIdentifier.objects.create(
         identifier=identifier,
         reason=endpoint,
         disabled_at=block_until,

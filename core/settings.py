@@ -46,6 +46,8 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
     "unfold",
+    "guard",
+    "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.location_field",  # optional, if django-location-field package is used
@@ -74,7 +76,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "core.middleware.NotFoundRateLimitMiddleware",
+    "guard.middleware.NotFoundRateLimitMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"

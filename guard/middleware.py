@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.conf import settings
 from django.http import JsonResponse
 from typing import Callable
 from .guard import block_identifier, check_hit, check_block, track_hit, check_blocked, get_identifier

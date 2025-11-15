@@ -19,7 +19,7 @@ const props = defineProps<{
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
 const selectedChoice = computed<string | null>({
   get() {
-    return answer.value.choices[0].code
+    return answer.value.choices[0]?.code || null
   },
   set(newChoice: string | null) {
 

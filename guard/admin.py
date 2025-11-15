@@ -35,6 +35,8 @@ class BlockedIdentifierAdmin(ModelAdmin):
     list_display = ("identifier", "reason", "blocked_at", "disabled_at", "disabled_by")
     list_filter = ("reason", "disabled_by", EnabledFilter)
     
+    actions = ["clear_blocks"]
+    
     
     @admin.action(description="Clear selected blocks")
     def clear_blocks(self, request, queryset):

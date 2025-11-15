@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from colorfield.fields import ColorField
 
 BASE_58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
@@ -470,6 +471,9 @@ class TestKind(models.Model):
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test"),
     )
+    
+    test_bundles: models.QuerySet["TestBundle"]
+    result_options: models.QuerySet["TestResultOption"]
 
     class Meta:
         ordering = ["number"]
@@ -493,6 +497,14 @@ class TestResultOption(models.Model):
         verbose_name=_("Information Text"),
         help_text=_("Information text to be sent to the client"),
     )
+    
+    color = ColorField(
+        max_length=7,
+        blank=True,
+        verbose_name=_("Color"),
+        help_text=_("Color associated with this result option (hex code)"),
+    )
+
 
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
@@ -547,12 +559,12 @@ class Visit(models.Model):
 
     client_answers: models.QuerySet[ClientAnswer]
     consultant_answers: models.QuerySet[ConsultantAnswer]
-    test_results: models.QuerySet["Test"]
+    tests: models.QuerySet["Test"]
 
 
 class Test(models.Model):
     visit = models.ForeignKey(
-        Visit, on_delete=models.CASCADE, related_name="test_results"
+        Visit, on_delete=models.CASCADE, related_name="tests"
     )
     test_kind = models.ForeignKey(
         TestKind, on_delete=models.CASCADE, related_name="test_results"
@@ -563,6 +575,25 @@ class Test(models.Model):
         help_text=_("Additional notes about the test result"),
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("User"),
+        help_text=_("The user who recorded the test"),
+    )
+    
+    test_results: models.QuerySet["TestResult"]
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["visit", "test_kind"],
+                name="unique_test_per_visit_and_kind",
+            )
+        ]
 
 
 class TestResult(models.Model):

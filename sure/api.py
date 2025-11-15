@@ -2,6 +2,7 @@ from django.db.models import F, Func, Prefetch
 from django.shortcuts import get_object_or_404
 from ninja import Router
 from ninja.pagination import PageNumberPagination, paginate
+from ninja.errors import HttpError
 
 from sure.cases import annotate_last_modified
 from sure.client_service import (
@@ -22,6 +23,10 @@ from sure.models import (
     ConsultantQuestion,
     Questionnaire,
     Section,
+    Test,
+    TestCategory,
+    TestKind,
+    TestResult,
     Visit,
     VisitStatus,
 )
@@ -39,8 +44,13 @@ from sure.schema import (
     QuestionnaireSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
+    TestCategorySchema,
+    TestResultOptionSchema,
 )
 from tenants.models import Consultant
+
+import logging
+logger = logging.getLogger(__name__)
 
 router = Router()
 
@@ -82,6 +92,9 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     pk = strip_id(pk)
 
     visit = get_object_or_404(Visit, case_id=pk)
+    if visit.status != VisitStatus.CREATED and request.user.is_authenticated is False:
+        raise HttpError(403, "Questionnaire already submitted")
+
     questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
 
     return questionnaire
@@ -152,9 +165,12 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
         if not verify_access_to_location(visit.case.location, request.user):
             raise PermissionError("User does not have access to this location")
 
-    record_client_answers(
-        visit, answers.answers, request.user if request.user.is_authenticated else None
-    )
+    try:
+        record_client_answers(
+            visit, answers.answers, request.user if request.user.is_authenticated else None
+        )
+    except ValueError as e:
+        raise HttpError(400, str(e))
 
     return {"success": True}
 
@@ -166,6 +182,52 @@ def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
 
     return {"success": True, "warnings": warnings}
 
+@router.post("/case/{pk}/tests/", response=SubmitCaseResponse)
+def update_case_tests(request, pk: str, test_pks: list[int]):
+    visit = get_case(request, pk)
+    warnings = []
+    
+    exisitng = set(visit.tests.values_list("test_kind_id", flat=True))
+    new = set(test_pks) - exisitng
+    
+    tests = [Test(visit=visit, test_kind_id=test_kind_id) for test_kind_id in new]
+    Test.objects.bulk_create(tests)
+    
+    visit.status = VisitStatus.CONSULTANT_SUBMITTED
+    visit.save()
+
+    return {"success": True, "warnings": warnings}
+
+@router.post("/case/{pk}/status/", response=SubmitCaseResponse)
+def update_case_status(request, pk: str, status: str):
+    """Update status for a case."""
+    visit = get_case(request, pk)
+    if status not in dict(VisitStatus.choices):
+        raise ValueError(f"Invalid status: {status}")
+    visit.status = status
+    visit.save()
+    return {"success": True}
+
+@router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
+def update_case_test_results(request, pk: str, test_results: dict[int, str]):
+    visit = get_case(request, pk)
+    test_kinds = visit.tests.all()
+    warnings = []
+    
+    for nr, label in test_results.items():
+        test = test_kinds.filter(test_kind__number=nr).first()
+        if not test:
+            warnings.append(f"No test found for test kind number {nr} in case {visit.case.human_id}.")
+            continue
+        
+        option = test.test_kind.result_options.filter(label=label).first()
+
+        if not option:
+            warnings.append(f"No option found for label '{label}' in test kind {test.test_kind.name} for case {visit.case.human_id}.")
+            continue
+
+        test.test_results.create(result_option=option, user=request.user)
+    
 
 @router.post("/case/{pk}/tags/", response=SubmitCaseResponse)
 def update_case_tags(request, pk: str, tags: list[str]):
@@ -188,7 +250,10 @@ def create_case_view(request, data: CreateCaseSchema):
     link = get_case_link(case)
 
     if data.phone:
-        send_case_link(case, data.phone)
+        try:
+            send_case_link(case, data.phone)
+        except Exception as e:
+            logger.error(f"Failed to send case link to phone number {data.phone}: {e}")
 
     return CreateCaseResponse(link=link, case_id=case.human_id)
 
@@ -220,7 +285,7 @@ def list_cases(request, filters: CaseFilters):
             .select_related(
                 "case", "questionnaire", "case__connection", "case__location"
             )
-            .prefetch_related("client_answers", "consultant_answers", "test_results")
+            .prefetch_related("client_answers", "consultant_answers", "tests")
         )
         .order_by("-last_modified_at")
         .filter(django_filters)
@@ -282,3 +347,19 @@ def list_questionnaires(request):  # pylint: disable=unused-argument
     """List all questionnaires."""
     questionnaires = Questionnaire.objects.all().only("id", "name")
     return questionnaires
+
+
+@router.get("/tests/", response=list[TestCategorySchema])
+def list_tests(request):
+    """List all tests."""
+    return TestCategory.objects.prefetch_related(
+            "test_kinds",
+            "test_kinds__test_bundles",
+    ).all()
+
+@router.get("/tests/{pk}/result-options/", response=list[TestResultOptionSchema])
+def list_test_result_options(request, pk: int):
+    """List all test result options for a given test kind."""
+    test_kind = get_object_or_404(TestKind.objects.prefetch_related("result_options"), pk=pk)
+    return test_kind.result_options.all()
+

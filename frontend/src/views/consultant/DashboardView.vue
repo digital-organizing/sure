@@ -58,6 +58,7 @@ const filters = ref<DataTableFilterMeta>({
   search: { value: null, matchMode: 'contains' },
   case: { value: null, matchMode: 'contains' },
   client_id: { value: null, matchMode: 'contains' },
+  external_id: { value: null, matchMode: 'contains' },
   tags: {
     operator: FilterOperator.OR,
     constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
@@ -141,6 +142,14 @@ async function selectCase(event: { data: { case: string } }) {
       </template>
       <template #filter="{ filterModel }">
         <InputText v-model="filterModel.value" type="text" placeholder="Search by case id" />
+      </template>
+    </Column>
+    <Column field="external_id" header="External ID" :show-filter-match-modes="false">
+      <template #body="{ data }">
+        {{ data.external_id }}
+      </template>
+      <template #filter="{ filterModel }">
+        <InputText v-model="filterModel.value" type="text" placeholder="Search by external id" />
       </template>
     </Column>
     <Column field="client_id" header="Client" :show-filter-match-modes="false">

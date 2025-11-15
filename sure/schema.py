@@ -19,6 +19,10 @@ from sure.models import (
     ConsultantQuestion,
     Questionnaire,
     Section,
+    TestBundle,
+    TestCategory,
+    TestKind,
+    TestResultOption,
     Visit,
 )
 
@@ -357,6 +361,7 @@ class FilterOperator(Schema):
 class CaseFilters(Schema):
     search: FilterData
     case: FilterData
+    external_id: FilterData
     client_id: FilterData
     tags: FilterOperator
     location: FilterData
@@ -367,6 +372,7 @@ class CaseFilters(Schema):
         q_objects = Q()
 
         q_objects &= self.case.get_filter("case__id")
+        q_objects &= self.external_id.get_filter("case__external_id")
         q_objects &= self.client_id.get_filter("case__connection__client__id")
         q_objects &= self.tags.get_filter("tags")
         q_objects &= self.location.get_filter("case__location_id")
@@ -383,7 +389,9 @@ class CaseFilters(Schema):
             else:
                 q_objects &= self.search.get_filter(
                     "case__id"
-                ) | self.search.get_filter("case__connection__client__id")
+                ) | self.search.get_filter("case__connection__client__id") | self.search.get_filter(
+                    "case__external_id"
+                )
 
         return q_objects
 
@@ -397,6 +405,7 @@ class CaseListingSchema(ModelSchema):
     location: str
     client: str | None
     last_modified_at: str
+    external_id: str
     tags: list[str]
 
     class Meta:
@@ -411,6 +420,10 @@ class CaseListingSchema(ModelSchema):
     @staticmethod
     def resolve_case_id(visit: Visit) -> int:
         return visit.case.human_id
+    
+    @staticmethod
+    def resolve_external_id(visit: Visit) -> str:
+        return visit.case.external_id
 
     @staticmethod
     def resolve_location(visit: Visit) -> str:
@@ -426,3 +439,44 @@ class CaseListingSchema(ModelSchema):
     @staticmethod
     def resolve_last_modified_at(visit: Visit) -> str:
         return getattr(visit, "last_modified_at", visit.created_at).isoformat()
+
+class TestBundleSchema(ModelSchema):
+    class Meta:
+        model = TestBundle
+        fields = [
+            "id",
+            "name",
+        ]
+
+class TestKindSchema(ModelSchema):
+    
+    class Meta:
+        model = TestKind
+        fields = [
+            "id",
+            "number",
+            "name",
+            "note",
+        ]
+    test_bundles: list[TestBundleSchema]
+    
+class TestCategorySchema(ModelSchema):
+    class Meta:
+        model = TestCategory
+        fields = [
+            "id",
+            "name",
+        ]
+    test_kinds: list[TestKindSchema]
+
+    
+
+class TestResultOptionSchema(ModelSchema):
+    class Meta:
+        model = TestResultOption
+        fields = [
+            "id",
+            "test_kind",
+            "label",
+            "color",
+        ]

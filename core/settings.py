@@ -64,6 +64,14 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "django.contrib.postgres",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations", 
+    "health_check.contrib.celery",
+    "health_check.contrib.redis",
+    "health_check.contrib.psutil",
 ]
 
 MIDDLEWARE = [
@@ -208,6 +216,14 @@ CELERY_CACHE_BACKEND = "django-cache"
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+HEALTH_CHECK = {
+    "DISK_USAGE_MAX": 90,
+    "MEMORY_MIN": 100,  # in MB
+    "SUBSETS": {
+        "startup-probe": ["MigrationsHealthCheck", "DatabaseBackend"],
+        "liveness-probe": ["DatabaseBackend"]
+    }
+}
 
 # SURE Settings
 

@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     "health_check.db",
     "health_check.cache",
     "health_check.storage",
-    "health_check.contrib.migrations", 
+    "health_check.contrib.migrations",
     "health_check.contrib.celery",
     "health_check.contrib.redis",
     "health_check.contrib.psutil",
@@ -179,6 +179,20 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": env.str("S3_ACCESS_KEY", default=""),
+            "secret_key": env.str("S3_SECRET_KEY", default=""),
+            "bucket_name": env.str("S3_BUCKET_NAME", default=""),
+            "querystring_auth": True,
+            "file_overwrite": True,
+            "region_name": env.str("S3_REGION", default="us-east-1"),
+            "endpoint_url": env.str("S3_ENDPOINT", ""),
+            # "custom_domain": env.str("S3_DOMAIN", ""),
+            "addressing_style": "auto",
+        },
+    },
 }
 
 
@@ -221,8 +235,8 @@ HEALTH_CHECK = {
     "MEMORY_MIN": 100,  # in MB
     "SUBSETS": {
         "startup-probe": ["MigrationsHealthCheck", "DatabaseBackend"],
-        "liveness-probe": ["DatabaseBackend"]
-    }
+        "liveness-probe": ["DatabaseBackend"],
+    },
 }
 
 # SURE Settings

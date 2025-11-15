@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
   "altair>=5.5.0",
+  "boto3<1.36",
+  "botocore<1.36",
   "celery[redis]>=5.5.3",
   "dataclasses-json>=0.6.7",
   "django>=5.2.6",
@@ -19,6 +21,7 @@ dependencies = [
   "django-model-utils>=5.0.0",
   "django-modeltranslation>=0.19.17",
   "django-ninja>=1.4.3",
+  "django-storages>=1.14.6",
   "django-unfold>=0.67.0",
   "django-vite>=3.1.0",
   "gunicorn>=23.0.0",
@@ -45,7 +48,6 @@ dev = [
   "pylint[spelling]>=3.3.8",
   "pyre-check>=0.9.21",
   "ruff>=0.13.1",
-  "strix-agent>=0.3.3",
   "ty>=0.0.1a21",
 ]
 

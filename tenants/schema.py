@@ -5,26 +5,26 @@ from tenants.models import Location, Tag, Tenant
 
 
 class TenantSchema(ModelSchema):
-    class Config:
+    class Meta:
         model = Tenant
-        model_fields = ["id", "name"]
+        fields = ["id", "name"]
 
 
 class LocationSchema(ModelSchema):
-    class Config:
+    class Meta:
         model = Location
-        model_fields = ["id", "name", "tenant"]
+        fields = ["id", "name", "tenant"]
 
     tenant: TenantSchema
 
 
 class TagSchema(ModelSchema):
-    class Config:
+    class Meta:
         model = Tag
-        model_fields = ["id", "name", "note"]
+        fields = ["id", "name", "note"]
 
 
 class UserSchema(ModelSchema):
-    class Config:
+    class Meta:
         model = User
-        model_fields = ["id", "username", "first_name", "last_name"]
+        fields = ["id", "username", "first_name", "last_name"]

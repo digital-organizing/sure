@@ -40,7 +40,7 @@ def verify_access_to_location(location: tenants.models.Location, user) -> bool:
     return False
 
 
-def create_case(location_id: int, user, external_id: str | None) -> Case:
+def create_case(location_id: int, user, external_id: str | None = None) -> Case:
     """Create a new case at the given location."""
     location = get_object_or_404(tenants.models.Location, pk=location_id)
     if not verify_access_to_location(location, user):

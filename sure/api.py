@@ -1,10 +1,18 @@
 import logging
+from collections.abc import Callable
+from functools import wraps
+from typing import Any, Optional
 
+from django.conf import settings
 from django.db.models import F, Func, Prefetch
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
-from ninja import Router
+from django.utils import translation
+from django.utils.translation import get_language_from_request
+from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from ninja.pagination import PageNumberPagination, paginate
+from ninja.utils import contribute_operation_args
 
 from sure.cases import annotate_last_modified
 from sure.client_service import (
@@ -52,6 +60,45 @@ from tenants.models import Consultant
 
 logger = logging.getLogger(__name__)
 
+
+def _activate_language_for_request(request, lang: str | None = None):
+    if lang is None:
+        lang = (
+            get_language_from_request(request)
+            or settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+        )
+
+    if lang:
+        translation.activate(lang)
+
+
+class LangSchema(Schema):
+    lang: Optional[str] = settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+
+
+def inject_language(func: Callable) -> Callable:
+    """Inject language parameter into Django Ninja endpoint."""
+
+    @wraps(func)
+    def view_with_language(request: HttpRequest, **kwargs: Any) -> Any:
+        # Extract the language parameter that Ninja injected
+        lang = kwargs.pop("lang", None)
+        print(f"Activating language: {lang}")
+
+        _activate_language_for_request(request, lang)
+
+        return func(request, **kwargs)
+
+    contribute_operation_args(
+        view_with_language,
+        arg_name="lang",
+        arg_type=LangSchema,
+        arg_source=Query(...),  # type: ignore
+    )
+
+    return view_with_language
+
+
 router = Router()
 
 
@@ -87,6 +134,7 @@ def _prefetch_questionnaire(internal=False):
 
 
 @router.get("/case/{pk}/questionnaire/", response=QuestionnaireSchema, auth=None)
+@inject_language
 def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     """Get the questionnaire associated with a case."""
     pk = strip_id(pk)
@@ -101,6 +149,7 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
 
 
 @router.get("/case/{pk}/internal/", response=InternalQuestionnaireSchema)
+@inject_language
 def get_case_internal(request, pk: str):
     """Get the internal questionnaire associated with a case."""
     visit = get_case(request, pk)
@@ -113,6 +162,7 @@ def get_case_internal(request, pk: str):
 
 
 @router.get("/case/{pk}/visit/", response=CaseListingSchema)
+@inject_language
 def get_visit(request, pk: str):
     """Get the client answers for a case."""
 
@@ -121,6 +171,7 @@ def get_visit(request, pk: str):
 
 
 @router.get("/case/{pk}/visit/client-answers/", response=list[ClientAnswerSchema])
+@inject_language
 def get_visit_client_answers(request, pk: str):
     visit = get_case(request, pk)
     # Only get latest per querstion_id
@@ -134,6 +185,7 @@ def get_visit_client_answers(request, pk: str):
 @router.get(
     "/case/{pk}/visit/consultant-answers/", response=list[ConsultantAnswerSchema]
 )
+@inject_language
 def get_visit_consultant_answers(request, pk: str):
     visit = get_case(request, pk)
     return (
@@ -144,6 +196,7 @@ def get_visit_consultant_answers(request, pk: str):
 
 
 @router.get("/case/{pk}/visit/history/", response=CaseHistory)
+@inject_language
 def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
     visit = get_case(request, pk)
 
@@ -156,6 +209,7 @@ def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
 
 
 @router.post("/case/{pk}/submit/", auth=None, response=SubmitCaseResponse)
+@inject_language
 def submit_case(request, pk: str, answers: SubmitCaseSchema):
     """Submit client answers for a case."""
     pk = strip_id(pk)
@@ -178,6 +232,7 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
 
 
 @router.post("/case/{pk}/consultant/submit/", response=SubmitCaseResponse)
+@inject_language
 def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
     visit = get_case(request, pk)
     warnings = record_consultant_answers(visit, answers.answers, request.user)
@@ -186,6 +241,7 @@ def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
 
 
 @router.post("/case/{pk}/tests/", response=SubmitCaseResponse)
+@inject_language
 def update_case_tests(request, pk: str, test_pks: list[int]):
     visit = get_case(request, pk)
     warnings = []
@@ -203,6 +259,7 @@ def update_case_tests(request, pk: str, test_pks: list[int]):
 
 
 @router.post("/case/{pk}/status/", response=SubmitCaseResponse)
+@inject_language
 def update_case_status(request, pk: str, status: str):
     """Update status for a case."""
     visit = get_case(request, pk)
@@ -214,6 +271,7 @@ def update_case_status(request, pk: str, status: str):
 
 
 @router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
+@inject_language
 def update_case_test_results(request, pk: str, test_results: dict[int, str]):
     visit = get_case(request, pk)
     test_kinds = visit.tests.all()
@@ -240,6 +298,7 @@ def update_case_test_results(request, pk: str, test_results: dict[int, str]):
 
 
 @router.post("/case/{pk}/tags/", response=SubmitCaseResponse)
+@inject_language
 def update_case_tags(request, pk: str, tags: list[str]):
     """Update tags for a case."""
     visit = get_case(request, pk)
@@ -252,6 +311,7 @@ def update_case_tags(request, pk: str, tags: list[str]):
 
 
 @router.post("/case/create/", response=CreateCaseResponse)
+@inject_language
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
     case = create_case(data.location_id, request.user, data.external_id)
@@ -271,6 +331,7 @@ def create_case_view(request, data: CreateCaseSchema):
 
 
 @router.get("/questionnaires/{pk}/", response=QuestionnaireSchema, auth=None)
+@inject_language
 def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID."""
     questionnaire = _prefetch_questionnaire().get(pk=pk)
@@ -278,6 +339,7 @@ def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
 
 
 @router.get("/internal/questionnaires/{pk}/", response=InternalQuestionnaireSchema)
+@inject_language
 def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID, including consultant questions."""
     questionnaire = _prefetch_questionnaire(internal=True).get(pk=pk)
@@ -285,6 +347,7 @@ def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argu
 
 
 @router.post("/cases/", response=list[CaseListingSchema])
+@inject_language
 @paginate(PageNumberPagination, page_size=20)
 def list_cases(request, filters: CaseFilters):
     """List all cases the user has access to."""
@@ -307,6 +370,7 @@ def list_cases(request, filters: CaseFilters):
 
 
 @router.get("/case/status/options/", response=list[OptionSchema])
+@inject_language
 def get_case_status_options(request):  # pylint: disable=unused-argument
     """Get options for case status."""
     return [
@@ -316,6 +380,7 @@ def get_case_status_options(request):  # pylint: disable=unused-argument
 
 
 @router.get("/case/tags/options/", response=list[str])
+@inject_language
 def get_case_tags_options(request):
     """Get options for case tags."""
     consultant = get_object_or_404(Consultant, user=request.user)
@@ -336,6 +401,7 @@ def get_case_tags_options(request):
 
 
 @router.get("/client/{pk}/cases/", response=list[CaseListingSchema])
+@inject_language
 @paginate(PageNumberPagination, page_size=20)
 def list_client_cases(request, pk: str):
     """List all cases for a specific client the user has access to."""
@@ -355,6 +421,7 @@ def list_client_cases(request, pk: str):
 
 
 @router.get("/questionnaires/", response=list[QuestionnaireListingSchema], auth=None)
+@inject_language
 def list_questionnaires(request):  # pylint: disable=unused-argument
     """List all questionnaires."""
     questionnaires = Questionnaire.objects.all().only("id", "name")
@@ -362,6 +429,7 @@ def list_questionnaires(request):  # pylint: disable=unused-argument
 
 
 @router.get("/tests/", response=list[TestCategorySchema])
+@inject_language
 def list_tests(request):  # pylint: disable=unused-argument
     """List all tests."""
     return TestCategory.objects.prefetch_related(
@@ -371,6 +439,7 @@ def list_tests(request):  # pylint: disable=unused-argument
 
 
 @router.get("/tests/{pk}/result-options/", response=list[TestResultOptionSchema])
+@inject_language
 def list_test_result_options(request, pk: int):  # pylint: disable=unused-argument
     """List all test result options for a given test kind."""
     test_kind = get_object_or_404(

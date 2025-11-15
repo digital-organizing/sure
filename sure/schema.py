@@ -325,7 +325,7 @@ class FilterData(Schema):
     value: Any | None
     matchMode: MatchModes
 
-    class Config:
+    class Meta:
         use_enum_values = True
 
     def get_filter(self, field_name: str) -> Q:
@@ -342,7 +342,7 @@ class FilterOperator(Schema):
     operator: Operator
     constraints: list[FilterData]
 
-    class Config:
+    class Meta:
         use_enum_values = True
 
     def get_filter(self, field_name: str) -> Q:

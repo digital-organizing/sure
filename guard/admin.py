@@ -1,4 +1,5 @@
 from enum import StrEnum
+
 from django.contrib import admin
 from django.db.models import Q
 from django.utils import timezone

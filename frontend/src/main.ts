@@ -11,9 +11,10 @@ import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
 
 import PrimeVue from 'primevue/config'
 import Material from '@primeuix/themes/material'
-import { $dt, definePreset } from '@primeuix/themes'
+import { definePreset } from '@primeuix/themes'
 
 import '@/assets/base.css'
+import './assets/main.css'
 
 import * as Sentry from '@sentry/vue'
 import { createSentryPiniaPlugin } from '@sentry/vue'
@@ -57,14 +58,37 @@ const app = createApp(App)
 // Defining custom theme preset, unclear if this is the best way to do this
 const SurePreset = definePreset(Material, {
   components: {
-    button: {
-      extend: {
-        hover: {
-          backgroundColor: $dt('--color-ahs-middle-gray').value,
-          borderColor: 'var(--color-semantic-primary-600)',
-        },
-      },
-    },
+        button: {
+            colorScheme: {
+                light: {
+                  root: {
+                    primary: {
+                      hoverBackground: 'var(--color-ahs-black)',
+                      hoverColor: 'var(--color-ahs-white)',
+                      hoverBorderColor: 'var(--color-ahs-black)',
+                      background: 'var(--color-ahs-red)',
+                      color: 'var(--color-ahs-white)',
+                      borderColor: 'var(--color-ahs-red)',
+                    },
+                    secondary: {
+                      borderColor: 'var(--color-ahs-middle-gray)',
+                      color: 'var(--color-ahs-middle-gray)',
+                      background: 'var(--color-ahs-white)',
+                      hoverBackground: 'var(--color-ahs-light-gray)',
+                      hoverColor: 'var(--color-ahs-black)',
+                      hoverBorderColor: 'var(--color-ahs-middle-gray)',
+                    }
+                  },
+                  outlined: {
+                    secondary: {
+                      borderColor: 'var(--color-ahs-middle-gray)',
+                      color: 'var(--color-ahs-middle-gray)',
+                      hoverBackground: 'var(--color-ahs-white)',
+                    }
+                  }
+                }
+            }
+        }
   },
   utilities: {},
   semantic: {
@@ -83,23 +107,16 @@ const SurePreset = definePreset(Material, {
     },
     secondary: {
       50: '#ffffff',
-      100: '#646464',
-      200: '#646464',
-      300: '#646464',
-      400: '#646464',
+      100: '#E0E0E0',
+      200: '#bcbcbc',
+      300: '#A8A8A8',
+      400: '#929292',
       500: '#646464',
-      600: '#646464',
-      700: '#646464',
-      800: '#646464',
-      900: '#646464',
-      950: '#646464',
-    },
-    colorScheme: {
-      light: {
-        semantic: {
-          background: '#E20613',
-        },
-      },
+      600: '#565656',
+      700: '#3c3c3c',
+      800: '#242424',
+      900: '#161616',
+      950: '#080808',
     },
   },
 })

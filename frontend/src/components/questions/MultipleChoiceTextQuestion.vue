@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, type ComputedRef } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { Checkbox, InputText } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -18,7 +18,7 @@ const props = defineProps<{
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
 const selectedChoices = computed<string[]>({
   get() {
-   return [...answer.value.choices.map((choice) => choice.code)] 
+    return [...answer.value.choices.map((choice) => choice.code)]
   },
   set(newChoices: string[]) {
     const texts = newChoices.map((choiceId) => {
@@ -28,31 +28,29 @@ const selectedChoices = computed<string[]>({
       if (option?.allow_text && textInputs.value[choiceId]) {
         return textInputs.value[choiceId]
       }
-      
-      if(option?.allow_text)
-        return ''
+
+      if (option?.allow_text) return ''
 
       return option?.text || ''
     })
 
     updateAnswer(newChoices, texts)
-
-  }  
+  },
 })
 
 const textInputs = computed<Record<string, string>>({
-  get(){
-   const texts: Record<string, string> = {} 
-  if (answer.value.choices && answer.value.choices.length > 0) {
-    selectedChoices.value.forEach((choiceId, index) => {
-      const option = props.question.options?.find((opt) => opt.code === choiceId)
-      if (option?.allow_text && answer.value.choices[index].text) {
-        texts[choiceId] = answer.value.choices[index].text
-      }
-    })
-  }
-  return texts
-  } ,
+  get() {
+    const texts: Record<string, string> = {}
+    if (answer.value.choices && answer.value.choices.length > 0) {
+      selectedChoices.value.forEach((choiceId, index) => {
+        const option = props.question.options?.find((opt) => opt.code === choiceId)
+        if (option?.allow_text && answer.value.choices[index].text) {
+          texts[choiceId] = answer.value.choices[index].text
+        }
+      })
+    }
+    return texts
+  },
   set(newTexts: Record<string, string>) {
     const texts = selectedChoices.value.map((choiceId) => {
       const option = props.question.options?.find((opt) => opt.code === choiceId)
@@ -66,7 +64,7 @@ const textInputs = computed<Record<string, string>>({
     })
 
     updateAnswer(selectedChoices.value, texts)
-  }
+  },
 })
 
 function triggerTextUpdate() {

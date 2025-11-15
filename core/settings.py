@@ -163,6 +163,7 @@ DJANGO_VITE = {
     "default": {
         "dev_mode": env.bool("VITE_DEV_MODE", default=DEBUG),
         "dev_server_port": env("DJANGO_VITE_DEV_SERVER_PORT", default="5173"),
+        "manifest_path": BASE_DIR / "frontend/dist/manifest.json",
     }
 }
 

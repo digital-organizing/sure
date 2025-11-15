@@ -41,6 +41,7 @@ def login_view(request, username: Form[str], password: Form[str]):
         status=401,
     )
 
+
 @api.post("/login/2fa", response={200: LoginResponse, 401: LoginResponse})
 def two_factor_view(request, token: Form[str]):
     pass

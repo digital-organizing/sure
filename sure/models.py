@@ -6,11 +6,11 @@ import secrets
 import uuid
 
 import phonenumbers
+from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from colorfield.fields import ColorField
 
 BASE_58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
@@ -55,6 +55,10 @@ class Case(models.Model):
     def human_id(self):
         """SUF: Sure 'Fall' or Form/Formulaire"""
         return f"SUF-{self.id}"
+
+    @property
+    def show_external_id(self):
+        return "EXT-" + self.external_id if self.external_id else ""
 
     class Meta:
         verbose_name = _("Case")
@@ -471,7 +475,7 @@ class TestKind(models.Model):
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test"),
     )
-    
+
     test_bundles: models.QuerySet["TestBundle"]
     result_options: models.QuerySet["TestResultOption"]
 
@@ -497,14 +501,13 @@ class TestResultOption(models.Model):
         verbose_name=_("Information Text"),
         help_text=_("Information text to be sent to the client"),
     )
-    
+
     color = ColorField(
         max_length=7,
         blank=True,
         verbose_name=_("Color"),
         help_text=_("Color associated with this result option (hex code)"),
     )
-
 
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
@@ -563,9 +566,7 @@ class Visit(models.Model):
 
 
 class Test(models.Model):
-    visit = models.ForeignKey(
-        Visit, on_delete=models.CASCADE, related_name="tests"
-    )
+    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
     test_kind = models.ForeignKey(
         TestKind, on_delete=models.CASCADE, related_name="test_results"
     )
@@ -584,9 +585,9 @@ class Test(models.Model):
         verbose_name=_("User"),
         help_text=_("The user who recorded the test"),
     )
-    
+
     test_results: models.QuerySet["TestResult"]
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

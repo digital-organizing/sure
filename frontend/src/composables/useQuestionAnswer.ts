@@ -1,4 +1,4 @@
-import { computed, onMounted, ref, type ComputedRef, type Ref, type WritableComputedRef } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import {
   type AnswerSchema,
   type ClientAnswerSchema,
@@ -10,11 +10,11 @@ import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
 
 export function useQuestionAnswer(
   question: ClientQuestionSchema | ConsultantQuestionSchema,
-  remote: Ref<ClientAnswerSchema | ConsultantAnswerSchema | null> | null =null,
+  remote: Ref<ClientAnswerSchema | ConsultantAnswerSchema | null> | null = null,
   consultant: boolean = false,
 ) {
   const answersStore = consultant === true ? consultantAnswersStore() : userAnswersStore()
-  
+
   const remoteRef = remote !== null ? remote : ref(null)
 
   const dirty = ref(false)
@@ -22,20 +22,15 @@ export function useQuestionAnswer(
   // Get or create answer for this question
   const answer = computed<AnswerSchema>({
     get() {
-      console.log('Computing answer for question ID', question.id)
-
-      if(!dirty.value && remoteRef.value) {
-        console.log('Using remote answer for question ID', question.id, remote)
-        return createInitialAnswer();
+      if (!dirty.value && remoteRef.value) {
+        return createInitialAnswer()
       }
       return answersStore.getAnswerForQuestion(question.id!) || createInitialAnswer()
     },
     set(newAnswer: AnswerSchema) {
       answersStore.setAnswerForQuestion(question.id!, newAnswer.choices)
     },
-    
   })
-  
 
   function createInitialAnswer(): AnswerSchema {
     if (remoteRef.value) {
@@ -47,12 +42,11 @@ export function useQuestionAnswer(
         })),
       }
     }
-      return {
-        questionId: question.id!,
-        choices: [],
-      }
-
-}
+    return {
+      questionId: question.id!,
+      choices: [],
+    }
+  }
 
   function updateAnswer(codes: string[], texts: string[]) {
     // Sort based on codes

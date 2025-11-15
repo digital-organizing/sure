@@ -59,7 +59,7 @@ function getConsultantAnswer(): ConsultantAnswerSchema {
 }
 
 const remote = computed(() => {
-  return answerForConsultantQuestion(props.question.id!)
+  return computed(() => answerForConsultantQuestion(props.question.id!) || null)
 })
 
 defineExpose({

@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { useTitle } from '@vueuse/core'
 import PastVisitsComponent from '@/components/PastVisitsComponent.vue'
 import HistoryComponent from '@/components/HistoryComponent.vue'
+import { userAnswersStore } from '@/stores/answers'
 
 const router = useRouter()
 
@@ -16,7 +17,10 @@ useTitle(props.caseId + ' - Case View')
 
 const { visit, setCaseId } = useCase()
 
+const { clearAnswers } = userAnswersStore()
+
 onMounted(() => {
+  clearAnswers()
   setCaseId(props.caseId).then(() => {
     if (router.currentRoute.value.name !== 'consultant-case') {
       return
@@ -50,7 +54,7 @@ onMounted(() => {
       </section>
       <section>
         <HistoryComponent :caseId="props.caseId" />
-    </section>
+      </section>
     </aside>
     <nav>
       Case navigation

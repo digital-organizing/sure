@@ -20,7 +20,7 @@ import {
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
-import { userAnswersStore } from '@/stores/answers'
+import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
 
 export const useCase = createGlobalState(() => {
   const visit = ref<CaseListingSchema | null>(null)
@@ -28,6 +28,7 @@ export const useCase = createGlobalState(() => {
   const consultantAnswers = ref<ConsultantAnswerSchema[] | null>(null)
 
   const store = userAnswersStore()
+  const consultantStore = consultantAnswersStore()
 
   const consultantQuestionnaire = ref<InternalQuestionnaireSchema | null>(null)
   const clientQuestionnaire = ref<QuestionnaireSchema | null>(null)
@@ -38,34 +39,30 @@ export const useCase = createGlobalState(() => {
   const callbacks = ref<((caseId: string | null) => void)[]>([])
 
   const error = ref<string | null>(null)
-  
 
-    const history = ref<CaseHistory>({
-        client_answers: [],
-        consultant_answers: [],
-    });
-
-    const offset = computed(() => {
-        return Math.max(history.value.client_answers.length, history.value.consultant_answers.length);
-    });
+  const history = ref<CaseHistory>({
+    client_answers: [],
+    consultant_answers: [],
+  })
 
   async function setCaseId(visitId: string | null) {
     selectedVisitId.value = visitId
+    consultantStore.setCaseId(visitId)
 
     history.value = {
-        client_answers: [],
-        consultant_answers: [],
-    };
+      client_answers: [],
+      consultant_answers: [],
+    }
     pastVisits.value = null
 
     await Promise.all([
-        fetchVisitDetails(),
-        fetchClientAnswers(),
-        fetchConsultantAnswers(),
-        fetchClientSchema(),
-        fetchConsultantSchema(),
-        fetchPastVisits(),
-        fetchCaseHistory(),
+      fetchVisitDetails(),
+      fetchClientAnswers(),
+      fetchConsultantAnswers(),
+      fetchClientSchema(),
+      fetchConsultantSchema(),
+      fetchPastVisits(),
+      fetchCaseHistory(),
     ])
 
     if (visitId) {
@@ -75,41 +72,43 @@ export const useCase = createGlobalState(() => {
       })
     }
   }
-    const historyItems = computed(() => {
-        // Merge and sort client and consultant answers by created_at
-        const combined = [
-            ...history.value.client_answers.map((answer) => ({
-                ...answer,
-                type: "client" as const,
-            })),
-            ...history.value.consultant_answers.map((answer) => ({
-                ...answer,
-                id: `consultant-${answer.id}`,
-                type: "consultant" as const,
-            })),
-        ];
-        combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        return combined;
-    });
-    async function fetchCaseHistory(limit: number = 20) {
-        if (!selectedVisitId.value) {
-            error.value = "No case ID set.";
-            return;
-        }
-        await sureApiGetVisitHistory({path: {pk: selectedVisitId.value}, query: {offset: 0, limit}} ).then((response) => {
-            if (response.data) {
-                history.value.client_answers = response.data.client_answers;
-                history.value.consultant_answers = response.data.consultant_answers;
-            }
-            else {
-                error.value = "No history data in response.";
-            }
-        }).catch((error) => {
-            console.error("Failed to fetch case history:", error);
-        });
+  const historyItems = computed(() => {
+    // Merge and sort client and consultant answers by created_at
+    const combined = [
+      ...history.value.client_answers.map((answer) => ({
+        ...answer,
+        type: 'client' as const,
+      })),
+      ...history.value.consultant_answers.map((answer) => ({
+        ...answer,
+        id: `consultant-${answer.id}`,
+        type: 'consultant' as const,
+      })),
+    ]
+    combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    return combined
+  })
+  async function fetchCaseHistory(limit: number = 20) {
+    if (!selectedVisitId.value) {
+      error.value = 'No case ID set.'
+      return
     }
- 
-
+    await sureApiGetVisitHistory({
+      path: { pk: selectedVisitId.value },
+      query: { offset: 0, limit },
+    })
+      .then((response) => {
+        if (response.data) {
+          history.value.client_answers = response.data.client_answers
+          history.value.consultant_answers = response.data.consultant_answers
+        } else {
+          error.value = 'No history data in response.'
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch case history:', error)
+      })
+  }
 
   function onCaseId(callback: (caseId: string | null) => void) {
     if (selectedVisitId.value) {
@@ -150,7 +149,7 @@ export const useCase = createGlobalState(() => {
     await sureApiGetCaseQuestionnaire({ path: { pk: selectedVisitId.value } })
       .then((response) => {
         if (response.data) {
-            clientQuestionnaire.value = response.data!
+          clientQuestionnaire.value = response.data!
           store.setSchema(response.data!)
         }
       })
@@ -185,20 +184,16 @@ export const useCase = createGlobalState(() => {
   }
 
   function answerForClientQuestion(questionId: number) {
-    
     return computed(() => {
-
-    if (!clientAnswers.value) {
-      return null
-    }
-    const answer = clientAnswers.value.find((answer) => answer.question === questionId)
-    if (!answer) {
-      return null
-    }
-    return answer
+      if (!clientAnswers.value) {
+        return null
+      }
+      const answer = clientAnswers.value.find((answer) => answer.question === questionId)
+      if (!answer) {
+        return null
+      }
+      return answer
     })
-
-
   }
 
   function mapAnswersForClientQuestion(questionId: number) {
@@ -316,11 +311,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to submit client answer: ' + error.message
       })
       .then(async () => {
-        await Promise.all([
-             fetchClientAnswers(),
-             fetchCaseHistory(),           
-        ]) 
-
+        await Promise.all([fetchClientAnswers(), fetchCaseHistory()])
       })
   }
 
@@ -334,10 +325,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to submit consultant answers: ' + error.message
       })
       .then(async () => {
-          await Promise.all([
-        fetchConsultantAnswers(),
-        fetchCaseHistory(),           
-   ])
+        await Promise.all([fetchConsultantAnswers(), fetchCaseHistory()])
       })
   }
 

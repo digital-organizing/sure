@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { Checkbox, InputText } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -8,7 +8,7 @@ import {
   type ConsultantQuestionSchema,
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
-import type { ComputedRef } from 'vue';
+import type { ComputedRef } from 'vue'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
@@ -19,7 +19,7 @@ const props = defineProps<{
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
 const selectedChoices = computed<string[]>({
   get() {
-    const choices: string[] = [];
+    const choices: string[] = []
     answer.value.choices.forEach((choice) => {
       if (!choices.includes(choice.code)) {
         choices.push(choice.code)
@@ -45,15 +45,13 @@ const selectedChoices = computed<string[]>({
         texts.push('')
         codes.push(choiceId)
       } else {
-          texts.push(option?.text || '')
+        texts.push(option?.text || '')
         codes.push(choiceId)
       }
-
     })
 
     updateAnswer(codes, texts)
- 
-  }
+  },
 })
 
 const textInputs = computed<Record<string, string[]>>({
@@ -90,10 +88,9 @@ const textInputs = computed<Record<string, string[]>>({
       codes.push(choiceId)
     })
 
-  updateAnswer(codes, texts)
-  }
+    updateAnswer(codes, texts)
+  },
 })
-
 
 function getAnswer() {
   return answer.value

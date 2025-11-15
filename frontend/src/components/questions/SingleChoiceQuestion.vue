@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, type ComputedRef } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { RadioButton } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -27,7 +27,7 @@ const selectedChoice = computed<string | null>({
     } else {
       updateAnswer([], [])
     }
-  } 
+  },
 })
 
 // Load existing answer

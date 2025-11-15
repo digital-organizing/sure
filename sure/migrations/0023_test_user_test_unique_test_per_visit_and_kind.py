@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0022_alter_test_visit_alter_testresultoption_color"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

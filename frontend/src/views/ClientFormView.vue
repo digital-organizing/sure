@@ -23,7 +23,6 @@ onMounted(async () => {
   const savedIndex = localStorage.getItem('clientFormIndex')
   const savedId = localStorage.getItem('clientFormCaseId')
   if (savedId !== props.caseId) {
-  console.log('Resetting form index for new case')
     localStorage.setItem('clientFormCaseId', props.caseId)
     localStorage.setItem('clientFormIndex', '0')
     formIndex.value = 0

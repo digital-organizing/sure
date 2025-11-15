@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, type ComputedRef } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { RadioButton, InputText } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -24,12 +24,12 @@ const selectedChoice = computed<string | null>({
     if (newChoice !== null) {
       const option = props.question.options?.find((opt) => opt.code === newChoice)
 
-      updateAnswer([newChoice], [option?.allow_text ? text.value: option?.text || ''])
+      updateAnswer([newChoice], [option?.allow_text ? text.value : option?.text || ''])
     } else {
       updateAnswer([], [])
     }
     // Handled in watcher
-  }
+  },
 })
 const text = computed<string>({
   get() {
@@ -42,9 +42,8 @@ const text = computed<string>({
     } else {
       updateAnswer([], [])
     }
-  }
-});
-
+  },
+})
 
 function getAnswer() {
   return answer.value

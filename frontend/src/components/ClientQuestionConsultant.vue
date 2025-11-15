@@ -10,22 +10,25 @@ const props = defineProps<{
 
 const questionComponentRef = ref<{ getClientAnswer: () => AnswerSchema } | null>(null)
 
-const { answerForClientQuestion, mapAnswersForClientQuestion, submitClientAnswer, fetchVisitDetails } = useCase()
+const {
+  answerForClientQuestion,
+  mapAnswersForClientQuestion,
+  submitClientAnswer,
+  fetchVisitDetails,
+} = useCase()
 
 function onSubmit() {
   if (questionComponentRef.value) {
     const answer = questionComponentRef.value.getClientAnswer()
     submitClientAnswer(answer).then(() => {
-        fetchVisitDetails()
+      fetchVisitDetails()
     })
   }
 }
 
 const remote = computed(() => {
-  console.log('Fetching remote answer for question id:', props.question.id)
   return answerForClientQuestion(props.question.id!)
 })
-
 </script>
 
 <template>
@@ -35,10 +38,6 @@ const remote = computed(() => {
       <strong>Answer (code: {{ answers.code }}):</strong> {{ answers.text }}
     </p>
   </div>
-  <ClientQuestion
-    :question="question"
-    :remote="remote"
-    ref="questionComponentRef"
-  />
+  <ClientQuestion :question="question" :remote="remote" ref="questionComponentRef" />
   <Button label="Submit Answer" @click.prevent="onSubmit()" />
 </template>

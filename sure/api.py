@@ -1,8 +1,10 @@
+import logging
+
 from django.db.models import F, Func, Prefetch
 from django.shortcuts import get_object_or_404
 from ninja import Router
-from ninja.pagination import PageNumberPagination, paginate
 from ninja.errors import HttpError
+from ninja.pagination import PageNumberPagination, paginate
 
 from sure.cases import annotate_last_modified
 from sure.client_service import (
@@ -26,7 +28,6 @@ from sure.models import (
     Test,
     TestCategory,
     TestKind,
-    TestResult,
     Visit,
     VisitStatus,
 )
@@ -49,7 +50,6 @@ from sure.schema import (
 )
 from tenants.models import Consultant
 
-import logging
 logger = logging.getLogger(__name__)
 
 router = Router()
@@ -167,10 +167,12 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
 
     try:
         record_client_answers(
-            visit, answers.answers, request.user if request.user.is_authenticated else None
+            visit,
+            answers.answers,
+            request.user if request.user.is_authenticated else None,
         )
     except ValueError as e:
-        raise HttpError(400, str(e))
+        raise HttpError(400, str(e)) from e
 
     return {"success": True}
 
@@ -182,21 +184,23 @@ def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
 
     return {"success": True, "warnings": warnings}
 
+
 @router.post("/case/{pk}/tests/", response=SubmitCaseResponse)
 def update_case_tests(request, pk: str, test_pks: list[int]):
     visit = get_case(request, pk)
     warnings = []
-    
+
     exisitng = set(visit.tests.values_list("test_kind_id", flat=True))
     new = set(test_pks) - exisitng
-    
+
     tests = [Test(visit=visit, test_kind_id=test_kind_id) for test_kind_id in new]
     Test.objects.bulk_create(tests)
-    
+
     visit.status = VisitStatus.CONSULTANT_SUBMITTED
     visit.save()
 
     return {"success": True, "warnings": warnings}
+
 
 @router.post("/case/{pk}/status/", response=SubmitCaseResponse)
 def update_case_status(request, pk: str, status: str):
@@ -208,26 +212,32 @@ def update_case_status(request, pk: str, status: str):
     visit.save()
     return {"success": True}
 
+
 @router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
 def update_case_test_results(request, pk: str, test_results: dict[int, str]):
     visit = get_case(request, pk)
     test_kinds = visit.tests.all()
     warnings = []
-    
+
     for nr, label in test_results.items():
         test = test_kinds.filter(test_kind__number=nr).first()
         if not test:
-            warnings.append(f"No test found for test kind number {nr} in case {visit.case.human_id}.")
+            warnings.append(
+                f"No test found for test kind number {nr} in case {visit.case.human_id}."
+            )
             continue
-        
+
         option = test.test_kind.result_options.filter(label=label).first()
 
         if not option:
-            warnings.append(f"No option found for label '{label}' in test kind {test.test_kind.name} for case {visit.case.human_id}.")
+            warnings.append(
+                f"No option found for label '{label}' in "
+                f"test kind {test.test_kind.name} for case {visit.case.human_id}."
+            )
             continue
 
         test.test_results.create(result_option=option, user=request.user)
-    
+
 
 @router.post("/case/{pk}/tags/", response=SubmitCaseResponse)
 def update_case_tags(request, pk: str, tags: list[str]):
@@ -253,7 +263,9 @@ def create_case_view(request, data: CreateCaseSchema):
         try:
             send_case_link(case, data.phone)
         except Exception as e:
-            logger.error(f"Failed to send case link to phone number {data.phone}: {e}")
+            logger.error(
+                "Failed to send case link to phone number %s: %s", data.phone, e
+            )
 
     return CreateCaseResponse(link=link, case_id=case.human_id)
 
@@ -350,16 +362,18 @@ def list_questionnaires(request):  # pylint: disable=unused-argument
 
 
 @router.get("/tests/", response=list[TestCategorySchema])
-def list_tests(request):
+def list_tests(request):  # pylint: disable=unused-argument
     """List all tests."""
     return TestCategory.objects.prefetch_related(
-            "test_kinds",
-            "test_kinds__test_bundles",
+        "test_kinds",
+        "test_kinds__test_bundles",
     ).all()
 
-@router.get("/tests/{pk}/result-options/", response=list[TestResultOptionSchema])
-def list_test_result_options(request, pk: int):
-    """List all test result options for a given test kind."""
-    test_kind = get_object_or_404(TestKind.objects.prefetch_related("result_options"), pk=pk)
-    return test_kind.result_options.all()
 
+@router.get("/tests/{pk}/result-options/", response=list[TestResultOptionSchema])
+def list_test_result_options(request, pk: int):  # pylint: disable=unused-argument
+    """List all test result options for a given test kind."""
+    test_kind = get_object_or_404(
+        TestKind.objects.prefetch_related("result_options"), pk=pk
+    )
+    return test_kind.result_options.all()

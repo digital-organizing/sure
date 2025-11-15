@@ -1,8 +1,8 @@
-import { type QuestionnaireListingSchema, sureApiListQuestionnaires } from "@/client";
-import { ref } from "vue";
+import { type QuestionnaireListingSchema, sureApiListQuestionnaires } from '@/client'
+import { ref } from 'vue'
 
 export const useQuestionnaires = () => {
-  const questionnaires = ref<QuestionnaireListingSchema[] >([])
+  const questionnaires = ref<QuestionnaireListingSchema[]>([])
   const error = ref<string | null>(null)
 
   async function fetchQuestionnaires() {

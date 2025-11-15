@@ -1,6 +1,6 @@
+from django.contrib.auth.models import User
 from ninja import ModelSchema
 
-from django.contrib.auth.models import User
 from tenants.models import Location, Tag, Tenant
 
 
@@ -28,4 +28,3 @@ class UserSchema(ModelSchema):
     class Config:
         model = User
         model_fields = ["id", "username", "first_name", "last_name"]
-

@@ -93,6 +93,7 @@ class QuestionnaireSchema(ModelSchema):
     def resolve_sections(questionnaire: Questionnaire) -> list[Section]:
         return list(questionnaire.sections.all())
 
+
 class QuestionnaireListingSchema(ModelSchema):
     class Meta:
         model = Questionnaire
@@ -185,7 +186,7 @@ class ClientAnswerSchema(ModelSchema):
     class Meta:
         model = ClientAnswer
         fields = [
-                "id",
+            "id",
             "question",
             "choices",
             "texts",
@@ -201,7 +202,7 @@ class ConsultantAnswerSchema(ModelSchema):
     class Meta:
         model = ConsultantAnswer
         fields = [
-                "id",
+            "id",
             "question",
             "choices",
             "texts",
@@ -386,11 +387,14 @@ class CaseFilters(Schema):
             elif self.search.value.lower().startswith("suc-"):
                 self.search.value = self.search.value[4:]
                 q_objects &= self.search.get_filter("case__connection__client__id")
+            elif self.search.value.lower().startswith("ext-"):
+                self.search.value = self.search.value[4:]
+                q_objects &= self.search.get_filter("case__external_id")
             else:
-                q_objects &= self.search.get_filter(
-                    "case__id"
-                ) | self.search.get_filter("case__connection__client__id") | self.search.get_filter(
-                    "case__external_id"
+                q_objects &= (
+                    self.search.get_filter("case__id")
+                    | self.search.get_filter("case__connection__client__id")
+                    | self.search.get_filter("case__external_id")
                 )
 
         return q_objects
@@ -420,10 +424,10 @@ class CaseListingSchema(ModelSchema):
     @staticmethod
     def resolve_case_id(visit: Visit) -> int:
         return visit.case.human_id
-    
+
     @staticmethod
     def resolve_external_id(visit: Visit) -> str:
-        return visit.case.external_id
+        return visit.case.show_external_id
 
     @staticmethod
     def resolve_location(visit: Visit) -> str:
@@ -440,6 +444,7 @@ class CaseListingSchema(ModelSchema):
     def resolve_last_modified_at(visit: Visit) -> str:
         return getattr(visit, "last_modified_at", visit.created_at).isoformat()
 
+
 class TestBundleSchema(ModelSchema):
     class Meta:
         model = TestBundle
@@ -448,8 +453,8 @@ class TestBundleSchema(ModelSchema):
             "name",
         ]
 
+
 class TestKindSchema(ModelSchema):
-    
     class Meta:
         model = TestKind
         fields = [
@@ -458,8 +463,10 @@ class TestKindSchema(ModelSchema):
             "name",
             "note",
         ]
+
     test_bundles: list[TestBundleSchema]
-    
+
+
 class TestCategorySchema(ModelSchema):
     class Meta:
         model = TestCategory
@@ -467,9 +474,9 @@ class TestCategorySchema(ModelSchema):
             "id",
             "name",
         ]
+
     test_kinds: list[TestKindSchema]
 
-    
 
 class TestResultOptionSchema(ModelSchema):
     class Meta:

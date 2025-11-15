@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, type ComputedRef } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 import { InputText } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -18,11 +18,11 @@ const props = defineProps<{
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
 const textInput = computed<string>({
   get() {
-return answer.value.choices[0]?.text || ''
+    return answer.value.choices[0]?.text || ''
   },
   set(newText: string) {
     updateAnswer(['1'], [newText])
-  }
+  },
 })
 
 function getAnswer() {

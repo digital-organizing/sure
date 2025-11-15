@@ -11,9 +11,7 @@ const {
   onCaseId,
   loading,
   fetchConsultantAnswers,
-  fetchConsultantSchema,
   consultantQuestionnaire,
-  answerForConsultantQuestion,
   submitConsultantAnswers,
   setCaseTags,
   fetchVisitDetails,
@@ -51,9 +49,7 @@ async function onSubmit() {
     Consultant Questionnaire Content
     <div v-for="question in consultantQuestionnaire?.consultant_questions" :key="question.id!">
       <h3>{{ question.question_text }}</h3>
-      <ConsultantQuestion
-        :question="question"
-      />
+      <ConsultantQuestion :question="question" />
     </div>
     <div>
       <label for="tag-select">Select Tags:</label>

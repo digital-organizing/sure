@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { RadioButton, Select } from 'primevue'
 import {
   type ClientAnswerSchema,
@@ -8,7 +8,7 @@ import {
   type ConsultantQuestionSchema,
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
-import type { ComputedRef } from 'vue';
+import type { ComputedRef } from 'vue'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
@@ -22,8 +22,7 @@ const selectedChoice = computed<string | null>({
     return answer.value.choices[0]?.code || null
   },
   set(newChoice: string | null) {
-
-    if (newChoice!== null) {
+    if (newChoice !== null) {
       const option = props.question.options?.find((opt) => opt.code == newChoice)
       let text = option?.text || ''
 
@@ -36,24 +35,24 @@ const selectedChoice = computed<string | null>({
     } else {
       updateAnswer([], [])
     }
-  }
+  },
 })
 const dropdownSelections = computed<Record<string, string>>({
   get() {
-const selections: Record<string, string> = {}
-  if (answer.value.choices && answer.value.choices.length > 0) {
-    const selectedCode = answer.value.choices[0].code
-    const selectedText = answer.value.choices[0].text
-    const selectedOption = props.question.options?.find((opt) => opt.code === selectedCode)
+    const selections: Record<string, string> = {}
+    if (answer.value.choices && answer.value.choices.length > 0) {
+      const selectedCode = answer.value.choices[0].code
+      const selectedText = answer.value.choices[0].text
+      const selectedOption = props.question.options?.find((opt) => opt.code === selectedCode)
 
-    // Only return dropdown selection if it differs from the default option text
-    if (selectedOption?.choices && selectedText !== selectedOption.text) {
-      selections[selectedCode] = selectedText
+      // Only return dropdown selection if it differs from the default option text
+      if (selectedOption?.choices && selectedText !== selectedOption.text) {
+        selections[selectedCode] = selectedText
+      }
     }
-  }
-  return selections
+    return selections
   },
-  set(newSelections: Record<string, string>) {    
+  set(newSelections: Record<string, string>) {
     if (selectedChoice.value !== null) {
       const option = props.question.options?.find((opt) => opt.code == selectedChoice.value)
       let text = option?.text || ''
@@ -65,7 +64,7 @@ const selections: Record<string, string> = {}
 
       updateAnswer([selectedChoice.value], [text])
     }
-  }
+  },
 })
 
 function triggerDropdownUpdate() {

@@ -35,7 +35,16 @@ defineExpose({
 </script>
 
 <template>
-  <div class="open-text-question">
-    <InputText v-model="textInput" type="text" :placeholder="question.question_text" />
-  </div>
+  <InputText
+    v-model="textInput"
+    type="text"
+    :placeholder="question.question_text"
+    class="text-input"
+  />
 </template>
+
+<style lang="css" scoped>
+.text-input {
+  margin-bottom: 0.5rem;
+}
+</style>

@@ -83,9 +83,8 @@ def inject_language(func: Callable) -> Callable:
     def view_with_language(request: HttpRequest, **kwargs: Any) -> Any:
         # Extract the language parameter that Ninja injected
         lang = kwargs.pop("lang", None)
-        print(f"Activating language: {lang}")
 
-        _activate_language_for_request(request, lang)
+        _activate_language_for_request(request, lang.lang)
 
         return func(request, **kwargs)
 

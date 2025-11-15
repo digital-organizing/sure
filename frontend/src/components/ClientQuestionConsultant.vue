@@ -32,7 +32,6 @@ const remote = computed(() => {
 </script>
 
 <template>
-  <h3>{{ props.question.question_text }}</h3>
   <div v-for="answers in mapAnswersForClientQuestion(question.id!)" :key="answers.id">
     <p>
       <strong>Answer (code: {{ answers.code }}):</strong> {{ answers.text }}

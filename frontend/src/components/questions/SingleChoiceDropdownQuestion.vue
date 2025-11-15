@@ -88,7 +88,7 @@ defineExpose({
       :key="option.code || 0"
       class="option-item"
       :class="{
-        'with-dropdown': option.choices && option.choices.length > 0,
+        'with-text-input': option.choices && option.choices.length > 0,
         active: selectedChoice === option.code,
       }"
     >
@@ -113,3 +113,21 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+.option-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+.option-item .text-inputs {
+  grid-area: textinput;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dropdown-select {
+  grid-area: textinput;
+}
+</style>

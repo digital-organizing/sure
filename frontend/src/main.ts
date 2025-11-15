@@ -58,37 +58,37 @@ const app = createApp(App)
 // Defining custom theme preset, unclear if this is the best way to do this
 const SurePreset = definePreset(Material, {
   components: {
-        button: {
-            colorScheme: {
-                light: {
-                  root: {
-                    primary: {
-                      hoverBackground: 'var(--color-ahs-black)',
-                      hoverColor: 'var(--color-ahs-white)',
-                      hoverBorderColor: 'var(--color-ahs-black)',
-                      background: 'var(--color-ahs-red)',
-                      color: 'var(--color-ahs-white)',
-                      borderColor: 'var(--color-ahs-red)',
-                    },
-                    secondary: {
-                      borderColor: 'var(--color-ahs-middle-gray)',
-                      color: 'var(--color-ahs-middle-gray)',
-                      background: 'var(--color-ahs-white)',
-                      hoverBackground: 'var(--color-ahs-light-gray)',
-                      hoverColor: 'var(--color-ahs-black)',
-                      hoverBorderColor: 'var(--color-ahs-middle-gray)',
-                    }
-                  },
-                  outlined: {
-                    secondary: {
-                      borderColor: 'var(--color-ahs-middle-gray)',
-                      color: 'var(--color-ahs-middle-gray)',
-                      hoverBackground: 'var(--color-ahs-white)',
-                    }
-                  }
-                }
-            }
-        }
+    button: {
+      colorScheme: {
+        light: {
+          root: {
+            primary: {
+              hoverBackground: 'var(--color-ahs-black)',
+              hoverColor: 'var(--color-ahs-white)',
+              hoverBorderColor: 'var(--color-ahs-black)',
+              background: 'var(--color-ahs-red)',
+              color: 'var(--color-ahs-white)',
+              borderColor: 'var(--color-ahs-red)',
+            },
+            secondary: {
+              borderColor: 'var(--color-ahs-middle-gray)',
+              color: 'var(--color-ahs-middle-gray)',
+              background: 'var(--color-ahs-white)',
+              hoverBackground: 'var(--color-ahs-light-gray)',
+              hoverColor: 'var(--color-ahs-black)',
+              hoverBorderColor: 'var(--color-ahs-middle-gray)',
+            },
+          },
+          outlined: {
+            secondary: {
+              borderColor: 'var(--color-ahs-middle-gray)',
+              color: 'var(--color-ahs-middle-gray)',
+              hoverBackground: 'var(--color-ahs-white)',
+            },
+          },
+        },
+      },
+    },
   },
   utilities: {},
   semantic: {

@@ -143,38 +143,58 @@ defineExpose({
       <label :for="`option-${option.id}`">
         {{ option.text }}
       </label>
-      <template v-if="option.allow_text && selectedChoices.includes(option.code!)">
+      <div v-if="option.allow_text && selectedChoices.includes(option.code!)" class="text-inputs">
         <div
           v-for="(textInput, index) in textInputs[option.code!]"
           :key="index"
           class="text-input-wrapper"
         >
-          <InputText
-            :inputId="`option-${option.id}-text-${index}`"
-            v-model="textInputs[option.code!][index]"
-            @input="triggerTextUpdate()"
-            type="text"
-            :placeholder="'Additional text for ' + option.text"
-            class="text-input"
-          />
-          <Button
-            v-if="index > 0"
-            type="button"
-            icon="pi pi-times"
-            class="p-button-text p-button-danger delete-text-input-button"
-            @click="removeTextField(option.code!, index)"
-            >Remove</Button
-          >
+          <InputGroup>
+            <InputText
+              :inputId="`option-${option.id}-text-${index}`"
+              v-model="textInputs[option.code!][index]"
+              @input="triggerTextUpdate()"
+              type="text"
+              :placeholder="'Additional text for ' + option.text"
+              class="text-input"
+            />
+            <InputGroupAddon>
+              <Button
+                icon="pi pi-times"
+                severity="secondary"
+                @click="removeTextField(option.code, index)"
+                :disabled="index == 0"
+              />
+            </InputGroupAddon>
+          </InputGroup>
         </div>
-        <button
-          v-if="textInputs[option.code!].at(-1) != ''"
+        <Button
+          v-if="textInputs[option.code!].at(-1) != '' || textInputs[option.code!].length === 0"
           type="button"
+          icon="pi pi-plus"
+          iconPos="left"
+          label="Add another"
+          severity="success"
           @click="addTextField(option.code!)"
           class="add-text-input-button"
         >
-          Add another
-        </button>
-      </template>
+        </Button>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.option-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+.option-item .text-inputs {
+  grid-area: textinput;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+</style>

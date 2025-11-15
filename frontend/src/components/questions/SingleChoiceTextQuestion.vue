@@ -24,7 +24,7 @@ const selectedChoice = computed<string | null>({
     if (newChoice !== null) {
       const option = props.question.options?.find((opt) => opt.code === newChoice)
 
-      updateAnswer([newChoice], [option?.allow_text ? text.value : option?.text || ''])
+      updateAnswer([newChoice], [option?.allow_text ? '' : option?.text || ''])
     } else {
       updateAnswer([], [])
     }
@@ -81,3 +81,12 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+</style>

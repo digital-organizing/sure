@@ -26,3 +26,17 @@ body {
   color: var(--color-text);
   font-family: var(--font-family);
 }
+
+.option-item.with-text-input.active {
+  display: grid;
+  grid-template-areas:
+    'checkbox label'
+    ' . textinput';
+  grid-template-columns: auto 1fr;
+  justify-content: start;
+  justify-items: start;
+}
+.option-item .text-input {
+  grid-area: textinput;
+  margin-top: 0.25rem;
+}

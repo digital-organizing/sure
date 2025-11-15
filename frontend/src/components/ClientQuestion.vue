@@ -62,7 +62,7 @@ defineExpose({
 
 <template>
   <Form class="client-question">
-    <p>{{ question.question_text }}</p>
+    <h3>{{ question.question_text }}</h3>
     <component
       :is="questionComponent"
       ref="questionComponentRef"

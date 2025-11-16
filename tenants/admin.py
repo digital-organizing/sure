@@ -1,9 +1,11 @@
 """Admin configuration for the tenants app."""
 
 from django.contrib import admin
+from django.urls import URLPattern, path
 from unfold.admin import ModelAdmin, TabularInline
 
 from tenants.models import Consultant, Location, Tag, Tenant
+from tenants.views import ConsultantInviteView
 
 
 class LocationInline(TabularInline):
@@ -27,6 +29,20 @@ class ConsultantAdmin(ModelAdmin):
 
     list_display = ("user", "tenant")
     search_fields = ("user__username", "user__email", "tenant__name")
+
+    def get_urls(self) -> list[URLPattern]:
+        print("Getting URLs for ConsultantAdmin")
+        invite_view = self.admin_site.admin_view(
+            ConsultantInviteView.as_view(model_admin=self)
+        )
+        print(super().get_urls())
+        return [
+            path("add/", invite_view, name="tenants_consultant_add"),
+        ] + [
+            path
+            for path in super().get_urls()
+            if path.pattern.name != "tenants_consultant_add"
+        ]
 
 
 class ConsultantInline(TabularInline):

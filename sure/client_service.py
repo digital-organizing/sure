@@ -35,9 +35,10 @@ def verify_access_to_location(location: tenants.models.Location, user) -> bool:
     """Verify that the user has access to the given location."""
     if user.is_superuser:
         return True
-    if user.tenants.filter(id=location.tenant.pk).exists():
-        return True
-    return False
+    if not hasattr(user, "consultant"):
+        return False
+    consultant: tenants.models.Consultant = user.consultant
+    return consultant.locations.filter(id=location.pk).exists()
 
 
 def create_case(location_id: int, user, external_id: str | None = None) -> Case:

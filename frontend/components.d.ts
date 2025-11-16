@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
+    CheckboxGroup: typeof import('primevue/checkboxgroup')['default']
     ClientNavigationBottom: typeof import('./src/components/ClientNavigationBottom.vue')['default']
     ClientNavigationTop: typeof import('./src/components/ClientNavigationTop.vue')['default']
     ClientQuestion: typeof import('./src/components/ClientQuestion.vue')['default']
@@ -54,5 +55,6 @@ declare module 'vue' {
     SingleChoiceTextQuestion: typeof import('./src/components/questions/SingleChoiceTextQuestion.vue')['default']
     StatusTag: typeof import('./src/components/StatusTag.vue')['default']
     Tag: typeof import('primevue/tag')['default']
+    ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
 }

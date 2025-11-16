@@ -72,6 +72,12 @@ INSTALLED_APPS = [
     "health_check.contrib.celery",
     "health_check.contrib.redis",
     "health_check.contrib.psutil",
+    "crispy_forms",
+    "django_otp",
+    "django_agent_trust",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_hotp",
+    "django_otp.plugins.otp_static",
 ]
 
 MIDDLEWARE = [
@@ -82,6 +88,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_agent_trust.middleware.AgentMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "guard.middleware.NotFoundRateLimitMiddleware",
@@ -270,3 +278,16 @@ UNFOLD = {
         "search_models": True,  # Search models in command search
     },
 }
+
+CRISPY_TEMPLATE_PACK = "unfold_crispy"
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["unfold_crispy"]
+
+
+SESAME_MAX_AGE = 60 * 60 * 24  # 1 day in seconds
+
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "sesame.backends.ModelBackend",
+]

@@ -70,6 +70,7 @@ jobs:
       - name: Run Django tests
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+          REDIS_HOST: localhost
         run: |
           uv run python manage.py test
 

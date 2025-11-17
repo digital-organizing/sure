@@ -1,17 +1,19 @@
 # Create your views here.
 
 from typing import Any
+from urllib.parse import urlencode
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic.edit import FormView
-from sesame.utils import get_query_string
+from sesame.utils import get_parameters
 from unfold.views import UnfoldModelAdminViewMixin
 
 from tenants.forms import ConsultantInviteForm
-from tenants.models import Tenant
+from tenants.models import Consultant, Tenant
 
 
 class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
@@ -30,6 +32,7 @@ class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
         print(f"Form kwargs: {kwargs}")
         return kwargs
 
+    @transaction.atomic
     def form_valid(self, form: Any) -> HttpResponse:
         data = form.cleaned_data
 
@@ -39,11 +42,28 @@ class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
             first_name=data["first_name"],
             last_name=data["last_name"],
         )
+        consultant = Consultant.objects.create(
+            tenant=form.tenant,
+            user=user,
+        )
+        consultant.locations.set(data["locations"])
+
+        if data.get("as_admin"):
+            form.tenant.admins.add(user)
+            form.tenant.save()
+            user.is_staff = True
+            user.groups.add(Group.objects.get_or_create(name="Tenant Admins")[0])
+
         user.set_unusable_password()
 
         user.save()
 
-        link = get_query_string(user=user, scope=f"setup_account:{user.email}")
-        print(f"Generated sesame link: {link}")
+        param = get_parameters(user=user, scope=f"setup_account:{user.email}")
+        param["email"] = user.email
+
+        print(f"Generated params for sesame: {param}")
+        link = self.request.build_absolute_uri("/setup") + f"?{urlencode(param)}"
+
+        form.send_invitation_email(self.request, activation_link=link)
 
         return redirect(reverse("admin:tenants_consultant_changelist"))

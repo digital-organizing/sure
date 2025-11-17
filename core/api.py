@@ -85,6 +85,7 @@ def set_initial_password(
         )
     user.set_password(new_password)
     user.save()
+    login(request, user)
     return {"success": True}
 
 
@@ -164,7 +165,9 @@ def list_otp_devices_view(request):
     return [{"id": device.persistent_id, "name": device.name} for device in devices]
 
 
-@api.post("/otp/backup-codes", response=list[str], auth=auth_2fa)
+@api.post(
+    "/otp/backup-codes", response={200: list[str], 400: LoginResponse}, auth=auth_2fa
+)
 def generate_otp_backup_codes_view(request):
     static_device, created = StaticDevice.objects.get_or_create(
         user=request.user, name="Backup Codes"

@@ -45,6 +45,16 @@ const router = createRouter({
       component: () => import('../views/user/LogoutView.vue'),
     },
     {
+      path: '/setup',
+      name: 'setup',
+      component: () => import('../views/user/SetupView.vue'),
+    },
+    {
+      path: '/setup-2fa',
+      name: 'setup-2fa',
+      component: () => import('../views/user/Setup2FaView.vue'),
+    },
+    {
       path: '/consultant',
       component: ConsultantView,
       children: [

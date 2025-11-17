@@ -31,6 +31,9 @@ async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
       const next = router.currentRoute.value.query.next as string | undefined
       router.push(next || { name: 'home' })
     }
+    if (twoFaDevices.value.length == 0) {
+      router.push({ name: 'setup-2fa' })
+    }
   }
 }
 

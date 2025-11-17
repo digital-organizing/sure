@@ -1,9 +1,11 @@
 import {
   coreApiAccount,
+  coreApiGenerateOtpBackupCodesView,
   coreApiListOtpDevicesView,
   coreApiLoginView,
   coreApiLogoutView,
   coreApiOtp2FaChallengeView,
+  coreApiSetInitialPassword,
   coreApiSetupOtpView,
   coreApiVerifyOtpView,
   type AccountResponse,
@@ -39,6 +41,24 @@ export function useAccount() {
     }
   }
 
+  async function setInitialPassword(password: string, sesame: string, email: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await coreApiSetInitialPassword({
+        body: { new_password: password, sesame: sesame, email: email },
+      })
+      if (response.error) {
+        throw new Error(response.error.error!)
+      }
+    } catch (e: unknown) {
+      console.error(e)
+      error.value = 'Failed to set initial password: ' + (e as Error).message
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function fetchTwoFaDevices() {
     loading.value = true
     error.value = null
@@ -51,6 +71,23 @@ export function useAccount() {
     } catch (e: unknown) {
       console.error(e)
       error.value = 'Failed to fetch 2FA devices: ' + (e as Error).message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function createBackupCodes() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await coreApiGenerateOtpBackupCodesView()
+      if (response.error) {
+        throw new Error(response.error.error!)
+      }
+      return response.data
+    } catch (e: unknown) {
+      error.value = (e as Error).message
+      return null
     } finally {
       loading.value = false
     }
@@ -153,7 +190,11 @@ export function useAccount() {
     5 * 60 * 1000,
   )
 
-  fetchAccount()
+  fetchAccount().then(() => {
+    if (isAuthenticated.value) {
+      fetchTwoFaDevices()
+    }
+  })
 
   return {
     account,
@@ -168,5 +209,7 @@ export function useAccount() {
     twoFaDevices,
     verifyOtp,
     interval,
+    setInitialPassword,
+    createBackupCodes,
   }
 }

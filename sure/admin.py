@@ -4,6 +4,7 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.http.request import HttpRequest
 from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
 from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
 from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
@@ -39,7 +40,9 @@ from sure.models import (
 )
 
 
-@admin.register(ClientOption)
+@admin.register(
+    ClientOption,
+)
 class ClientOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("text", "order")
     search_fields = ("question__code", "code")
@@ -104,7 +107,9 @@ class ConsultantQuestionInline(TabularInline, TranslationTabularInline):
     show_change_link = True
 
 
-@admin.register(Questionnaire)
+@admin.register(
+    Questionnaire,
+)
 class QuestionaireAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
     search_fields = ("name",)
@@ -112,7 +117,9 @@ class QuestionaireAdmin(ModelAdmin, TabbedTranslationAdmin):
     ordering = ("name",)
 
 
-@admin.register(Section)
+@admin.register(
+    Section,
+)
 class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("title", "questionnaire", "order")
     search_fields = ("title", "questionnaire__name")
@@ -121,7 +128,9 @@ class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
     inlines = [ClientQuestionInline]
 
 
-@admin.register(ClientQuestion)
+@admin.register(
+    ClientQuestion,
+)
 class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "section", "order")
     search_fields = ("question_text", "section__title")
@@ -132,7 +141,9 @@ class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
     autocomplete_fields = ("show_for_options",)
 
 
-@admin.register(ConsultantQuestion)
+@admin.register(
+    ConsultantQuestion,
+)
 class ConsultantQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "order")
     search_fields = ("question_text",)
@@ -146,7 +157,9 @@ class TestOptionInline(TabularInline, TranslationTabularInline):
     extra = 1
 
 
-@admin.register(TestKind)
+@admin.register(
+    TestKind,
+)
 class TestKindAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = (
         "name",
@@ -167,7 +180,9 @@ class TestKindInline(TabularInline, TranslationTabularInline):
     show_change_link = True
 
 
-@admin.register(TestCategory)
+@admin.register(
+    TestCategory,
+)
 class TestCategoryAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
     search_fields = ("name",)
@@ -175,7 +190,9 @@ class TestCategoryAdmin(ModelAdmin, TabbedTranslationAdmin):
     inlines = [TestKindInline]
 
 
-@admin.register(TestBundle)
+@admin.register(
+    TestBundle,
+)
 class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
     search_fields = ("name",)
@@ -201,27 +218,37 @@ class UnfoldPeriodicTaskForm(PeriodicTaskForm):
         self.fields["regtask"].widget = UnfoldTaskSelectWidget()
 
 
-@admin.register(PeriodicTask)
+@admin.register(
+    PeriodicTask,
+)
 class PeriodicTaskAdmin(BasePeriodicTaskAdmin, ModelAdmin):
     form = UnfoldPeriodicTaskForm
 
 
-@admin.register(IntervalSchedule)
+@admin.register(
+    IntervalSchedule,
+)
 class IntervalScheduleAdmin(ModelAdmin):
     pass
 
 
-@admin.register(CrontabSchedule)
+@admin.register(
+    CrontabSchedule,
+)
 class CrontabScheduleAdmin(BaseCrontabScheduleAdmin, ModelAdmin):
     pass
 
 
-@admin.register(SolarSchedule)
+@admin.register(
+    SolarSchedule,
+)
 class SolarScheduleAdmin(ModelAdmin):
     pass
 
 
-@admin.register(ClockedSchedule)
+@admin.register(
+    ClockedSchedule,
+)
 class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
     pass
 
@@ -230,14 +257,26 @@ admin.site.unregister(Group)
 admin.site.unregister(User)
 
 
-@admin.register(User)
+@admin.register(
+    User,
+)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     # Forms loaded from `unfold.forms`
     form = UserChangeForm
     add_form = UserCreationForm
     change_password_form = AdminPasswordChangeForm
 
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet:
+        if request.user.is_superuser:
+            return super().get_queryset(request)
+        if not request.user.is_staff:
+            return User.objects.filter(pk=request.user.pk)
+        tenant = request.user.consultant.tenant
+        return super().get_queryset(request).filter(consultant__tenant=tenant)
 
-@admin.register(Group)
+
+@admin.register(
+    Group,
+)
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
     pass

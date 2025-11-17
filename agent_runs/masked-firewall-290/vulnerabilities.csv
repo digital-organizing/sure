@@ -1,0 +1,3 @@
+id,title,severity,timestamp,file
+vuln-0001,TOCTOU Token Consumption (Non-atomic verify_token) — Token Replay Allows Multiple Consumptions,HIGH,2025-11-13 14:28:02 UTC,vulnerabilities/vuln-0001.md
+vuln-0002,Unauthenticated IDOR: /sure/case/{pk}/questionnaire/ exposes case questionnaires by ID,HIGH,2025-11-13 14:30:48 UTC,vulnerabilities/vuln-0002.md

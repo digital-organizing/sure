@@ -15,27 +15,35 @@ class LocationInline(TabularInline):
     extra = 0
 
 
-@admin.register(Location)
+@admin.register(
+    Location,
+)
 class LocationAdmin(ModelAdmin):
     """Admin for locations."""
 
     list_display = ("name", "tenant")
     search_fields = ("name", "tenant__name")
 
+    autocomplete_fields = ("tenant",)
 
-@admin.register(Consultant)
+
+@admin.register(
+    Consultant,
+)
 class ConsultantAdmin(ModelAdmin):
     """Admin for consultants."""
 
     list_display = ("user", "tenant")
     search_fields = ("user__username", "user__email", "tenant__name")
 
+    autocomplete_fields = ("user", "locations")
+
+    readonly_fields = ("tenant", "user")
+
     def get_urls(self) -> list[URLPattern]:
-        print("Getting URLs for ConsultantAdmin")
         invite_view = self.admin_site.admin_view(
             ConsultantInviteView.as_view(model_admin=self)
         )
-        print(super().get_urls())
         return [
             path("add/", invite_view, name="tenants_consultant_add"),
         ] + [
@@ -50,10 +58,13 @@ class ConsultantInline(TabularInline):
 
     model = Consultant
     extra = 0
-    autocomplete_fields = ("user", "locations")
+    autocomplete_fields = ("locations",)
+    readonly_fields = ("user",)
 
 
-@admin.register(Tenant)
+@admin.register(
+    Tenant,
+)
 class TenantAdmin(ModelAdmin):
     """Admin for tenants.
 
@@ -63,7 +74,7 @@ class TenantAdmin(ModelAdmin):
     list_display = ("name", "owner")
     search_fields = ("name", "owner__username", "owner__email")
     inlines = [LocationInline, ConsultantInline]
-    filter_horizontal = ("admins",)
+    autocomplete_fields = ("owner", "admins")
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""
@@ -72,7 +83,9 @@ class TenantAdmin(ModelAdmin):
         return super().get_queryset(request).filter(admins=request.user)
 
 
-@admin.register(Tag)
+@admin.register(
+    Tag,
+)
 class TagAdmin(ModelAdmin):
     """Admin for tags."""
 

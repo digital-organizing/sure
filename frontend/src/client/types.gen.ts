@@ -1022,6 +1022,15 @@ export type CoreApiGenerateOtpBackupCodesViewData = {
     url: '/api/otp/backup-codes';
 };
 
+export type CoreApiGenerateOtpBackupCodesViewErrors = {
+    /**
+     * Bad Request
+     */
+    400: LoginResponse;
+};
+
+export type CoreApiGenerateOtpBackupCodesViewError = CoreApiGenerateOtpBackupCodesViewErrors[keyof CoreApiGenerateOtpBackupCodesViewErrors];
+
 export type CoreApiGenerateOtpBackupCodesViewResponses = {
     /**
      * Response

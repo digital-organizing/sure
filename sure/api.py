@@ -73,7 +73,7 @@ def _activate_language_for_request(request, lang: str | None = None):
 
 
 class LangSchema(Schema):
-    lang: Optional[str] = settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+    lang: str | None = settings.MODELTRANSLATION_DEFAULT_LANGUAGE
 
 
 def inject_language(func: Callable) -> Callable:

@@ -3,6 +3,7 @@
 import phonenumbers
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -110,6 +111,7 @@ def send_token(phone_number: str):
     send_sms(contact.phone_number, msg)
 
 
+@transaction.atomic
 def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
     """Verify that the given token is valid for the given phone number.
 

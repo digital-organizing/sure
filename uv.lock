@@ -546,6 +546,20 @@ wheels = [
 ]
 
 [[package]]
+name = "django-constance"
+version = "4.3.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/c7/ce27c5aac4f3283e88e4d8a5d6f8743c4952bccc56c7c474e2b08ef1ad36/django_constance-4.3.4.tar.gz", hash = "sha256:30d1b325f636177c708cce63abbde7015593f5c60b2bc0b0e2eebe8c36e2ce59", size = 175428, upload-time = "2025-11-12T10:43:01.098Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/82/f0/bd5d63ad23ca97ff3445c11c6cf2dbeb52336bbecb7c4692cc9d75a24c92/django_constance-4.3.4-py3-none-any.whl", hash = "sha256:598f8c967a675fe2c7fe3688510ac8302e1b6df2141d01b8d29577532a8241db", size = 64411, upload-time = "2025-11-12T10:42:59.198Z" },
+]
+
+[package.optional-dependencies]
+redis = [
+    { name = "redis" },
+]
+
+[[package]]
 name = "django-cors-headers"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -582,6 +596,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/c0/50/acae2dd379164f6f4
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6d/72/685c978af45ad08257e2c69687a873eda6b6531c79b6e6091794c41c5ff6/django_debug_toolbar-6.1.0-py3-none-any.whl", hash = "sha256:e214dea4494087e7cebdcea84223819c5eb97f9de3110a3665ad673f0ba98413", size = 269069, upload-time = "2025-10-30T19:50:37.71Z" },
 ]
+
+[[package]]
+name = "django-decorator-include"
+version = "3.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c0/5c/117a3070f3e9f9b51916c4f38db163e7afe1bb14f1d670e280f62efaf641/django_decorator_include-3.3.tar.gz", hash = "sha256:336f73c403983a5d1bf4da5f19cd114db3a912b9bfc0e69ef1f20ce589828c3e", size = 7040, upload-time = "2025-01-16T15:55:18.496Z" }
 
 [[package]]
 name = "django-environ"
@@ -2157,9 +2180,11 @@ dependencies = [
     { name = "django-celery-beat" },
     { name = "django-celery-results" },
     { name = "django-colorfield" },
+    { name = "django-constance", extra = ["redis"] },
     { name = "django-cors-headers" },
     { name = "django-crispy-forms" },
     { name = "django-debug-toolbar" },
+    { name = "django-decorator-include" },
     { name = "django-environ" },
     { name = "django-health-check" },
     { name = "django-model-utils" },
@@ -2210,9 +2235,11 @@ requires-dist = [
     { name = "django-celery-beat", specifier = ">=2.8.1" },
     { name = "django-celery-results", specifier = ">=2.6.0" },
     { name = "django-colorfield", specifier = ">=0.14.0" },
+    { name = "django-constance", extras = ["redis"], specifier = ">=4.3.4" },
     { name = "django-cors-headers", specifier = ">=4.8.0" },
     { name = "django-crispy-forms", specifier = ">=2.5" },
     { name = "django-debug-toolbar", specifier = ">=6.0.0" },
+    { name = "django-decorator-include", specifier = ">=3.3" },
     { name = "django-environ", specifier = ">=0.12.0" },
     { name = "django-health-check", specifier = ">=3.20.0" },
     { name = "django-model-utils", specifier = ">=5.0.0" },

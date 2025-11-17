@@ -45,15 +45,18 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
-    "unfold",
+    "unfold.apps.BasicAppConfig",
+    "unfold.contrib.constance",
+    "constance",
+    "sure.apps.SureConfig",
     "guard",
     "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.location_field",  # optional, if django-location-field package is used
-    "sure.apps.SureConfig",
     "tenants.apps.TenantsConfig",
-    "django.contrib.admin",
+    # "django.contrib.admin",
+    "sure.apps.SureAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -247,6 +250,8 @@ HEALTH_CHECK = {
     },
 }
 
+CONSTANCE_REDIS_CONNECTION = REDIS_URL + "/2"
+
 # SURE Settings
 
 DEFAULT_REGION = env.str("DEFAULT_REGION", default="CH")
@@ -291,3 +296,26 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "sesame.backends.ModelBackend",
 ]
+
+
+EMAIL_CONFIG = env.email_url("EMAIL_URL", default="smtp://user@:password@localhost:25")
+
+vars().update(EMAIL_CONFIG)
+
+SERVER_EMAIL = env("SERVER_EMAIL", default="root@localhost")
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=SERVER_EMAIL)
+
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+
+CONSTANCE_CONFIG = {
+    "TWO_FA_REMINDER_SUBJECT": (
+        "2FA Setup Reminder",
+        "Subject of the 2FA setup reminder email.",
+    ),
+    "TWO_FA_REMINDER_EMAIL_TEMPLATE": (
+        "Hello {{ user.get_full_name }}, ",
+        "Template for the 2FA setup reminder email.",
+    ),
+}

@@ -39,5 +39,5 @@ onMounted(async () => {
   <p>Hello World!</p>
   <RouterLink :to="{ name: 'consultant-dashboard' }">Go to Dashboard</RouterLink>
 
-  <RouterLink to="/admin/" v-if="user?.is_staff">Go to Admin</RouterLink>
+  <a href="/admin/" v-if="user?.is_staff">Go to Admin</a>
 </template>

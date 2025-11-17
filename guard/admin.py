@@ -5,10 +5,12 @@ from django.db.models import Q
 from django.utils import timezone
 from unfold.admin import ModelAdmin
 
+from core.admin import admin_site
+
 from .models import BlockedIdentifier, ProtectedEndpoint
 
 
-@admin.register(ProtectedEndpoint)
+@admin.register(ProtectedEndpoint, site=admin_site)
 class ProtectedEndpointAdmin(ModelAdmin):
     list_display = (
         "path_matcher",
@@ -47,7 +49,7 @@ class EnabledFilter(admin.SimpleListFilter):
         return queryset
 
 
-@admin.register(BlockedIdentifier)
+@admin.register(BlockedIdentifier, site=admin_site)
 class BlockedIdentifierAdmin(ModelAdmin):
     list_display = ("identifier", "reason", "blocked_at", "disabled_at", "disabled_by")
     list_filter = ("reason", "disabled_by", EnabledFilter)

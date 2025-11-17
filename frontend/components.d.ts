@@ -45,6 +45,7 @@ declare module 'vue' {
     MultipleChoiceTextQuestion: typeof import('./src/components/questions/MultipleChoiceTextQuestion.vue')['default']
     MultiSelect: typeof import('primevue/multiselect')['default']
     OpenTextQuestion: typeof import('./src/components/questions/OpenTextQuestion.vue')['default']
+    Password: typeof import('primevue/password')['default']
     PastVisitsComponent: typeof import('./src/components/PastVisitsComponent.vue')['default']
     ProgressBar: typeof import('./src/components/ProgressBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

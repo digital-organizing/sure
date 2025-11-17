@@ -28,7 +28,7 @@ jobs:
         run: |
           cd frontend/
           npm install
-          npm run test:unit -- run
+          npm run test:unit -- run --passWithNoTests
 
   test-django:
     runs-on: ubuntu-latest

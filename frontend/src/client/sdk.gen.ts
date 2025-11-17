@@ -34,7 +34,7 @@ export const coreApiGetCsrfToken = <ThrowOnError extends boolean = false>(option
 export const coreApiLoginView = <ThrowOnError extends boolean = false>(options: Options<CoreApiLoginViewData, ThrowOnError>) => {
     return (options.client ?? client).post<CoreApiLoginViewResponses, CoreApiLoginViewErrors, ThrowOnError>({
         ...urlSearchParamsBodySerializer,
-        url: '/api/login',
+        url: '/api/auth/login',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -56,7 +56,7 @@ export const coreApiLogoutView = <ThrowOnError extends boolean = false>(options:
                 type: 'apiKey'
             }
         ],
-        url: '/api/logout',
+        url: '/api/auth/logout',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -71,7 +71,7 @@ export const coreApiLogoutView = <ThrowOnError extends boolean = false>(options:
 export const coreApiSetInitialPassword = <ThrowOnError extends boolean = false>(options: Options<CoreApiSetInitialPasswordData, ThrowOnError>) => {
     return (options.client ?? client).post<CoreApiSetInitialPasswordResponses, CoreApiSetInitialPasswordErrors, ThrowOnError>({
         ...urlSearchParamsBodySerializer,
-        url: '/api/set-initial-password',
+        url: '/api/auth/set-initial-password',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -93,7 +93,7 @@ export const coreApiSetupOtpView = <ThrowOnError extends boolean = false>(option
                 type: 'apiKey'
             }
         ],
-        url: '/api/otp/create-device',
+        url: '/api/auth/otp/create-device',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -115,7 +115,7 @@ export const coreApiVerifyOtpView = <ThrowOnError extends boolean = false>(optio
                 type: 'apiKey'
             }
         ],
-        url: '/api/otp/verify-device',
+        url: '/api/auth/otp/verify-device',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -130,7 +130,7 @@ export const coreApiVerifyOtpView = <ThrowOnError extends boolean = false>(optio
 export const coreApiRemoveOtpView = <ThrowOnError extends boolean = false>(options: Options<CoreApiRemoveOtpViewData, ThrowOnError>) => {
     return (options.client ?? client).post<CoreApiRemoveOtpViewResponses, CoreApiRemoveOtpViewErrors, ThrowOnError>({
         ...urlSearchParamsBodySerializer,
-        url: '/api/otp/remove-device',
+        url: '/api/auth/otp/remove-device',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -151,7 +151,7 @@ export const coreApiListOtpDevicesView = <ThrowOnError extends boolean = false>(
                 type: 'apiKey'
             }
         ],
-        url: '/api/otp/devices',
+        url: '/api/auth/otp/devices',
         ...options
     });
 };
@@ -161,7 +161,7 @@ export const coreApiListOtpDevicesView = <ThrowOnError extends boolean = false>(
  */
 export const coreApiGenerateOtpBackupCodesView = <ThrowOnError extends boolean = false>(options?: Options<CoreApiGenerateOtpBackupCodesViewData, ThrowOnError>) => {
     return (options?.client ?? client).post<CoreApiGenerateOtpBackupCodesViewResponses, CoreApiGenerateOtpBackupCodesViewErrors, ThrowOnError>({
-        url: '/api/otp/backup-codes',
+        url: '/api/auth/otp/backup-codes',
         ...options
     });
 };
@@ -179,7 +179,7 @@ export const coreApiOtp2FaChallengeView = <ThrowOnError extends boolean = false>
                 type: 'apiKey'
             }
         ],
-        url: '/api/otp/2fa-challenge',
+        url: '/api/auth/otp/2fa-challenge',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -194,7 +194,7 @@ export const coreApiOtp2FaChallengeView = <ThrowOnError extends boolean = false>
 export const coreApiChangePasswordView = <ThrowOnError extends boolean = false>(options: Options<CoreApiChangePasswordViewData, ThrowOnError>) => {
     return (options.client ?? client).post<CoreApiChangePasswordViewResponses, CoreApiChangePasswordViewErrors, ThrowOnError>({
         ...urlSearchParamsBodySerializer,
-        url: '/api/set-password',
+        url: '/api/auth/set-password',
         ...options,
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -208,7 +208,7 @@ export const coreApiChangePasswordView = <ThrowOnError extends boolean = false>(
  */
 export const coreApiAccount = <ThrowOnError extends boolean = false>(options?: Options<CoreApiAccountData, ThrowOnError>) => {
     return (options?.client ?? client).post<CoreApiAccountResponses, unknown, ThrowOnError>({
-        url: '/api/account',
+        url: '/api/auth/account',
         ...options
     });
 };

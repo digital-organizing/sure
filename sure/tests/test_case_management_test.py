@@ -25,7 +25,7 @@ from sure.models import (
     VisitStatus,
 )
 from sure.schema import AnswerSchema, ChoiceSchema
-from tenants.models import Tenant, Consultant
+from tenants.models import Consultant, Tenant
 
 
 class CaseManagementTest(TestCase):

@@ -1,9 +1,13 @@
 """Admin configuration for the tenants app."""
 
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 from django.urls import URLPattern, path
+from django_otp import devices_for_user
 from unfold.admin import ModelAdmin, TabularInline
 
+from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import Consultant, Location, Tag, Tenant
 from tenants.views import ConsultantInviteView
 
@@ -26,6 +30,11 @@ class LocationAdmin(ModelAdmin):
 
     autocomplete_fields = ("tenant",)
 
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Location]:
+        if request.user.is_superuser:
+            return super().get_queryset(request)
+        return super().get_queryset(request).filter(tenant__admins=request.user)
+
 
 @admin.register(
     Consultant,
@@ -39,6 +48,33 @@ class ConsultantAdmin(ModelAdmin):
     autocomplete_fields = ("user", "locations")
 
     readonly_fields = ("tenant", "user")
+
+    actions = ["reset_password", "reset_2fa"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Consultant]:
+        if request.user.is_superuser:
+            return super().get_queryset(request)
+        return super().get_queryset(request).filter(tenant__admins=request.user)
+
+    @admin.action(description="Reset passwords for selected consultants")
+    def reset_password(
+        self, request: HttpRequest, queryset: QuerySet[Consultant]
+    ) -> None:
+        """Admin action to reset passwords for selected consultants."""
+        for consultant in queryset:
+            user = consultant.user
+            user.set_unusable_password()
+            user.save()
+            send_reset_mail(request, consultant)
+
+    @admin.action(description="Reset 2FA for selected consultants")
+    def reset_2fa(self, request: HttpRequest, queryset: QuerySet[Consultant]) -> None:
+        """Admin action to reset 2FA for selected consultants."""
+        for consultant in queryset:
+            user = consultant.user
+            for device in devices_for_user(user):
+                device.delete()
+            send_2fa_reset_mail(request, user)
 
     def get_urls(self) -> list[URLPattern]:
         invite_view = self.admin_site.admin_view(

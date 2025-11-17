@@ -1,6 +1,7 @@
 import {
   coreApiAccount,
   coreApiGenerateOtpBackupCodesView,
+  coreApiGetCsrfToken,
   coreApiListOtpDevicesView,
   coreApiLoginView,
   coreApiLogoutView,
@@ -10,9 +11,10 @@ import {
   coreApiVerifyOtpView,
   type AccountResponse,
 } from '@/client'
+import { createGlobalState } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
-export function useAccount() {
+export const useAccount = createGlobalState(() => {
   const account = ref<AccountResponse>({
     username: null,
   })
@@ -34,7 +36,6 @@ export function useAccount() {
       }
       account.value = response.data
     } catch (e: unknown) {
-      console.error(e)
       error.value = 'Failed to fetch account information: ' + (e as Error).message
     } finally {
       loading.value = false
@@ -44,19 +45,19 @@ export function useAccount() {
   async function setInitialPassword(password: string, sesame: string, email: string) {
     loading.value = true
     error.value = null
-    try {
-      const response = await coreApiSetInitialPassword({
-        body: { new_password: password, sesame: sesame, email: email },
-      })
-      if (response.error) {
-        throw new Error(response.error.error!)
-      }
-    } catch (e: unknown) {
-      console.error(e)
-      error.value = 'Failed to set initial password: ' + (e as Error).message
-    } finally {
-      loading.value = false
+    const response = await coreApiSetInitialPassword({
+      body: { new_password: password, sesame: sesame, email: email },
+    })
+    if (response === null) {
+      return null
     }
+    if (response.response.status === 400) {
+      error.value = 'Failed to set initial password'
+      return response.error as unknown as string[]
+    }
+    loading.value = false
+    error.value = null
+    await coreApiGetCsrfToken()
   }
 
   async function fetchTwoFaDevices() {
@@ -106,7 +107,7 @@ export function useAccount() {
       if (response.error) {
         throw new Error(response.error.error!)
       }
-      await Promise.all([fetchTwoFaDevices(), fetchAccount()])
+      await Promise.all([fetchTwoFaDevices(), fetchAccount(), coreApiGetCsrfToken()])
     } catch (e: unknown) {
       error.value = (e as Error).message
     } finally {
@@ -158,7 +159,8 @@ export function useAccount() {
       if (response.error) {
         throw new Error(response.error.error!)
       }
-      await fetchAccount()
+
+      await Promise.all([fetchAccount(), fetchTwoFaDevices()])
     } catch (e: unknown) {
       error.value = (e as Error).message
     } finally {
@@ -176,6 +178,7 @@ export function useAccount() {
         is_staff: null,
         is_superuser: null,
       }
+      await coreApiGetCsrfToken()
     } catch (e) {
       error.value = 'Failed to logout: ' + e
     } finally {
@@ -211,5 +214,6 @@ export function useAccount() {
     interval,
     setInitialPassword,
     createBackupCodes,
+    fetchTwoFaDevices,
   }
-}
+})

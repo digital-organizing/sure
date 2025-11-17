@@ -13,9 +13,14 @@ function onLogout(e: { values: Record<string, boolean>; valid: boolean }) {
 </script>
 
 <template>
-  <Form @submit="onLogout">
+  <Form @submit="onLogout" class="form-col">
     <p>Are you sure you want to logout?</p>
-    <ToggleSwitch name="forget" label="Forget this device for 2FA" />
+    <CheckboxGroup name="ingredient" class="toggle">
+      <ToggleSwitch name="forget" label="Forget this device for 2FA" id="forget" />
+      <label for="forget">Forget this device for 2FA</label>
+    </CheckboxGroup>
+
     <Button type="submit" label="Logout" />
+    <Button label="Cancel" @click="router.back()" severity="secondary"></Button>
   </Form>
 </template>

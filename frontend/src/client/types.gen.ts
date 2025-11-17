@@ -70,6 +70,10 @@ export type AccountResponse = {
      * Is Trusted
      */
     is_trusted?: boolean | null;
+    /**
+     * Full Name
+     */
+    full_name?: string | null;
 };
 
 /**
@@ -802,7 +806,7 @@ export type CoreApiLoginViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/login';
+    url: '/api/auth/login';
 };
 
 export type CoreApiLoginViewErrors = {
@@ -835,7 +839,7 @@ export type CoreApiLogoutViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/logout';
+    url: '/api/auth/logout';
 };
 
 export type CoreApiLogoutViewResponses = {
@@ -865,10 +869,15 @@ export type CoreApiSetInitialPasswordData = {
     };
     path?: never;
     query?: never;
-    url: '/api/set-initial-password';
+    url: '/api/auth/set-initial-password';
 };
 
 export type CoreApiSetInitialPasswordErrors = {
+    /**
+     * Response
+     * Bad Request
+     */
+    400: Array<string>;
     /**
      * Unauthorized
      */
@@ -898,7 +907,7 @@ export type CoreApiSetupOtpViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/otp/create-device';
+    url: '/api/auth/otp/create-device';
 };
 
 export type CoreApiSetupOtpViewErrors = {
@@ -935,7 +944,7 @@ export type CoreApiVerifyOtpViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/otp/verify-device';
+    url: '/api/auth/otp/verify-device';
 };
 
 export type CoreApiVerifyOtpViewErrors = {
@@ -968,7 +977,7 @@ export type CoreApiRemoveOtpViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/otp/remove-device';
+    url: '/api/auth/otp/remove-device';
 };
 
 export type CoreApiRemoveOtpViewErrors = {
@@ -993,7 +1002,7 @@ export type CoreApiListOtpDevicesViewData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/otp/devices';
+    url: '/api/auth/otp/devices';
 };
 
 export type CoreApiListOtpDevicesViewErrors = {
@@ -1019,7 +1028,7 @@ export type CoreApiGenerateOtpBackupCodesViewData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/otp/backup-codes';
+    url: '/api/auth/otp/backup-codes';
 };
 
 export type CoreApiGenerateOtpBackupCodesViewErrors = {
@@ -1061,7 +1070,7 @@ export type CoreApiOtp2FaChallengeViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/otp/2fa-challenge';
+    url: '/api/auth/otp/2fa-challenge';
 };
 
 export type CoreApiOtp2FaChallengeViewErrors = {
@@ -1098,7 +1107,7 @@ export type CoreApiChangePasswordViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/set-password';
+    url: '/api/auth/set-password';
 };
 
 export type CoreApiChangePasswordViewErrors = {
@@ -1123,7 +1132,7 @@ export type CoreApiAccountData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/account';
+    url: '/api/auth/account';
 };
 
 export type CoreApiAccountResponses = {

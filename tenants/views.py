@@ -29,7 +29,6 @@ class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
         user = self.request.user
         tenant = Tenant.objects.filter(admins=user).first()
         kwargs["tenant"] = tenant
-        print(f"Form kwargs: {kwargs}")
         return kwargs
 
     @transaction.atomic
@@ -61,7 +60,6 @@ class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
         param = get_parameters(user=user, scope=f"setup_account:{user.email}")
         param["email"] = user.email
 
-        print(f"Generated params for sesame: {param}")
         link = self.request.build_absolute_uri("/setup") + f"?{urlencode(param)}"
 
         form.send_invitation_email(self.request, activation_link=link)

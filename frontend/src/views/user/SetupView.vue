@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useAccount } from '@/composables/useAccount'
+import type { FormResolverOptions } from '@primevue/forms'
 import { useUrlSearchParams } from '@vueuse/core'
 import { ref } from 'vue'
 import { onMounted } from 'vue'
@@ -9,18 +10,17 @@ const router = useRouter()
 const email = ref<string | null>(null)
 const token = ref<string | null>(null)
 
-const { setInitialPassword } = useAccount()
+const errors = ref<string[]>([])
+const { setInitialPassword, error, account, fetchAccount, fetchTwoFaDevices, twoFaDevices } =
+  useAccount()
 
 onMounted(() => {
   const params = useUrlSearchParams()
   email.value = Array.isArray(params.email) ? params.email[0] : params.email || null
   token.value = Array.isArray(params.sesame) ? params.sesame[0] : params.sesame || null
-  console.log('Email:', email.value)
-  console.log('Token:', token.value)
 
   if (!email.value || !token.value) {
     // Handle missing parameters
-    console.error('Missing email or token in URL parameters')
     router.push({ name: 'Home' })
   }
 })
@@ -31,24 +31,49 @@ async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
   }
 
   const password = e.values['password']
-  const confirmPassword = e.values['confirm_password']
 
-  if (password !== confirmPassword) {
-    // Handle password mismatch
-    console.error('Passwords do not match')
-    return
+  const result = await setInitialPassword(password, token.value, email.value)
+  if (result) {
+    errors.value = result
   }
+  await Promise.all([fetchAccount(), fetchTwoFaDevices()])
+  if (account.value.verified) {
+    router.push({ name: 'home' })
+  }
+  if (account.value.username && twoFaDevices.value.length == 0) {
+    router.push({ name: 'setup-2fa' })
+  }
+  if (account.value.username) {
+    router.push({ name: 'login' }) // To complete the login flow
+  }
+}
 
-  await setInitialPassword(email.value, token.value, password)
-  router.push({ name: 'setup-2fa' })
+function resolver(e: FormResolverOptions) {
+  return {
+    errors: {},
+    values: e.values,
+  }
 }
 </script>
 
 <template>
-  <Form @submit="onSubmit">
-    <Password label="Password" name="password" />
-    <Password label="Confirm Password" name="confirm_password" />
+  <Form @submit="onSubmit" class="form-col" :resolver="resolver">
+    <p>
+      Please set your initial password for the account associated with
+      <span class="email"> {{ email }}. </span>
+    </p>
+    <FloatLabel variant="in">
+      <Password name="password" type="password" id="password" toggle-mask />
+      <label for="password">Password</label>
+    </FloatLabel>
 
     <Button type="submit">Set Password</Button>
+
+    <Message severity="error" v-if="errors.length || error">
+      <strong>{{ error }}</strong>
+      <ul v-if="errors.length > 0">
+        <li v-for="(err, index) in errors" :key="index">{{ err }}</li>
+      </ul>
+    </Message>
   </Form>
 </template>

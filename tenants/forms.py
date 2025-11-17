@@ -55,7 +55,7 @@ class ConsultantInviteForm(forms.Form):
                 "first_name": self.cleaned_data["first_name"],
                 "tenant": self.tenant,
                 "user": request.user,
-                "activation_link": mark_safe(activation_link), # nosec
+                "activation_link": mark_safe(activation_link),  # nosec
             }
         )
         message = template.render(context)

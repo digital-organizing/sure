@@ -8,6 +8,7 @@ import App from './App.vue'
 import router from './router'
 import { client } from './client/client.gen.ts'
 import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
+import ToastService from 'primevue/toastservice'
 
 import PrimeVue from 'primevue/config'
 import Material from '@primeuix/themes/material'
@@ -33,7 +34,7 @@ function getCsrfToken() {
 // Add CSRF token to all requests
 client.interceptors.request.use(async (request) => {
   const url = new URL(request.url)
-  if (url.pathname.startsWith('/api/csrf') || url.pathname.startsWith('/api/login')) {
+  if (url.pathname.startsWith('/api/csrf')) {
     return request
   }
   let token = getCsrfToken()
@@ -48,7 +49,9 @@ client.interceptors.request.use(async (request) => {
 
 client.interceptors.response.use(async (response) => {
   if (response.status == 401) {
-    router.push({ path: '/login', query: { next: router.currentRoute.value.fullPath } })
+    if (router.currentRoute.value.name !== 'login') {
+      router.push({ path: '/login', query: { next: router.currentRoute.value.fullPath } })
+    }
   }
   return response
 })
@@ -134,6 +137,7 @@ pinia.use(createSentryPiniaPlugin())
 
 app.use(pinia)
 app.use(router)
+
 app.use(PrimeVue, {
   theme: {
     preset: SurePreset,
@@ -142,6 +146,7 @@ app.use(PrimeVue, {
     },
   },
 })
+app.use(ToastService)
 
 // Initialize stores after Pinia is set up
 const initializeStores = () => {

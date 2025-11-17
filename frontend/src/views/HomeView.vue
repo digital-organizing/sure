@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 const params = useUrlSearchParams()
 const router = useRouter()
 const user = ref<AccountResponse | null>(null)
+const loading = ref(true)
 
 onMounted(async () => {
   if (params.case) {
@@ -16,7 +17,7 @@ onMounted(async () => {
 
   const response = await coreApiAccount()
 
-  if (!response.data) {
+  if (!response.data?.verified) {
     router.replace({ name: 'login' })
     return
   }
@@ -31,13 +32,14 @@ onMounted(async () => {
     router.replace({ name: 'consultant-dashboard' })
     return
   }
+  loading.value = false
 })
 </script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>Hello World!</p>
-  <RouterLink :to="{ name: 'consultant-dashboard' }">Go to Dashboard</RouterLink>
+  <section v-if="!loading">
+    <RouterLink :to="{ name: 'consultant-dashboard' }">Go to Dashboard</RouterLink>
 
-  <a href="/admin/" v-if="user?.is_staff">Go to Admin</a>
+    <a href="/admin/" v-if="user?.is_staff">Go to Admin</a>
+  </section>
 </template>

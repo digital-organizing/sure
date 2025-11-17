@@ -186,6 +186,9 @@ DJANGO_VITE = {
     }
 }
 
+if DJANGO_VITE["default"]["dev_mode"]:
+    STATICFILES_DIRS.insert(0, BASE_DIR / "frontend")
+
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -317,5 +320,21 @@ CONSTANCE_CONFIG = {
     "TWO_FA_REMINDER_EMAIL_TEMPLATE": (
         "Hello {{ user.get_full_name }}, ",
         "Template for the 2FA setup reminder email.",
+    ),
+    "PASSWORD_RESET_EMAIL_TEMPLATE": (
+        "{{activation_link}}",
+        "Template for the password reset email.",
+    ),
+    "PASSWORD_RESET_EMAIL_SUBJECT": (
+        "Password Reset",
+        "Subject of the password reset email.",
+    ),
+    "TWO_FA_RESET_EMAIL_SUBJECT": (
+        "2FA Reset Notification",
+        "Subject of the 2FA reset notification email.",
+    ),
+    "TWO_FA_RESET_EMAIL_TEMPLATE": (
+        "Hello {{ user.get_full_name }}, your 2FA has been reset by {{ admin.get_full_name }}.",
+        "Template for the 2FA reset notification email.",
     ),
 }

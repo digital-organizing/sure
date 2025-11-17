@@ -1,7 +1,9 @@
 import django_agent_trust
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django_otp import devices_for_user
 from django_otp import login as otp_login
 from django_otp import user_has_device, verify_token
@@ -42,7 +44,7 @@ AUTH_RESPONSE = {
 }
 
 
-@api.post("/login", auth=None, response=AUTH_RESPONSE)
+@api.post("/auth/login", auth=None, response=AUTH_RESPONSE)
 def login_view(request, username: Form[str], password: Form[str]):
     if (
         user := authenticate(request, username=username, password=password)
@@ -56,17 +58,20 @@ def login_view(request, username: Form[str], password: Form[str]):
     )
 
 
-@api.post("/logout", auth=django_auth)
+@api.post("/auth/logout", auth=django_auth)
+@csrf_exempt
 def logout_view(request, forget: Form[bool] = False):
     logout(request)
-    print("Forget device:", forget)
     if forget:
-        print("Revoking trusted agent")
         django_agent_trust.revoke_agent(request)
     return {"success": True}
 
 
-@api.post("/set-initial-password", auth=None, response=AUTH_RESPONSE)
+@api.post(
+    "/auth/set-initial-password",
+    auth=None,
+    response={200: LoginResponse, 400: list[str], 401: LoginResponse},
+)
 def set_initial_password(
     request, sesame: Form[str], email: Form[str], new_password: Form[str]
 ):
@@ -83,6 +88,14 @@ def set_initial_password(
             data=LoginResponse(success=False, error="Password has already been set"),
             status=400,
         )
+    try:
+        validate_password(new_password, user)
+    except ValidationError as e:
+        return api.create_response(
+            request,
+            data=[err.message for err in e.error_list],
+            status=400,
+        )
     user.set_password(new_password)
     user.save()
     login(request, user)
@@ -96,7 +109,7 @@ class OTPDeviceResponse(Schema):
 
 
 @api.post(
-    "/otp/create-device",
+    "/auth/otp/create-device",
     response={200: OTPDeviceResponse, 400: LoginResponse},
     auth=django_auth,
 )
@@ -118,7 +131,7 @@ def setup_otp_view(request, name: Form[str]):
     }
 
 
-@api.post("/otp/verify-device", response=AUTH_RESPONSE, auth=django_auth)
+@api.post("/auth/otp/verify-device", response=AUTH_RESPONSE, auth=django_auth)
 def verify_otp_view(request, device_id: Form[str], token: Form[str]):
     if user_has_device(request.user, True) and not auth_2fa_or_trusted(request):
         return api.create_response(
@@ -141,7 +154,7 @@ def verify_otp_view(request, device_id: Form[str], token: Form[str]):
     return {"success": True}
 
 
-@api.post("/otp/remove-device", response=AUTH_RESPONSE, auth=auth_2fa)
+@api.post("/auth/otp/remove-device", response=AUTH_RESPONSE, auth=auth_2fa)
 def remove_otp_view(request, device_id: Form[str]):
     devices = devices_for_user(request.user, confirmed=True)
     for device in devices:
@@ -156,7 +169,7 @@ def remove_otp_view(request, device_id: Form[str]):
 
 
 @api.get(
-    "/otp/devices",
+    "/auth/otp/devices",
     response={200: list[OTPDeviceResponse], 400: LoginResponse},
     auth=django_auth,
 )
@@ -166,7 +179,9 @@ def list_otp_devices_view(request):
 
 
 @api.post(
-    "/otp/backup-codes", response={200: list[str], 400: LoginResponse}, auth=auth_2fa
+    "/auth/otp/backup-codes",
+    response={200: list[str], 400: LoginResponse},
+    auth=auth_2fa,
 )
 def generate_otp_backup_codes_view(request):
     static_device, created = StaticDevice.objects.get_or_create(
@@ -182,7 +197,7 @@ def generate_otp_backup_codes_view(request):
     return static_device.token_set.values_list("token", flat=True)
 
 
-@api.post("/otp/2fa-challenge", response=AUTH_RESPONSE, auth=django_auth)
+@api.post("/auth/otp/2fa-challenge", response=AUTH_RESPONSE, auth=django_auth)
 def otp_2fa_challenge_view(
     request, device_id: Form[str], token: Form[str], remember: Form[bool] = False
 ):
@@ -194,7 +209,6 @@ def otp_2fa_challenge_view(
             status=401,
         )
     otp_login(request, device)
-    print("Remember device:", remember)
 
     if remember:
         django_agent_trust.trust_agent(request, trust_days=30)
@@ -204,7 +218,7 @@ def otp_2fa_challenge_view(
     return {"success": True}
 
 
-@api.post("/set-password", response=AUTH_RESPONSE, auth=auth_2fa)
+@api.post("/auth/set-password", response=AUTH_RESPONSE, auth=auth_2fa)
 def change_password_view(request, old_password: Form[str], new_password: Form[str]):
     user = request.user
     if not user.check_password(old_password):
@@ -225,9 +239,10 @@ class AccountResponse(Schema):
     verified: bool | None = None
     otp: bool | None = None
     is_trusted: bool | None = None
+    full_name: str | None = None
 
 
-@api.post("/account", response=AccountResponse, auth=None)
+@api.post("/auth/account", response=AccountResponse, auth=None)
 def account(request):
     if request.user.is_authenticated:
         return {
@@ -237,5 +252,6 @@ def account(request):
             "verified": request.user.is_verified() or request.agent.is_trusted,
             "otp": request.user.is_verified(),
             "is_trusted": request.agent.is_trusted,
+            "full_name": request.user.get_full_name(),
         }
     return {"username": None, "is_staff": None, "is_superuser": None}

@@ -3,6 +3,8 @@ import { type SectionSchema } from '@/client'
 import ClientQuestion from './ClientQuestion.vue'
 import { userAnswersStore } from '@/stores/answers'
 import { computed, ref } from 'vue'
+import IconRightArrow from './icons/IconRightArrow.vue';
+import IconLeftArrowSmall from './icons/IconLeftArrowSmall.vue';
 
 const props = defineProps<{ section: SectionSchema; hasNext: boolean; hasPrevious: boolean }>()
 
@@ -63,8 +65,9 @@ const visibleQuestions = computed(() => {
         @click="onPrevious"
         severity="secondary"
         variant="outlined"
+        icon="IconLeftArrowSmall"
         rounded
-      />
+      > <IconLeftArrowSmall/> Previous </Button>
       <Button
         id="next"
         v-if="props.hasNext"
@@ -72,7 +75,7 @@ const visibleQuestions = computed(() => {
         @click="onNext"
         severity="primary"
         rounded
-      />
+      > Next <IconRightArrow /> </Button>
       <Button
         id="submit"
         v-if="!props.hasNext"

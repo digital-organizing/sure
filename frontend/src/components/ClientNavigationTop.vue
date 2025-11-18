@@ -27,7 +27,7 @@ function toggle(event: Event) {
         </div>
         <div>
             <Button id="menu-button" type="button" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true" aria-controls="overlay-menu"> <IconMenu/> </Button>
-            <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
+            <Menu ref="menu" id="overlay_menu" :popup="true" />
         </div>
     </div>
 </template>

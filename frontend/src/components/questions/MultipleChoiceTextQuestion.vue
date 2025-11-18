@@ -112,12 +112,3 @@ defineExpose({
     </div>
   </div>
 </template>
-
-<style scoped>
-.option-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  gap: 0.5rem;
-}
-</style>

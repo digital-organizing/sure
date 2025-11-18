@@ -6,27 +6,6 @@ const props = defineProps<{
 }>()
 
 const { labelForStatus } = useStatus()
-
-function getSeverity(value: string): string {
-  switch (value.toLowerCase()) {
-    case 'created':
-      return 'success'
-    case 'client_submitted':
-      return 'info'
-    case 'consultant_submitted':
-      return 'warning'
-    case 'results_recorded':
-      return 'danger'
-    case 'results_sent':
-      return 'help'
-    case 'closed':
-      return 'dark'
-    case 'canceled':
-      return 'secondary'
-    default:
-      return 'secondary'
-  }
-}
 </script>
 
 <template>

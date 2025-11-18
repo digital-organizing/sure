@@ -62,10 +62,6 @@ function isStatusDone(status: string): boolean {
   return caseStatusIndex >= targetStatusIndex
 }
 
-function isStatusCurrent(status: string): boolean {
-  return status == visit.value?.status
-}
-
 function isCurrentRoute(status: string): boolean {
   const route = router.currentRoute.value
   const item = navItems.find((item) => item.status === status)

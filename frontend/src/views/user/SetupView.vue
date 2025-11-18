@@ -37,13 +37,13 @@ async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
     errors.value = result
   }
   await Promise.all([fetchAccount(), fetchTwoFaDevices()])
-  if (account.value.verified) {
+  if (account.value.verified && twoFaDevices.value.length > 0) {
     router.push({ name: 'home' })
   }
-  if (account.value.username && twoFaDevices.value.length == 0) {
+  else if (account.value.username && twoFaDevices.value.length == 0) {
     router.push({ name: 'setup-2fa' })
   }
-  if (account.value.username) {
+  else if (account.value.username) {
     router.push({ name: 'login' }) // To complete the login flow
   }
 }

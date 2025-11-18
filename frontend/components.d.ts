@@ -20,6 +20,7 @@ declare module 'vue' {
     ClientSection: typeof import('./src/components/ClientSection.vue')['default']
     Column: typeof import('primevue/column')['default']
     ConsultantQuestion: typeof import('./src/components/ConsultantQuestion.vue')['default']
+    ConsultantSection: typeof import('./src/components/ConsultantSection.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
@@ -60,6 +61,7 @@ declare module 'vue' {
     SingleChoiceTextQuestion: typeof import('./src/components/questions/SingleChoiceTextQuestion.vue')['default']
     StatusTag: typeof import('./src/components/StatusTag.vue')['default']
     Tag: typeof import('primevue/tag')['default']
+    Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }

@@ -37,6 +37,9 @@ export const useCase = createGlobalState(() => {
   const selectedVisitId = ref<string | null>(null)
   const loading = ref(false)
   const callbacks = ref<((caseId: string | null) => void)[]>([])
+  const historyOffset = computed(() => {
+    return Math.max(history.value.client_answers.length, history.value.consultant_answers.length)
+  })
 
   const error = ref<string | null>(null)
 
@@ -88,19 +91,29 @@ export const useCase = createGlobalState(() => {
     combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     return combined
   })
-  async function fetchCaseHistory(limit: number = 20) {
+  async function fetchCaseHistory(limit: number = 20, more = false) {
     if (!selectedVisitId.value) {
       error.value = 'No case ID set.'
       return
     }
     await sureApiGetVisitHistory({
       path: { pk: selectedVisitId.value },
-      query: { offset: 0, limit },
+      query: { offset: more ? historyOffset.value : 0, limit },
     })
       .then((response) => {
         if (response.data) {
-          history.value.client_answers = response.data.client_answers
-          history.value.consultant_answers = response.data.consultant_answers
+          if (!more) {
+            history.value = {
+              client_answers: [],
+              consultant_answers: [],
+            }
+          }
+          history.value.client_answers = history.value.client_answers.concat(
+            response.data.client_answers,
+          )
+          history.value.consultant_answers = history.value.consultant_answers.concat(
+            response.data.consultant_answers,
+          )
         } else {
           error.value = 'No history data in response.'
         }
@@ -260,6 +273,15 @@ export const useCase = createGlobalState(() => {
       .then((response) => {
         if (response.data) {
           clientAnswers.value = response.data!
+          store.answers.answers = response.data!.map((answer) => ({
+            questionId: answer.question,
+            choices: answer.choices
+              ? answer.choices.map((code, idx) => ({
+                  code: '' + code,
+                  text: answer.texts[idx],
+                }))
+              : [],
+          }))
         }
       })
       .catch((error) => {

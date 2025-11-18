@@ -10,8 +10,35 @@
   --color-green: #d0ea2b;
   --color-green-2: #66b032;
   --color-orange: #fb9902;
+  --client-color: #66b032;
+  --consultant-color: #0391ce;
+  --tests-color: #0247fe;
+  --results-color: #8601af;
+  --communication-color: #646464;
 }
 
+.created {
+  --status-color: var(--client-color);
+}
+
+.client_submitted {
+  --status-color: var(--client-color);
+}
+.consultant_submitted {
+  --status-color: var(--consultant-color);
+}
+.tests_recorded {
+  --status-color: var(--tests-color);
+}
+.results_recorded {
+  --status-color: var(--results-color);
+}
+.results_sent {
+  --status-color: var(--communication-color);
+}
+.closed {
+  --status-color: var(--results-color);
+}
 /* semantic color variables for this project */
 :root {
   --color-background: var(--color-ahs-white);
@@ -78,4 +105,12 @@ a.p-button {
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.case-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  justify-self: stretch;
+  align-self: stretch;
 }

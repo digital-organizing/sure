@@ -13,6 +13,7 @@ import MultiChoiceMultiTextQuestion from './questions/MultiChoiceMultiTextQuesti
 const props = defineProps<{
   question: ClientQuestionSchema
   remote?: ComputedRef<ClientAnswerSchema | null>
+  hideTitle: boolean
 }>()
 
 const questionComponentRef = ref<{ getAnswer: () => AnswerSchema } | null>(null)
@@ -34,6 +35,7 @@ const questionComponent = computed(() => {
     case 'multiple choice + open text field':
       return MultipleChoiceTextQuestion
     case 'open text field':
+    case 'long text field':
       return OpenTextQuestion
     case 'multiple choice + multiple open text field':
       return MultiChoiceMultiTextQuestion
@@ -62,7 +64,7 @@ defineExpose({
 
 <template>
   <Form class="client-question">
-    <h3>{{ question.question_text }}</h3>
+    <h3 v-if="!hideTitle">{{ question.question_text }}</h3>
     <component
       :is="questionComponent"
       ref="questionComponentRef"

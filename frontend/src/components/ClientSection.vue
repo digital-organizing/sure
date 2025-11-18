@@ -53,6 +53,7 @@ const visibleQuestions = computed(() => {
       :key="question.id!"
       :question="question"
       ref="questions"
+      :hide-title="false"
     />
     <div class="btn-group">
       <Button

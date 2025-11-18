@@ -23,12 +23,17 @@ export const useStatus = createGlobalState(() => {
     return status ? status.label : value
   }
 
+  function indexForStatus(value: string): number {
+    return statusChoices.value.findIndex((status) => status.value === value)
+  }
+
   fetchStatusChoices()
 
   return {
     statusChoices,
     error,
     fetchStatusChoices,
+    indexForStatus,
     labelForStatus,
   }
 })

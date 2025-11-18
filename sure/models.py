@@ -217,6 +217,7 @@ class QuestionFormats(models.TextChoices):
         _("Multiple Choice with Open Text Field"),
     )
     OPEN_TEXT = "open text field", _("Open Text")
+    LONG_TEXT = "long text field", _("Long Text Field")
     MULTI_CHOICE_MULTI_TEXT = (
         "multiple choice + multiple open text field",
         _("Multi Choice Multi Text"),
@@ -527,6 +528,7 @@ class VisitStatus(models.TextChoices):
     CREATED = "created", _("Created")
     CLIENT_SUBMITTED = "client_submitted", _("Client Submitted")
     CONSULTANT_SUBMITTED = "consultant_submitted", _("Consultant Submitted")
+    TESTS_RECORDED = "tests_recorded", _("Tests Recorded")
 
     RESULTS_RECORDED = "results_recorded", _("Results Recorded")
     RESULTS_SENT = "results_sent", _("Results Sent")

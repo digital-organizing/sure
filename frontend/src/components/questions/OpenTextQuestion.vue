@@ -35,16 +35,34 @@ defineExpose({
 </script>
 
 <template>
-  <InputText
-    v-model="textInput"
-    type="text"
-    :placeholder="question.question_text"
-    class="text-input"
-  />
+  <div>
+    <InputText
+      v-model="textInput"
+      type="text"
+      :placeholder="question.question_text"
+      class="text-input"
+      v-if="question.format == 'open text field'"
+    />
+    <Textarea
+      v-model="textInput"
+      :placeholder="question.question_text"
+      auto-resize
+      class="text-input"
+      v-if="question.format == 'long text field'"
+    />
+  </div>
 </template>
 
 <style lang="css" scoped>
 .text-input {
   margin-bottom: 0.5rem;
+}
+textarea.text-input {
+  width: 100%;
+}
+div {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
 }
 </style>

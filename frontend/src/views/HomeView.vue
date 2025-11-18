@@ -28,10 +28,7 @@ onMounted(async () => {
     return
   }
 
-  if (!response.data.is_staff) {
-    router.replace({ name: 'consultant-dashboard' })
-    return
-  }
+  router.replace({ name: 'consultant-dashboard' })
   loading.value = false
 })
 </script>

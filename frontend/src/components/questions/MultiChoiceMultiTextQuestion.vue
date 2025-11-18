@@ -161,7 +161,8 @@ defineExpose({
             <InputGroupAddon>
               <Button
                 icon="pi pi-times"
-                severity="secondary"
+                :severity="index == 0 ? 'secondary' : 'danger'"
+                variant="text"
                 @click="removeTextField(option.code, index)"
                 :disabled="index == 0"
               />

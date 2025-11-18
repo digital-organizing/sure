@@ -35,14 +35,31 @@ const router = createRouter({
       props: true,
     },
     {
-      path: '/login',
-      name: 'login',
-      component: () => import('../views/user/LoginView.vue'),
-    },
-    {
-      path: '/logout',
-      name: 'logout',
-      component: () => import('../views/user/LogoutView.vue'),
+      path: '/account',
+      name: 'account',
+      component: () => import('../views/user/AccountView.vue'),
+      children: [
+        {
+          path: '/login',
+          name: 'login',
+          component: () => import('../views/user/LoginView.vue'),
+        },
+        {
+          path: '/logout',
+          name: 'logout',
+          component: () => import('../views/user/LogoutView.vue'),
+        },
+        {
+          path: '/setup',
+          name: 'setup',
+          component: () => import('../views/user/SetupView.vue'),
+        },
+        {
+          path: '/setup-2fa',
+          name: 'setup-2fa',
+          component: () => import('../views/user/Setup2FaView.vue'),
+        },
+      ],
     },
     {
       path: '/consultant',

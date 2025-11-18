@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from django.conf import settings
 from django.db.models import F, Func, Prefetch
@@ -73,7 +73,7 @@ def _activate_language_for_request(request, lang: str | None = None):
 
 
 class LangSchema(Schema):
-    lang: Optional[str] = settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+    lang: str | None = settings.MODELTRANSLATION_DEFAULT_LANGUAGE
 
 
 def inject_language(func: Callable) -> Callable:

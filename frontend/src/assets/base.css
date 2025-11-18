@@ -19,12 +19,18 @@
   --primary-color: var(--color-ahs-red);
   --secondary-color: var(--color-ahs-white);
   --font-family: 'Circular Std';
+  --container-width: 1520px;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-text);
   font-family: var(--font-family);
+}
+
+main {
+  max-width: var(--container-width);
+  margin: 0 auto;
 }
 
 .option-item.with-text-input.active {
@@ -39,4 +45,37 @@ body {
 .option-item .text-input {
   grid-area: textinput;
   margin-top: 0.25rem;
+}
+
+.form-col {
+  width: 100%;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.form-col.stretch {
+  align-items: stretch;
+}
+
+.toggle label {
+  margin-left: 0.5rem;
+}
+
+a.p-button {
+  text-decoration: none;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dialog-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }

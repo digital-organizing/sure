@@ -25,7 +25,7 @@ from sure.models import (
     VisitStatus,
 )
 from sure.schema import AnswerSchema, ChoiceSchema
-from tenants.models import Tenant
+from tenants.models import Consultant, Tenant
 
 
 class CaseManagementTest(TestCase):
@@ -37,7 +37,13 @@ class CaseManagementTest(TestCase):
             owner=owner,
         )
         tenant.admins.add(owner)
+        consultant = Consultant.objects.create(
+            tenant=tenant,
+            user=owner,
+        )
         location = tenant.locations.create(name="Test Location")
+        consultant.locations.set([location])
+
         self.location = location
 
     def test_canonicalize_phone_number(self):

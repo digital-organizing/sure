@@ -35,7 +35,7 @@ env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env.str("SECRET_KEY", default="secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=True)
+DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
@@ -45,15 +45,18 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
-    "unfold",
+    "unfold.apps.BasicAppConfig",
+    "unfold.contrib.constance",
+    "constance",
+    "sure.apps.SureConfig",
     "guard",
     "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.location_field",  # optional, if django-location-field package is used
-    "sure.apps.SureConfig",
     "tenants.apps.TenantsConfig",
-    "django.contrib.admin",
+    # "django.contrib.admin",
+    "sure.apps.SureAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -72,6 +75,12 @@ INSTALLED_APPS = [
     "health_check.contrib.celery",
     "health_check.contrib.redis",
     "health_check.contrib.psutil",
+    "crispy_forms",
+    "django_otp",
+    "django_agent_trust",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_hotp",
+    "django_otp.plugins.otp_static",
 ]
 
 MIDDLEWARE = [
@@ -82,6 +91,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_agent_trust.middleware.AgentMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "guard.middleware.NotFoundRateLimitMiddleware",
@@ -175,6 +186,9 @@ DJANGO_VITE = {
     }
 }
 
+if DJANGO_VITE["default"]["dev_mode"]:
+    STATICFILES_DIRS.insert(0, BASE_DIR / "frontend")
+
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -239,6 +253,8 @@ HEALTH_CHECK = {
     },
 }
 
+CONSTANCE_REDIS_CONNECTION = REDIS_URL + "/2"
+
 # SURE Settings
 
 DEFAULT_REGION = env.str("DEFAULT_REGION", default="CH")
@@ -269,4 +285,56 @@ UNFOLD = {
     "COMMAND": {
         "search_models": True,  # Search models in command search
     },
+}
+
+CRISPY_TEMPLATE_PACK = "unfold_crispy"
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["unfold_crispy"]
+
+
+SESAME_MAX_AGE = 60 * 60 * 24  # 1 day in seconds
+
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "sesame.backends.ModelBackend",
+]
+
+
+EMAIL_CONFIG = env.email_url("EMAIL_URL", default="smtp://user@:password@localhost:25")
+
+vars().update(EMAIL_CONFIG)
+
+SERVER_EMAIL = env("SERVER_EMAIL", default="root@localhost")
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=SERVER_EMAIL)
+
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+
+CONSTANCE_CONFIG = {
+    "TWO_FA_REMINDER_SUBJECT": (
+        "2FA Setup Reminder",
+        "Subject of the 2FA setup reminder email.",
+    ),
+    "TWO_FA_REMINDER_EMAIL_TEMPLATE": (
+        "Hello {{ user.get_full_name }}, ",
+        "Template for the 2FA setup reminder email.",
+    ),
+    "PASSWORD_RESET_EMAIL_TEMPLATE": (
+        "{{activation_link}}",
+        "Template for the password reset email.",
+    ),
+    "PASSWORD_RESET_EMAIL_SUBJECT": (
+        "Password Reset",
+        "Subject of the password reset email.",
+    ),
+    "TWO_FA_RESET_EMAIL_SUBJECT": (
+        "2FA Reset Notification",
+        "Subject of the 2FA reset notification email.",
+    ),
+    "TWO_FA_RESET_EMAIL_TEMPLATE": (
+        "Hello {{ user.get_full_name }}, your 2FA has been reset by {{ admin.get_full_name }}.",
+        "Template for the 2FA reset notification email.",
+    ),
 }

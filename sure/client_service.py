@@ -3,6 +3,7 @@
 import phonenumbers
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -35,9 +36,10 @@ def verify_access_to_location(location: tenants.models.Location, user) -> bool:
     """Verify that the user has access to the given location."""
     if user.is_superuser:
         return True
-    if user.tenants.filter(id=location.tenant.pk).exists():
-        return True
-    return False
+    if not hasattr(user, "consultant"):
+        return False
+    consultant: tenants.models.Consultant = user.consultant
+    return consultant.locations.filter(id=location.pk).exists()
 
 
 def create_case(location_id: int, user, external_id: str | None = None) -> Case:
@@ -109,6 +111,7 @@ def send_token(phone_number: str):
     send_sms(contact.phone_number, msg)
 
 
+@transaction.atomic
 def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
     """Verify that the given token is valid for the given phone number.
 

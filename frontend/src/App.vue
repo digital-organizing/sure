@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
+import { useAccount } from './composables/useAccount'
+import InternalMenuBar from './components/InternalMenuBar.vue'
+
+const { account } = useAccount()
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
+  <InternalMenuBar v-if="account.verified" />
+  <Toast />
   <RouterView />
 </template>
 

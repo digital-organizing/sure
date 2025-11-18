@@ -25,6 +25,24 @@ export type LoginResponse = {
 };
 
 /**
+ * OTPDeviceResponse
+ */
+export type OtpDeviceResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Config Url
+     */
+    config_url?: string | null;
+};
+
+/**
  * AccountResponse
  */
 export type AccountResponse = {
@@ -40,6 +58,32 @@ export type AccountResponse = {
      * Is Superuser
      */
     is_superuser?: boolean | null;
+    /**
+     * Verified
+     */
+    verified?: boolean | null;
+    /**
+     * Otp
+     */
+    otp?: boolean | null;
+    /**
+     * Is Trusted
+     */
+    is_trusted?: boolean | null;
+    /**
+     * Full Name
+     */
+    full_name?: string | null;
+};
+
+/**
+ * LangSchema
+ */
+export type LangSchema = {
+    /**
+     * Lang
+     */
+    lang?: string | null;
 };
 
 /**
@@ -290,6 +334,10 @@ export type CaseListingSchema = {
      */
     last_modified_at: string;
     /**
+     * External Id
+     */
+    external_id: string;
+    /**
      * Tags
      */
     tags: Array<string>;
@@ -505,6 +553,7 @@ export type PagedCaseListingSchema = {
 export type CaseFilters = {
     search: FilterData;
     case: FilterData;
+    external_id: FilterData;
     client_id: FilterData;
     tags: FilterOperator;
     location: FilterData;
@@ -571,6 +620,88 @@ export type QuestionnaireListingSchema = {
      * Name of the questionnaire
      */
     name: string;
+};
+
+/**
+ * TestBundleSchema
+ */
+export type TestBundleSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TestCategorySchema
+ */
+export type TestCategorySchema = {
+    /**
+     * Test Kinds
+     */
+    test_kinds: Array<TestKindSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TestKindSchema
+ */
+export type TestKindSchema = {
+    /**
+     * Test Bundles
+     */
+    test_bundles: Array<TestBundleSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Number
+     */
+    number: number;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Note
+     * Additional notes about the test
+     */
+    note?: string | null;
+};
+
+/**
+ * TestResultOptionSchema
+ */
+export type TestResultOptionSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Test Kind
+     */
+    test_kind: number;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Color
+     * Color associated with this result option (hex code)
+     */
+    color?: string | null;
 };
 
 /**
@@ -675,32 +806,40 @@ export type CoreApiLoginViewData = {
     };
     path?: never;
     query?: never;
-    url: '/api/login';
+    url: '/api/auth/login';
 };
 
 export type CoreApiLoginViewErrors = {
     /**
-     * Unknown Status Code
+     * Unauthorized
      */
-    4: LoginResponse;
+    401: LoginResponse;
 };
 
 export type CoreApiLoginViewError = CoreApiLoginViewErrors[keyof CoreApiLoginViewErrors];
 
 export type CoreApiLoginViewResponses = {
     /**
-     * Unknown Status Code
+     * OK
      */
-    2: LoginResponse;
+    200: LoginResponse;
 };
 
 export type CoreApiLoginViewResponse = CoreApiLoginViewResponses[keyof CoreApiLoginViewResponses];
 
 export type CoreApiLogoutViewData = {
-    body?: never;
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Forget
+         */
+        forget?: boolean;
+    };
     path?: never;
     query?: never;
-    url: '/api/logout';
+    url: '/api/auth/logout';
 };
 
 export type CoreApiLogoutViewResponses = {
@@ -710,11 +849,290 @@ export type CoreApiLogoutViewResponses = {
     200: unknown;
 };
 
+export type CoreApiSetInitialPasswordData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Sesame
+         */
+        sesame: string;
+        /**
+         * Email
+         */
+        email: string;
+        /**
+         * New Password
+         */
+        new_password: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/set-initial-password';
+};
+
+export type CoreApiSetInitialPasswordErrors = {
+    /**
+     * Response
+     * Bad Request
+     */
+    400: Array<string>;
+    /**
+     * Unauthorized
+     */
+    401: LoginResponse;
+};
+
+export type CoreApiSetInitialPasswordError = CoreApiSetInitialPasswordErrors[keyof CoreApiSetInitialPasswordErrors];
+
+export type CoreApiSetInitialPasswordResponses = {
+    /**
+     * OK
+     */
+    200: LoginResponse;
+};
+
+export type CoreApiSetInitialPasswordResponse = CoreApiSetInitialPasswordResponses[keyof CoreApiSetInitialPasswordResponses];
+
+export type CoreApiSetupOtpViewData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Name
+         */
+        name: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/create-device';
+};
+
+export type CoreApiSetupOtpViewErrors = {
+    /**
+     * Bad Request
+     */
+    400: LoginResponse;
+};
+
+export type CoreApiSetupOtpViewError = CoreApiSetupOtpViewErrors[keyof CoreApiSetupOtpViewErrors];
+
+export type CoreApiSetupOtpViewResponses = {
+    /**
+     * OK
+     */
+    200: OtpDeviceResponse;
+};
+
+export type CoreApiSetupOtpViewResponse = CoreApiSetupOtpViewResponses[keyof CoreApiSetupOtpViewResponses];
+
+export type CoreApiVerifyOtpViewData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Device Id
+         */
+        device_id: string;
+        /**
+         * Token
+         */
+        token: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/verify-device';
+};
+
+export type CoreApiVerifyOtpViewErrors = {
+    /**
+     * Unauthorized
+     */
+    401: LoginResponse;
+};
+
+export type CoreApiVerifyOtpViewError = CoreApiVerifyOtpViewErrors[keyof CoreApiVerifyOtpViewErrors];
+
+export type CoreApiVerifyOtpViewResponses = {
+    /**
+     * OK
+     */
+    200: LoginResponse;
+};
+
+export type CoreApiVerifyOtpViewResponse = CoreApiVerifyOtpViewResponses[keyof CoreApiVerifyOtpViewResponses];
+
+export type CoreApiRemoveOtpViewData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Device Id
+         */
+        device_id: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/remove-device';
+};
+
+export type CoreApiRemoveOtpViewErrors = {
+    /**
+     * Unauthorized
+     */
+    401: LoginResponse;
+};
+
+export type CoreApiRemoveOtpViewError = CoreApiRemoveOtpViewErrors[keyof CoreApiRemoveOtpViewErrors];
+
+export type CoreApiRemoveOtpViewResponses = {
+    /**
+     * OK
+     */
+    200: LoginResponse;
+};
+
+export type CoreApiRemoveOtpViewResponse = CoreApiRemoveOtpViewResponses[keyof CoreApiRemoveOtpViewResponses];
+
+export type CoreApiListOtpDevicesViewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/devices';
+};
+
+export type CoreApiListOtpDevicesViewErrors = {
+    /**
+     * Bad Request
+     */
+    400: LoginResponse;
+};
+
+export type CoreApiListOtpDevicesViewError = CoreApiListOtpDevicesViewErrors[keyof CoreApiListOtpDevicesViewErrors];
+
+export type CoreApiListOtpDevicesViewResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<OtpDeviceResponse>;
+};
+
+export type CoreApiListOtpDevicesViewResponse = CoreApiListOtpDevicesViewResponses[keyof CoreApiListOtpDevicesViewResponses];
+
+export type CoreApiGenerateOtpBackupCodesViewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/backup-codes';
+};
+
+export type CoreApiGenerateOtpBackupCodesViewErrors = {
+    /**
+     * Bad Request
+     */
+    400: LoginResponse;
+};
+
+export type CoreApiGenerateOtpBackupCodesViewError = CoreApiGenerateOtpBackupCodesViewErrors[keyof CoreApiGenerateOtpBackupCodesViewErrors];
+
+export type CoreApiGenerateOtpBackupCodesViewResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type CoreApiGenerateOtpBackupCodesViewResponse = CoreApiGenerateOtpBackupCodesViewResponses[keyof CoreApiGenerateOtpBackupCodesViewResponses];
+
+export type CoreApiOtp2FaChallengeViewData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Device Id
+         */
+        device_id: string;
+        /**
+         * Token
+         */
+        token: string;
+        /**
+         * Remember
+         */
+        remember?: boolean;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/2fa-challenge';
+};
+
+export type CoreApiOtp2FaChallengeViewErrors = {
+    /**
+     * Unauthorized
+     */
+    401: LoginResponse;
+};
+
+export type CoreApiOtp2FaChallengeViewError = CoreApiOtp2FaChallengeViewErrors[keyof CoreApiOtp2FaChallengeViewErrors];
+
+export type CoreApiOtp2FaChallengeViewResponses = {
+    /**
+     * OK
+     */
+    200: LoginResponse;
+};
+
+export type CoreApiOtp2FaChallengeViewResponse = CoreApiOtp2FaChallengeViewResponses[keyof CoreApiOtp2FaChallengeViewResponses];
+
+export type CoreApiChangePasswordViewData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Old Password
+         */
+        old_password: string;
+        /**
+         * New Password
+         */
+        new_password: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/auth/set-password';
+};
+
+export type CoreApiChangePasswordViewErrors = {
+    /**
+     * Unauthorized
+     */
+    401: LoginResponse;
+};
+
+export type CoreApiChangePasswordViewError = CoreApiChangePasswordViewErrors[keyof CoreApiChangePasswordViewErrors];
+
+export type CoreApiChangePasswordViewResponses = {
+    /**
+     * OK
+     */
+    200: LoginResponse;
+};
+
+export type CoreApiChangePasswordViewResponse = CoreApiChangePasswordViewResponses[keyof CoreApiChangePasswordViewResponses];
+
 export type CoreApiAccountData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/account';
+    url: '/api/auth/account';
 };
 
 export type CoreApiAccountResponses = {
@@ -734,7 +1152,12 @@ export type SureApiGetCaseQuestionnaireData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/questionnaire/';
 };
 
@@ -755,7 +1178,12 @@ export type SureApiGetCaseInternalData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/internal/';
 };
 
@@ -776,7 +1204,12 @@ export type SureApiGetVisitData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/visit/';
 };
 
@@ -797,7 +1230,12 @@ export type SureApiGetVisitClientAnswersData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/visit/client-answers/';
 };
 
@@ -819,7 +1257,12 @@ export type SureApiGetVisitConsultantAnswersData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/visit/consultant-answers/';
 };
 
@@ -850,6 +1293,10 @@ export type SureApiGetVisitHistoryData = {
          * Limit
          */
         limit?: number;
+        /**
+         * Lang
+         */
+        lang?: string | null;
     };
     url: '/api/sure/case/{pk}/visit/history/';
 };
@@ -871,7 +1318,12 @@ export type SureApiSubmitCaseData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/submit/';
 };
 
@@ -892,7 +1344,12 @@ export type SureApiSubmitConsultantCaseData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/consultant/submit/';
 };
 
@@ -905,6 +1362,97 @@ export type SureApiSubmitConsultantCaseResponses = {
 
 export type SureApiSubmitConsultantCaseResponse = SureApiSubmitConsultantCaseResponses[keyof SureApiSubmitConsultantCaseResponses];
 
+export type SureApiUpdateCaseTestsData = {
+    /**
+     * Test Pks
+     */
+    body: Array<number>;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/tests/';
+};
+
+export type SureApiUpdateCaseTestsResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiUpdateCaseTestsResponse = SureApiUpdateCaseTestsResponses[keyof SureApiUpdateCaseTestsResponses];
+
+export type SureApiUpdateCaseStatusData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query: {
+        /**
+         * Status
+         */
+        status: string;
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/status/';
+};
+
+export type SureApiUpdateCaseStatusResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiUpdateCaseStatusResponse = SureApiUpdateCaseStatusResponses[keyof SureApiUpdateCaseStatusResponses];
+
+export type SureApiUpdateCaseTestResultsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query: {
+        /**
+         * Test Results
+         */
+        test_results: {
+            [key: string]: string;
+        };
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/tests/results/';
+};
+
+export type SureApiUpdateCaseTestResultsResponses = {
+    /**
+     * OK
+     */
+    200: SubmitCaseResponse;
+};
+
+export type SureApiUpdateCaseTestResultsResponse = SureApiUpdateCaseTestResultsResponses[keyof SureApiUpdateCaseTestResultsResponses];
+
 export type SureApiUpdateCaseTagsData = {
     /**
      * Tags
@@ -916,7 +1464,12 @@ export type SureApiUpdateCaseTagsData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/tags/';
 };
 
@@ -932,7 +1485,12 @@ export type SureApiUpdateCaseTagsResponse = SureApiUpdateCaseTagsResponses[keyof
 export type SureApiCreateCaseViewData = {
     body: CreateCaseSchema;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/create/';
 };
 
@@ -953,7 +1511,12 @@ export type SureApiGetQuestionnaireData = {
          */
         pk: number;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/questionnaires/{pk}/';
 };
 
@@ -974,7 +1537,12 @@ export type SureApiGetInternalQuestionnaireData = {
          */
         pk: number;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/internal/questionnaires/{pk}/';
 };
 
@@ -999,6 +1567,10 @@ export type SureApiListCasesData = {
          * Page Size
          */
         page_size?: number | null;
+        /**
+         * Lang
+         */
+        lang?: string | null;
     };
     url: '/api/sure/cases/';
 };
@@ -1015,7 +1587,12 @@ export type SureApiListCasesResponse = SureApiListCasesResponses[keyof SureApiLi
 export type SureApiGetCaseStatusOptionsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/status/options/';
 };
 
@@ -1032,7 +1609,12 @@ export type SureApiGetCaseStatusOptionsResponse = SureApiGetCaseStatusOptionsRes
 export type SureApiGetCaseTagsOptionsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/tags/options/';
 };
 
@@ -1063,6 +1645,10 @@ export type SureApiListClientCasesData = {
          * Page Size
          */
         page_size?: number | null;
+        /**
+         * Lang
+         */
+        lang?: string | null;
     };
     url: '/api/sure/client/{pk}/cases/';
 };
@@ -1079,7 +1665,12 @@ export type SureApiListClientCasesResponse = SureApiListClientCasesResponses[key
 export type SureApiListQuestionnairesData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/questionnaires/';
 };
 
@@ -1092,6 +1683,55 @@ export type SureApiListQuestionnairesResponses = {
 };
 
 export type SureApiListQuestionnairesResponse = SureApiListQuestionnairesResponses[keyof SureApiListQuestionnairesResponses];
+
+export type SureApiListTestsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/tests/';
+};
+
+export type SureApiListTestsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TestCategorySchema>;
+};
+
+export type SureApiListTestsResponse = SureApiListTestsResponses[keyof SureApiListTestsResponses];
+
+export type SureApiListTestResultOptionsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: number;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/tests/{pk}/result-options/';
+};
+
+export type SureApiListTestResultOptionsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TestResultOptionSchema>;
+};
+
+export type SureApiListTestResultOptionsResponse = SureApiListTestResultOptionsResponses[keyof SureApiListTestResultOptionsResponses];
 
 export type TenantsApiListLocationsData = {
     body?: never;

@@ -5,6 +5,19 @@ from django.db.models import QuerySet
 
 # Create your models here.
 
+INVITIATION_MAIL_TEMPLATE = """Hello {{ first_name }},
+
+A new account has been created for you for {{ tentant.name }} on SURE by {{ user.get_full_name }}.
+
+To set your password and activate your account, please click the following link:
+{{ activation_link }}
+
+If you did not expect this email, please ignore it.
+
+"""
+
+INVITATION_MAIL_SUBJECT = "Your new account on SURE"
+
 
 class Tenant(models.Model):
     """A tenant (organization) using the service."""
@@ -19,8 +32,21 @@ class Tenant(models.Model):
 
     locations: QuerySet["Location"]
 
+    invitation_mail_template = models.TextField(
+        default=INVITIATION_MAIL_TEMPLATE,
+        help_text="Template for invitation emails sent to new users.",
+    )
+    invitation_mail_subject = models.CharField(
+        max_length=255,
+        default=INVITATION_MAIL_SUBJECT,
+        help_text="Subject for invitation emails sent to new users.",
+    )
+
     def __str__(self) -> str:
         return f"{self.name}"
+
+    class Meta:
+        ordering = ["name"]
 
 
 class Location(models.Model):
@@ -33,6 +59,9 @@ class Location(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.tenant.name}, {self.pk})"
+
+    class Meta:
+        ordering = ["name"]
 
 
 class Consultant(models.Model):
@@ -47,6 +76,9 @@ class Consultant(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.get_full_name()} ({self.tenant.name})"
+
+    class Meta:
+        ordering = ["user__last_name", "user__first_name"]
 
 
 class Tag(models.Model):
@@ -64,3 +96,6 @@ class Tag(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+
+    class Meta:
+        ordering = ["name"]

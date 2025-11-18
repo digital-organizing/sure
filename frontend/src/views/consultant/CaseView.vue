@@ -13,51 +13,6 @@ const props = defineProps<{
   caseId: string
 }>()
 
-useTitle(props.caseId + ' - Case View')
-
-const { labelForStatus, indexForStatus } = useStatus()
-
-function formatTimestamp(timestamp: string | null | undefined): string {
-  if (!timestamp) {
-    return 'N/A'
-  }
-  return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
-}
-
-const { visit, setCaseId } = useCase()
-
-const { clearAnswers } = userAnswersStore()
-
-function isStatusDone(status: string): boolean {
-  const caseStatusIndex = indexForStatus(visit.value?.status || '')
-  const targetStatusIndex = indexForStatus(status)
-  return caseStatusIndex >= targetStatusIndex
-}
-
-function isStatusCurrent(status: string): boolean {
-  return status == visit.value?.status
-}
-
-onMounted(() => {
-  clearAnswers()
-  setCaseId(props.caseId).then(() => {
-    if (router.currentRoute.value.name !== 'consultant-case') {
-      return
-    }
-    switch (visit.value!.status) {
-      case 'consultant_submitted':
-        router.replace({ name: 'consultant-tests', params: { caseId: props.caseId } })
-        break
-      case 'results_recorded':
-      case 'communication':
-        router.replace({ name: 'communication', params: { caseId: props.caseId } })
-        break
-      default:
-        router.replace({ name: 'consultant-client-answers', params: { caseId: props.caseId } })
-    }
-  })
-})
-
 const navItems = [
   {
     label: 'Client',
@@ -85,6 +40,60 @@ const navItems = [
     status: 'results_sent',
   },
 ]
+
+useTitle(props.caseId + ' - Case View')
+
+const { labelForStatus, indexForStatus } = useStatus()
+
+function formatTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) {
+    return 'N/A'
+  }
+  return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
+}
+
+const { visit, setCaseId } = useCase()
+
+const { clearAnswers } = userAnswersStore()
+
+function isStatusDone(status: string): boolean {
+  const caseStatusIndex = indexForStatus(visit.value?.status || '')
+  const targetStatusIndex = indexForStatus(status)
+  return caseStatusIndex >= targetStatusIndex
+}
+
+function isStatusCurrent(status: string): boolean {
+  return status == visit.value?.status
+}
+
+function isCurrentRoute(status: string): boolean {
+  const route = router.currentRoute.value
+  const item = navItems.find((item) => item.status === status)
+  if (!item) {
+    return false
+  }
+  return route.name === item.routeName
+}
+
+onMounted(() => {
+  clearAnswers()
+  setCaseId(props.caseId).then(() => {
+    if (router.currentRoute.value.name !== 'consultant-case') {
+      return
+    }
+    switch (visit.value!.status) {
+      case 'consultant_submitted':
+        router.replace({ name: 'consultant-tests', params: { caseId: props.caseId } })
+        break
+      case 'results_recorded':
+      case 'communication':
+        router.replace({ name: 'communication', params: { caseId: props.caseId } })
+        break
+      default:
+        router.replace({ name: 'consultant-client-answers', params: { caseId: props.caseId } })
+    }
+  })
+})
 </script>
 
 <template>
@@ -119,7 +128,7 @@ const navItems = [
         <div class="case-field">
           <span class="label">Tags</span>
           <div class="tags">
-            <Tag v-for="tag in visit?.tags" :key="tag" :value="tag" rounded severity="contrast" />
+            <Tag v-for="tag in visit?.tags" :key="tag" :value="tag" rounded severity="secondary" />
           </div>
         </div>
       </Panel>
@@ -134,9 +143,10 @@ const navItems = [
           :to="{ name: item.routeName, params: { caseId: props.caseId } }"
           :key="item.status"
           :class="[
+            'nav-pill',
             item.status,
             isStatusDone(item.status) ? 'done' : 'open',
-            isStatusCurrent(item.status) ? 'current' : '',
+            isCurrentRoute(item.status) ? 'current' : '',
           ]"
           >{{ item.label }}</RouterLink
         >
@@ -151,6 +161,12 @@ article {
   display: grid;
   grid-template-areas: 'title title refresh' 'side main main';
   grid-template-columns: auto 1fr;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.nav-pill {
+  transition: all 0.3s ease;
 }
 
 h1 {
@@ -183,7 +199,7 @@ nav {
   align-self: flex-start;
 }
 
-.current + .open {
+.current {
   margin-right: auto;
 }
 
@@ -205,10 +221,6 @@ nav a {
   display: flex;
   gap: 3px;
   flex-wrap: wrap;
-}
-
-.status .p-tag {
-  background-color: var(--status-color);
 }
 
 .case-field {

@@ -30,5 +30,5 @@ function getSeverity(value: string): string {
 </script>
 
 <template>
-  <Tag :value="labelForStatus(props.value)" rounded :severity="getSeverity(props.value)" />
+  <Tag :value="labelForStatus(props.value)" rounded :class="props.value" />
 </template>

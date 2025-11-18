@@ -114,3 +114,7 @@ a.p-button {
   justify-self: stretch;
   align-self: stretch;
 }
+
+.status .p-tag {
+  background-color: var(--status-color);
+}

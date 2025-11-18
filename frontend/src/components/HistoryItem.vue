@@ -53,11 +53,31 @@ const questionName = computed(() => {
 </script>
 
 <template>
-  <div>
-    <span>{{ questionName }}</span>
-    <span>{{ props.entry.texts.join(', ') }}</span>
-    <span
-      >{{ formatDate(date) }} <template v-if="fullName"> - {{ fullName }}</template></span
-    >
+  <div class="history-entry">
+    <span class="label">{{ questionName }}</span>
+    <span><i class="pi pi-pencil"></i> {{ props.entry.texts.join(', ') }}</span>
+    <div class="meta">
+      {{ formatDate(props.date) }} <span class="user" v-if="fullName"> - {{ fullName }}</span>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.history-entry {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-entry .label {
+  font-weight: bold;
+}
+
+.history-entry .meta {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+i {
+  font-size: 0.5rem;
+}
+</style>

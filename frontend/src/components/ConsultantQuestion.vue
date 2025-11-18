@@ -35,6 +35,7 @@ const questionComponent = computed(() => {
     case 'multiple choice + open text field':
       return MultipleChoiceTextQuestion
     case 'open text field':
+    case 'long text field':
       return OpenTextQuestion
     case 'multiple choice + multiple open text field':
       return MultiChoiceMultiTextQuestion

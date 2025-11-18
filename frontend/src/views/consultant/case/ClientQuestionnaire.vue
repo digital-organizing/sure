@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { ClientQuestionSchema } from '@/client'
-import ClientQuestionConsultant from '@/components/ClientQuestionConsultant.vue'
+import ConsultantSection from '@/components/ConsultantSection.vue'
 import { useCase } from '@/composables/useCase'
 import { userAnswersStore } from '@/stores/answers'
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-const { onCaseId, loading, fetchClientSchema, fetchClientAnswers, clientAnswers } = useCase()
+const router = useRouter()
+const { onCaseId, loading, fetchClientSchema, fetchClientAnswers, clientAnswers, visit } = useCase()
 
 const answerStore = userAnswersStore()
 
@@ -16,27 +17,32 @@ onMounted(() => {
   })
 })
 
-function showQuestion(q: ClientQuestionSchema) {
-  if (!q.show_for_options || q.show_for_options.length === 0) {
-    return true
-  }
+function onBack() {
+  router.push({ name: 'consultant-dashboard' })
+}
 
-  return q.show_for_options.some((option) => answerStore.isOptionSelected(option))
+function onNext() {
+  router.push({ name: 'consultant-questionnaire', params: { caseId: visit.value?.case } })
 }
 </script>
 <template>
   <section v-if="loading">Loading client questionnaire...</section>
 
   <section v-if="answerStore.schema && clientAnswers !== null">
-    <div v-for="section in answerStore.schema.sections" :key="section.id!">
-      <h2>{{ section.title }}</h2>
-      <div
-        v-for="question in section.client_questions"
-        :key="question.id!"
-        style="margin-bottom: 20px"
-      >
-        <ClientQuestionConsultant v-if="showQuestion(question)" :question="question" />
-      </div>
+    <div v-for="section in answerStore.schema.sections" :key="section.id!" class="section">
+      <ConsultantSection :section="section" />
     </div>
   </section>
+  <footer class="case-footer">
+    <Button label="Back" severity="secondary" @click="onBack()" />
+    <Button label="Next" severity="primary" @click="onNext()" />
+  </footer>
 </template>
+
+<style scoped>
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+</style>

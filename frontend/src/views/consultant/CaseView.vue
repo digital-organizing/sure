@@ -2,10 +2,10 @@
 import { useCase } from '@/composables/useCase'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useTitle } from '@vueuse/core'
-import PastVisitsComponent from '@/components/PastVisitsComponent.vue'
+import { formatDate, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
 import { userAnswersStore } from '@/stores/answers'
+import { useStatus } from '@/composables/useStatus'
 
 const router = useRouter()
 
@@ -15,9 +15,28 @@ const props = defineProps<{
 
 useTitle(props.caseId + ' - Case View')
 
+const { labelForStatus, indexForStatus } = useStatus()
+
+function formatTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) {
+    return 'N/A'
+  }
+  return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
+}
+
 const { visit, setCaseId } = useCase()
 
 const { clearAnswers } = userAnswersStore()
+
+function isStatusDone(status: string): boolean {
+  const caseStatusIndex = indexForStatus(visit.value?.status || '')
+  const targetStatusIndex = indexForStatus(status)
+  return caseStatusIndex >= targetStatusIndex
+}
+
+function isStatusCurrent(status: string): boolean {
+  return status == visit.value?.status
+}
 
 onMounted(() => {
   clearAnswers()
@@ -38,38 +57,169 @@ onMounted(() => {
     }
   })
 })
+
+const navItems = [
+  {
+    label: 'Client',
+    routeName: 'consultant-client-answers',
+    status: 'client_submitted',
+  },
+  {
+    label: 'Consultant',
+    routeName: 'consultant-questionnaire',
+    status: 'consultant_submitted',
+  },
+  {
+    label: 'Tests',
+    routeName: 'consultant-tests',
+    status: 'tests_recorded',
+  },
+  {
+    label: 'Results',
+    routeName: 'consultant-results',
+    status: 'results_recorded',
+  },
+  {
+    label: 'Communication',
+    routeName: 'consultant-communication',
+    status: 'results_sent',
+  },
+]
 </script>
 
 <template>
   <article>
+    <h1>Case-ID {{ props.caseId }}</h1>
+
+    <div class="refresh">
+      <Button icon="pi pi-refresh" @click="setCaseId(props.caseId)" severity="secondary" />
+    </div>
     <aside>
-      <section>
-        General case information
-        {{ visit }}
-        <Button label="Refresh" @click="setCaseId(props.caseId)" />
-      </section>
-      <section>
-        Past Visits
-        <PastVisitsComponent />
-      </section>
-      <section>
+      <Panel header="Case Details">
+        <div class="case-field">
+          <span class="label">Client ID</span>
+          <span>{{ visit?.client || '-' }}</span>
+        </div>
+        <div class="case-field">
+          <span class="label">Case ID</span>
+          <span>{{ visit?.case }}</span>
+        </div>
+        <div class="case-field">
+          <span class="label">Location</span>
+          <span>{{ visit?.location }}</span>
+        </div>
+        <div class="case-field">
+          <span class="label">Last Modification</span>
+          <span>{{ formatTimestamp(visit?.last_modified_at) }}</span>
+        </div>
+        <div class="case-field status">
+          <span class="label"> Status </span>
+          <Tag :value="labelForStatus(visit?.status!)" :class="visit?.status" rounded />
+        </div>
+        <div class="case-field">
+          <span class="label">Tags</span>
+          <div class="tags">
+            <Tag v-for="tag in visit?.tags" :key="tag" :value="tag" rounded severity="contrast" />
+          </div>
+        </div>
+      </Panel>
+      <Panel header="History">
         <HistoryComponent :caseId="props.caseId" />
-      </section>
+      </Panel>
     </aside>
-    <nav>
-      Case navigation
-      <RouterLink :to="{ name: 'consultant-client-answers', params: { caseId: props.caseId } }"
-        >Client</RouterLink
-      >
-      <RouterLink :to="{ name: 'consultant-questionnaire', params: { caseId: props.caseId } }">
-        Consultant</RouterLink
-      >
-      <RouterLink :to="{ name: 'consultant-tests', params: { caseId: props.caseId } }"
-        >Tests</RouterLink
-      >
-    </nav>
-    <section>
+    <section class="case-main">
+      <nav>
+        <RouterLink
+          v-for="item in navItems"
+          :to="{ name: item.routeName, params: { caseId: props.caseId } }"
+          :key="item.status"
+          :class="[
+            item.status,
+            isStatusDone(item.status) ? 'done' : 'open',
+            isStatusCurrent(item.status) ? 'current' : '',
+          ]"
+          >{{ item.label }}</RouterLink
+        >
+      </nav>
       <router-view />
     </section>
   </article>
 </template>
+
+<style scoped>
+article {
+  display: grid;
+  grid-template-areas: 'title title refresh' 'side main main';
+  grid-template-columns: auto 1fr;
+}
+
+h1 {
+  grid-area: title;
+  margin-bottom: 1rem;
+}
+
+aside {
+  grid-area: side;
+  border-right: 1px solid var(--border-color);
+  padding-right: 1rem;
+  margin-right: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  gap: 1rem;
+}
+
+.case-main {
+  grid-area: main;
+}
+
+nav {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 1rem;
+}
+
+.done {
+  align-self: flex-start;
+}
+
+.current + .open {
+  margin-right: auto;
+}
+
+.open:first {
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+nav a {
+  text-decoration: none;
+  background-color: var(--status-color);
+  color: white;
+  padding: 5px 20px;
+  border-radius: 40px;
+}
+
+.tags {
+  margin-top: 3px;
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.status .p-tag {
+  background-color: var(--status-color);
+}
+
+.case-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.case-field .label {
+  font-weight: bold;
+}
+</style>

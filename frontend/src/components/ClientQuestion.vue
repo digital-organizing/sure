@@ -11,6 +11,7 @@ import SingleChoiceDropdownQuestion from './questions/SingleChoiceDropdownQuesti
 
 const props = defineProps<{
   question: ClientQuestionSchema
+  index: number
 }>()
 
 const questionComponentRef = ref<{ getAnswer: () => ClientAnswerSchema } | null>(null)
@@ -60,7 +61,54 @@ defineExpose({
 
 <template>
   <Form class="client-question">
-    <p>{{ question.question_text }}</p>
-    <component :is="questionComponent" ref="questionComponentRef" :question="question" />
+    <div class="question-title">
+      <div class="question-number">{{ index + 1 }}</div> 
+      <div class="question-content">
+        <p class="question-text">{{ question.question_text }}</p>
+        <component :is="questionComponent" ref="questionComponentRef" :question="question" />
+      </div>
+    </div>
   </Form>
 </template>
+
+<style scoped>
+.question-title {
+  display: flex;
+  flex-direction: row;
+  align-items: top;
+  gap: 16px;
+  margin-bottom: 1rem;
+}
+
+.question-text {
+  color: #000;
+  font-family: "Circular Std";
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 20px; /* 111.111% */
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+.question-content {
+  flex: 1;
+  width: calc(100% - 40.00px);
+}
+
+.question-number {
+  color: #FFF;
+  text-align: center;
+  font-family: "Circular Std";
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 40.00px;
+  border-radius: 10rem;
+  background-color: #000;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+</style>

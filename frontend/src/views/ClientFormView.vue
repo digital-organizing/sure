@@ -46,7 +46,7 @@ function previousQuestion() {
   <div id="client-form-view">
     <div id="nav-bar">Navbar</div>
     <div v-if="formStructure">
-      <h1>Client Form</h1>
+      <!-- <h1>Client Form</h1> -->
       <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
       <ClientSection
         @next="nextQuestion"

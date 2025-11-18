@@ -100,10 +100,9 @@ defineExpose({
 .option-item {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 .option-item label {
   margin-left: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 </style>

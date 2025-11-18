@@ -46,12 +46,13 @@ const visibleQuestions = computed(() => {
 
 <template>
   <div class="client-section">
-    <h2>{{ props.section.title }}</h2>
-    <p>{{ props.section.description }}</p>
+    <h2 class="section-title">{{ props.section.title }}</h2>
+    <p class="section-description">{{ props.section.description }}</p>
     <ClientQuestion
-      v-for="question in visibleQuestions"
+      v-for="(question, index) in visibleQuestions"
       :key="question.id!"
       :question="question"
+      :index="index"
       ref="questions"
     />
     <div class="btn-group">
@@ -95,5 +96,25 @@ const visibleQuestions = computed(() => {
 #next {
   align-self: flex-end;
   margin-left: auto;
+}
+
+.section-title {
+  color: #000;
+  font-family: "Circular Std";
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24.5px; /* 136.111% */
+  margin-bottom: 0px;
+}
+
+.section-description {
+  color: #000;
+  font-family: "Circular Std";
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 24.5px;
+  margin-top: 0px;
 }
 </style>

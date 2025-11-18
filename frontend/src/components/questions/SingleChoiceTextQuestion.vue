@@ -82,3 +82,12 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+.option-item {
+  margin-bottom: 0.75rem;
+}
+.option-item label {
+  margin-left: 0.75rem;
+}
+</style>

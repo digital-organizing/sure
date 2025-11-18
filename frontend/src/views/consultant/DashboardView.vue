@@ -168,7 +168,7 @@ async function selectCase(event: { data: { case: string } }) {
           :label="tag"
           :value="tag"
           rounded
-          :severity="'info'"
+          :severity="'secondary'"
         />
       </template>
       <template #filter="{ filterModel }">
@@ -214,7 +214,7 @@ async function selectCase(event: { data: { case: string } }) {
         />
       </template>
     </Column>
-    <Column field="status" header="Status" :show-filter-match-modes="false">
+    <Column field="status" header="Status" :show-filter-match-modes="false" class="status">
       <template #body="{ data }">
         <StatusTag :value="data.status + ''" />
       </template>

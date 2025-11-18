@@ -59,13 +59,15 @@ const remote = computed(() => {
       </div>
     </section>
     <section class="edit-answer" v-if="edit">
-      <ClientQuestion
-        :question="question"
-        :remote="remote"
-        ref="questionComponentRef"
-        :hide-title="true"
-      />
-      <Button label="Submit Answer" @click.prevent="onSubmit()" />
+      <Panel header="Edit">
+        <ClientQuestion
+          :question="question"
+          :remote="remote"
+          ref="questionComponentRef"
+          :hide-title="true"
+        />
+        <Button label="Submit Answer" @click.prevent="onSubmit()" />
+      </Panel>
     </section>
   </section>
 </template>
@@ -75,6 +77,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 0.5rem;
 }
 .buttons {
   display: flex;

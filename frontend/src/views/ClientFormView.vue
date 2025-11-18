@@ -2,6 +2,7 @@
 import { sureApiGetCaseQuestionnaire, sureApiSubmitCase, type QuestionnaireSchema } from '@/client'
 import ClientSection from '@/components/ClientSection.vue'
 import ProgressBar from '@/components/ProgressBar.vue'
+import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import { useScroll } from '@/composables/useScroll'
 import { userAnswersStore } from '@/stores/answers'
 import { nextTick, onMounted, ref, watch } from 'vue'
@@ -63,9 +64,8 @@ function onSubmit() {
 
 <template>
   <div id="client-form-view">
-    <div id="nav-bar">Navbar</div>
     <div v-if="formStructure">
-      <h1>Client Form</h1>
+      <ClientNavigationTop :sectionTitle="formStructure?.sections[formIndex].title" />
       <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
       <ClientSection
         @next="nextQuestion"

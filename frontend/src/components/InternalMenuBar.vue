@@ -1,13 +1,26 @@
 <script setup lang="ts">
 import { useAccount } from '@/composables/useAccount'
+import { useRouter } from 'vue-router'
 
 const { account } = useAccount()
+const router = useRouter()
 </script>
 
 <template>
   <header>
     <section class="logos">
-      <img src="/logo.png" alt="Logo" class="logo" />
+      <img
+        src="/logo.png"
+        alt="Logo"
+        class="logo"
+        @click="router.push({ name: 'consultant-dashboard' })"
+      />
+      <img
+        src="/logo.png"
+        alt="Logo"
+        class="logo"
+        @click="router.push({ name: 'consultant-dashboard' })"
+      />
     </section>
     <section class="menu">
       <Button asChild v-slot="slotProps" severity="secondary">
@@ -22,7 +35,7 @@ const { account } = useAccount()
         v-if="account.is_staff"
         icon="pi pi-cog"
         label="Administration"
-        severity="info"
+        severity="secondary"
       />
 
       <Button asChild v-slot="slotProps">
@@ -59,6 +72,7 @@ header {
 
 .logo {
   height: 60px;
+  cursor: pointer;
 }
 .menu {
   display: flex;

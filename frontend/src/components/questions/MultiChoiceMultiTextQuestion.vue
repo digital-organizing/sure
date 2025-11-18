@@ -158,10 +158,10 @@ defineExpose({
               :placeholder="'Additional text for ' + option.text"
               class="text-input"
             />
-            <InputGroupAddon>
+            <InputGroupAddon v-if="index != 0">
               <Button
                 icon="pi pi-times"
-                :severity="index == 0 ? 'secondary' : 'danger'"
+                :severity="'secondary'"
                 variant="text"
                 @click="removeTextField(option.code, index)"
                 :disabled="index == 0"
@@ -173,9 +173,7 @@ defineExpose({
           v-if="textInputs[option.code!].at(-1) != '' || textInputs[option.code!].length === 0"
           type="button"
           icon="pi pi-plus"
-          iconPos="left"
-          label="Add another"
-          severity="success"
+          severity="secondary"
           @click="addTextField(option.code!)"
           class="add-text-input-button"
         >
@@ -194,6 +192,7 @@ defineExpose({
 }
 .option-item .text-inputs {
   grid-area: textinput;
+  align-items: flex-start;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

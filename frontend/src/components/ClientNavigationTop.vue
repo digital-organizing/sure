@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, ref } from 'vue'
 import Menu from 'primevue/menu';
 import Button from 'primevue/button';
 import IconMenu from './icons/IconMenu.vue';
@@ -9,6 +9,12 @@ const props = defineProps<{
     sectionTitle: string
 }>()
 
+const menu = ref();
+
+
+function toggle(event: Event) {
+    menu.value.toggle(event);
+}
 
 </script>
 

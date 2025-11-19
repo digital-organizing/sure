@@ -5,12 +5,31 @@ import ProgressBar from '@/components/ProgressBar.vue'
 import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import { useScroll } from '@/composables/useScroll'
 import { userAnswersStore } from '@/stores/answers'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import ClientRecap from '@/components/ClientRecap.vue'
 
 const formStructure = ref<QuestionnaireSchema | null>(null)
 const answersStore = userAnswersStore()
 const formIndex = ref<number>(0)
+const totalSections = computed(() => formStructure.value?.sections.length ?? 0)
+const isRecapStep = computed(() => formIndex.value === totalSections.value)
+const currentSectionTitle = computed(() => {
+  if (!formStructure.value) {
+    return ''
+  }
+  if (isRecapStep.value) {
+    return 'Summary'
+  }
+  return formStructure.value.sections[formIndex.value]?.title ?? ''
+})
+
+const progressValue = computed(() => {
+  const total = totalSections.value
+  if (total === 0) {
+    return 0
+  }
+  return Math.min(formIndex.value + 1, total)
+})
 
 const props = defineProps<{
   caseId: string
@@ -38,7 +57,7 @@ watch(formIndex, (newIndex) => {
 })
 
 function nextQuestion() {
-  if (formIndex.value < (formStructure.value?.sections.length ?? 0) - 1) {
+  if (formIndex.value < totalSections.value) {
     formIndex.value++
     nextTick(() => {
       scrollToTop()
@@ -74,26 +93,26 @@ function onSubmit() {
   <div id="client-form-view">
     <div v-if="formStructure">
       <div id="navi-top" class="client-section-element">
-        <ClientNavigationTop :sectionTitle="formStructure?.sections[formIndex].title" />
-        <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
+        <ClientNavigationTop :section-title="currentSectionTitle" />
+        <ProgressBar :total="formStructure?.sections.length" :value="progressValue" />
       </div>
-      <div id="client-sections" v-if="formIndex < (formStructure?.sections.length ?? 0) - 1">
+      <div id="client-sections" v-if="formIndex < (formStructure?.sections.length ?? 0)">
         <ClientSection
           @next="nextQuestion"
           @previous="previousQuestion"
           @submit="onSubmit"
           :section="formStructure?.sections[formIndex]!"
-          :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
+          :has-next="formIndex < (formStructure?.sections.length ?? 0)"
           :has-previous="formIndex > 0"
         />
       </div>
-      <div id="client-recap" v-else-if="formIndex === (formStructure?.sections.length ?? 0) - 1">
+      <div id="client-recap" v-else-if="formIndex === (formStructure?.sections.length ?? 0)">
         <ClientRecap
           @next="nextQuestion"
           @previous="previousQuestion"
           @submit="onSubmit"
           @edit-section="goToSection"
-          :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
+          :has-next="formIndex < (formStructure?.sections.length ?? 0)"
           :has-previous="formIndex > 0"
           :form="formStructure"
           :form-index="formIndex"

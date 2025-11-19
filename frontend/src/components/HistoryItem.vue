@@ -22,9 +22,13 @@ const fullName = ref<string>('')
 
 onMounted(() => {
   if (props.user) {
-    getUser(props.user).then((user) => {
-      fullName.value = `${user.first_name} ${user.last_name}`
-    })
+    getUser(props.user)
+      .then((user) => {
+        fullName.value = `${user.first_name} ${user.last_name}`
+      })
+      .catch(() => {
+        fullName.value = 'id: ' + props.user
+      })
   }
 })
 

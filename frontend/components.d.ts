@@ -12,7 +12,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
-    Checkbox: typeof import('primevue/checkbox')['default']
     CheckboxGroup: typeof import('primevue/checkboxgroup')['default']
     ClientBottomNavButtons: typeof import('./src/components/ClientBottomNavButtons.vue')['default']
     ClientNavigationBottom: typeof import('./src/components/ClientNavigationBottom.vue')['default']

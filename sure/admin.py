@@ -132,10 +132,11 @@ class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
     ClientQuestion,
 )
 class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
-    list_display = ("question_text", "section", "order")
+    list_display = ("question_text", "label_en", "section", "order")
     search_fields = ("question_text", "section__title")
     list_filter = ("section", "section__questionnaire")
     ordering = ("section__questionnaire__name", "section__order", "order")
+    list_editable = ("label_en",)
     inlines = [ClientOptionInline]
 
     autocomplete_fields = ("show_for_options",)

@@ -60,7 +60,7 @@ defineExpose({
     <div
       v-for="option in question.options"
       :key="option.id || 0"
-      class="option-item"
+      class="client-option-item"
       :class="{ 'with-text-input': option.allow_text, active: selectedChoice === option.code }"
     >
       <RadioButton
@@ -69,7 +69,7 @@ defineExpose({
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />
-      <label :for="`option-${option.id}`">
+      <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}
       </label>
       <InputText
@@ -82,12 +82,3 @@ defineExpose({
     </div>
   </div>
 </template>
-
-<style scoped>
-.option-item {
-  margin-bottom: 0.75rem;
-}
-.option-item label {
-  margin-left: 0.75rem;
-}
-</style>

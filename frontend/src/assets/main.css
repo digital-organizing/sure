@@ -6,3 +6,15 @@
     padding-left: 20px;
     padding-right: 20px;
 }
+
+.client-option-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    /* flex-wrap: wrap; */
+}
+
+.client-option-label {
+    cursor: pointer;
+}

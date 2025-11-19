@@ -84,7 +84,7 @@ defineExpose({
 
 .question-text {
   color: #000;
-  font-family: "Circular Std";
+  font-family: 'Circular Std';
   font-size: 18px;
   font-style: normal;
   font-weight: 700;
@@ -95,17 +95,17 @@ defineExpose({
 
 .question-content {
   flex: 1;
-  width: calc(100% - 40.00px);
+  width: calc(100% - 40px);
 }
 
 .question-number {
-  color: #FFF;
+  color: #fff;
   text-align: center;
-  font-family: "Circular Std";
+  font-family: 'Circular Std';
   font-size: 24px;
   font-style: normal;
   font-weight: 700;
-  line-height: 40.00px;
+  line-height: 40px;
   border-radius: 10rem;
   background-color: #000;
   width: 40px;

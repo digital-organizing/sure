@@ -47,7 +47,6 @@ export const userAnswersStore = defineStore('answers', () => {
     const answer = getAnswerForQuestion(questionId)
     if (!answer) return false
 
-
     const selected = answer.choices.some((choice) => choice.code === optionCode)
     if (selected) return true
   }

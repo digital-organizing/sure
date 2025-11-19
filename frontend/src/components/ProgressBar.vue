@@ -11,8 +11,8 @@ const props = defineProps({
 
 <style scoped>
 #progressbar {
-    font-family: "Circular Std";
-    font-size: 16px;
-    margin: 0;
+  font-family: 'Circular Std';
+  font-size: 16px;
+  margin: 0;
 }
 </style>

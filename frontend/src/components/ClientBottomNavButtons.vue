@@ -7,9 +7,9 @@ import IconLeftArrowSmall from './icons/IconLeftArrowSmall.vue'
 import IconRightArrow from './icons/IconRightArrow.vue'
 
 const props = defineProps<{
-    section: SectionSchema
-    hasNext: boolean
-    hasPrevious: boolean
+  section: SectionSchema
+  hasNext: boolean
+  hasPrevious: boolean
 }>()
 
 const questions = ref<(typeof ClientQuestion)[]>([])
@@ -34,40 +34,35 @@ function onPrevious() {
 function onSubmit() {
   emits('submit')
 }
-
 </script>
 
-
 <template>
-    <div class="btn-group">
-      <Button
-        id="previous"
-        v-if="props.hasPrevious"
-        label="Previous"
-        @click="onPrevious"
-        severity="secondary"
-        variant="outlined"
-        icon="IconLeftArrowSmall"
-        rounded
-      > <IconLeftArrowSmall/> Previous </Button>
-      <Button
-        id="next"
-        v-if="props.hasNext"
-        label="Next"
-        @click="onNext"
-        severity="primary"
-        rounded
-      > Next <IconRightArrow/> </Button>
-      <Button
-        id="submit"
-        v-if="!props.hasNext"
-        type="submit"
-        label="Next"
-        @click="onSubmit"
-        severity="primary"
-        rounded
-      />
-    </div>
+  <div class="btn-group">
+    <Button
+      id="previous"
+      v-if="props.hasPrevious"
+      label="Previous"
+      @click="onPrevious"
+      severity="secondary"
+      variant="outlined"
+      icon="IconLeftArrowSmall"
+      rounded
+    >
+      <IconLeftArrowSmall /> Previous
+    </Button>
+    <Button id="next" v-if="props.hasNext" label="Next" @click="onNext" severity="primary" rounded>
+      Next <IconRightArrow />
+    </Button>
+    <Button
+      id="submit"
+      v-if="!props.hasNext"
+      type="submit"
+      label="Next"
+      @click="onSubmit"
+      severity="primary"
+      rounded
+    />
+  </div>
 </template>
 
 <style scoped>
@@ -89,5 +84,4 @@ function onSubmit() {
 #previous {
   height: 28.5px;
 }
-
 </style>

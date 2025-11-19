@@ -47,7 +47,6 @@ function previousQuestion() {
 function submitQuestionnaire() {
   recapActive.value = !recapActive.value
 }
-
 </script>
 
 <template>
@@ -69,21 +68,18 @@ function submitQuestionnaire() {
       </div>
       <div id="client-recap" v-else-if="formIndex === (formStructure?.sections.length ?? 0) - 1">
         <ClientRecap
-        @next="nextQuestion"
-        @previous="previousQuestion"
-        @submit="submitQuestionnaire"
-        :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
-        :has-previous="formIndex > 0"
-        :form="formStructure"
-        :form-index="formIndex"
+          @next="nextQuestion"
+          @previous="previousQuestion"
+          @submit="submitQuestionnaire"
+          :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
+          :has-previous="formIndex > 0"
+          :form="formStructure"
+          :form-index="formIndex"
         />
       </div>
       <div v-else>
-        <p>
-          Phone Number Page
-        </p>
+        <p>Phone Number Page</p>
       </div>
-      
     </div>
   </div>
 </template>

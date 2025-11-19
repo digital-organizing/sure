@@ -3,7 +3,7 @@ import { type SectionSchema } from '@/client'
 import ClientQuestion from './ClientQuestion.vue'
 import { userAnswersStore } from '@/stores/answers'
 import { computed, ref } from 'vue'
-import ClientBottomNavButtons from './ClientBottomNavButtons.vue';
+import ClientBottomNavButtons from './ClientBottomNavButtons.vue'
 
 const props = defineProps<{ section: SectionSchema; hasNext: boolean; hasPrevious: boolean }>()
 
@@ -42,14 +42,14 @@ const visibleQuestions = computed(() => {
       ref="questions"
     />
     <div class="client-bottom-button-section">
-      <ClientBottomNavButtons 
-      @next="emits('next')"
-      @previous="emits('previous')"
-      @submit="emits('submit')"
-      :section="props.section"
-      :hasNext="props.hasNext"
-      :hasPrevious="props.hasPrevious"
-      ref="questions"
+      <ClientBottomNavButtons
+        @next="emits('next')"
+        @previous="emits('previous')"
+        @submit="emits('submit')"
+        :section="props.section"
+        :hasNext="props.hasNext"
+        :hasPrevious="props.hasPrevious"
+        ref="questions"
       />
     </div>
   </div>
@@ -67,7 +67,7 @@ const visibleQuestions = computed(() => {
 
 .section-description {
   color: #000;
-  font-family: "Circular Std";
+  font-family: 'Circular Std';
   font-size: 18px;
   font-style: normal;
   font-weight: 450;

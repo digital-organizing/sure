@@ -2,14 +2,33 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from ninja import Router
 
-from sure.client_service import (create_case, create_visit, get_case_link,
-                                 record_client_answers, send_case_link,
-                                 strip_id, verify_access_to_location)
-from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
-                         ConsultantQuestion, Questionnaire, Section, Visit)
-from sure.schema import (CreateCaseResponse, CreateCaseSchema,
-                         InternalQuestionnaireSchema, QuestionnaireSchema,
-                         SubmitCaseResponse, SubmitCaseSchema, VisitSchema)
+from sure.client_service import (
+    create_case,
+    create_visit,
+    get_case_link,
+    record_client_answers,
+    send_case_link,
+    strip_id,
+    verify_access_to_location,
+)
+from sure.models import (
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    Visit,
+)
+from sure.schema import (
+    CreateCaseResponse,
+    CreateCaseSchema,
+    InternalQuestionnaireSchema,
+    QuestionnaireSchema,
+    SubmitCaseResponse,
+    SubmitCaseSchema,
+    VisitSchema,
+)
 
 router = Router()
 

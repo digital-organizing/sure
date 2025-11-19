@@ -1,8 +1,16 @@
 from ninja import ModelSchema, Schema
 
-from sure.models import (Case, ClientAnswer, ClientOption, ClientQuestion,
-                         ConsultantOption, ConsultantQuestion, Questionnaire,
-                         Section, Visit)
+from sure.models import (
+    Case,
+    ClientAnswer,
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    Section,
+    Visit,
+)
 
 
 class ClientOptionSchema(ModelSchema):
@@ -145,6 +153,7 @@ class ClientAnswerSchema(ModelSchema):
             "created_at",
             "user",
         ]
+
     choices: list[int]
     texts: list[str]
 

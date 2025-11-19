@@ -78,18 +78,18 @@ const SurePreset = definePreset(Material, {
               hoverBackground: 'var(--color-ahs-light-gray)',
               hoverColor: 'var(--color-ahs-black)',
               hoverBorderColor: 'var(--color-ahs-middle-gray)',
-            }
+            },
           },
           outlined: {
             secondary: {
               borderColor: 'var(--color-ahs-middle-gray)',
               color: 'var(--color-ahs-middle-gray)',
               hoverBackground: 'var(--color-ahs-white)',
-            }
-          }
-        }
-      }
-    }
+            },
+          },
+        },
+      },
+    },
   },
   utilities: {},
   semantic: {
@@ -147,7 +147,6 @@ app.use(PrimeVue, {
 // Initialize stores after Pinia is set up
 const initializeStores = () => {
   // Initialize key stores
-
   // Stores are automatically initialized when accessed
 }
 

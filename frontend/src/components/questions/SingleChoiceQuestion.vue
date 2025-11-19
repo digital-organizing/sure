@@ -43,14 +43,14 @@ defineExpose({
 
 <template>
   <div class="single-choice-question">
-    <div v-for="option in question.options" :key="option.id || 0" class="option-item">
+    <div v-for="option in question.options" :key="option.id || 0" class="client-option-item">
       <RadioButton
         v-model="selectedChoice"
         :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />
-      <label :for="`option-${option.id}`" class="option-label">
+      <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}
       </label>
     </div>

@@ -46,6 +46,7 @@ const questionComponent = computed(() => {
   }
 })
 
+const showQuestionNumber = computed(() => props.question.code !== 'CONSULT-WISH')
 function getClientAnswer(): AnswerSchema {
   if (questionComponentRef.value?.getAnswer) {
     return questionComponentRef.value.getAnswer()
@@ -66,7 +67,9 @@ defineExpose({
 <template>
   <Form class="client-question">
     <div class="question-title">
-      <div class="question-number" v-if="index !== undefined">{{ index + 1 }}</div>
+      <div v-if="showQuestionNumber && index !== undefined" class="question-number">
+        {{ index + 1 }}
+      </div>
       <div class="question-content">
         <p class="question-text" v-if="!hideTitle">{{ question.question_text }}</p>
         <component :is="questionComponent" ref="questionComponentRef" :question="question" />

@@ -72,6 +72,7 @@ const SurePreset = definePreset(Material, {
               background: 'var(--color-ahs-red)',
               color: 'var(--color-ahs-white)',
               borderColor: 'var(--color-ahs-red)',
+              activeBackground: 'var(--color-ahs-red)',
             },
             secondary: {
               borderColor: 'var(--color-ahs-middle-gray)',

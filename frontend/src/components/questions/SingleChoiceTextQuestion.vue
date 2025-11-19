@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, type ComputedRef } from 'vue'
-import { RadioButton, InputText } from 'primevue'
+import { RadioButton, InputText, Textarea } from 'primevue'
 import {
   type ClientAnswerSchema,
   type ClientQuestionSchema,
@@ -15,7 +15,7 @@ const props = defineProps<{
   consultant?: boolean
 }>()
 
-const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
+const { answer, updateAnswer } = useQuestionAnswer(props.question)
 const selectedChoice = computed<string | null>({
   get() {
     return answer.value.choices[0]?.code || null
@@ -28,9 +28,10 @@ const selectedChoice = computed<string | null>({
     } else {
       updateAnswer([], [])
     }
-    // Handled in watcher
   },
 })
+
+const isConsultWish = computed(() => props.question.code === 'CONSULT-WISH')
 const text = computed<string>({
   get() {
     return answer.value.choices[0]?.text || ''
@@ -59,7 +60,7 @@ defineExpose({
     <div
       v-for="option in question.options"
       :key="option.id || 0"
-      class="option-item"
+      class="client-option-item"
       :class="{ 'with-text-input': option.allow_text, active: selectedChoice === option.code }"
     >
       <RadioButton
@@ -68,16 +69,31 @@ defineExpose({
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />
-      <label :for="`option-${option.id}`">
+      <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}
       </label>
-      <InputText
-        v-if="option.allow_text && selectedChoice === option.code"
-        v-model="text"
-        type="text"
-        :placeholder="'Additional text for ' + option.text"
-        class="text-input"
-      />
+      <template v-if="option.allow_text && selectedChoice === option.code">
+        <Textarea
+          v-if="isConsultWish"
+          v-model="text"
+          autoResize
+          :rows="4"
+          :placeholder="'Additional text for ' + option.text"
+          class="text-input consult-wish-textarea"
+        />
+        <InputText
+          v-else
+          type="text"
+          :placeholder="'Additional text for ' + option.text"
+          class="text-input"
+        />
+      </template>
     </div>
   </div>
 </template>
+
+<style scoped>
+.consult-wish-textarea {
+  min-height: 120px;
+}
+</style>

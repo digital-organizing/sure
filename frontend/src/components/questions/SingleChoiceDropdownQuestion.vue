@@ -86,7 +86,7 @@ defineExpose({
     <div
       v-for="option in question.options"
       :key="option.code || 0"
-      class="option-item"
+      class="client-option-item"
       :class="{
         'with-text-input': option.choices && option.choices.length > 0,
         active: selectedChoice === option.code,
@@ -98,7 +98,7 @@ defineExpose({
         :inputId="`option-${option.code}`"
         :name="`question-${question.id}`"
       />
-      <label :for="`option-${option.code}`">
+      <label :for="`option-${option.code}`" class="client-option-label">
         {{ option.text }}
       </label>
       <Select
@@ -107,7 +107,7 @@ defineExpose({
         @change="triggerDropdownUpdate"
         filter
         :options="option.choices"
-        :placeholder="'Select an option for ' + option.text"
+        :placeholder="'Select an option'"
         class="dropdown-select"
       />
     </div>

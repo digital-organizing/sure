@@ -86,7 +86,7 @@ defineExpose({
     <div
       v-for="option in question.options"
       :key="option.id || 0"
-      class="option-item"
+      class="client-option-item"
       :class="{
         'with-text-input': option.allow_text,
         active: selectedChoices.includes(option.code),
@@ -98,7 +98,7 @@ defineExpose({
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
       />
-      <label :for="`option-${option.id}`">
+      <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}
       </label>
       <InputText

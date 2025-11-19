@@ -12,11 +12,16 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
+    Checkbox: typeof import('primevue/checkbox')['default']
     CheckboxGroup: typeof import('primevue/checkboxgroup')['default']
+    ClientBottomNavButtons: typeof import('./src/components/ClientBottomNavButtons.vue')['default']
     ClientNavigationBottom: typeof import('./src/components/ClientNavigationBottom.vue')['default']
     ClientNavigationTop: typeof import('./src/components/ClientNavigationTop.vue')['default']
     ClientQuestion: typeof import('./src/components/ClientQuestion.vue')['default']
     ClientQuestionConsultant: typeof import('./src/components/ClientQuestionConsultant.vue')['default']
+    ClientRecap: typeof import('./src/components/ClientRecap.vue')['default']
+    ClientRecapQuestion: typeof import('./src/components/ClientRecapQuestion.vue')['default']
+    ClientRecapSection: typeof import('./src/components/ClientRecapSection.vue')['default']
     ClientSection: typeof import('./src/components/ClientSection.vue')['default']
     Column: typeof import('primevue/column')['default']
     ConsultantQuestion: typeof import('./src/components/ConsultantQuestion.vue')['default']

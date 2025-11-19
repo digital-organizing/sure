@@ -1,3 +1,34 @@
 @import './fonts.css';
 @import './base.css';
 @import 'primeicons/primeicons.css';
+
+.client-section-element {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.client-option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.client-option-label {
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.client-option-item .text-input,
+.client-option-item .dropdown-select {
+  flex-basis: 100%;
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.client-bottom-button-section {
+  position: sticky;
+  bottom: 0;
+}

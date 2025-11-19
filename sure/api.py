@@ -414,7 +414,7 @@ def list_client_cases(request, pk: str):
         )
         .select_related("case", "questionnaire", "case__connection", "case__location")
         .prefetch_related("client_answers", "consultant_answers", "test_results")
-    ).order_by("-last_modified_at")
+    ).order_by("-created_at")
 
     return visits
 

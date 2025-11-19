@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ClientQuestionSchema, ConsultantQuestionSchema } from '@/client'
 import ConsultantSection from '@/components/ConsultantSection.vue'
 import { useCase } from '@/composables/useCase'
 import { userAnswersStore } from '@/stores/answers'
@@ -38,35 +39,33 @@ onMounted(() => {
   })
 })
 
+function getLine(q: ClientQuestionSchema | ConsultantQuestionSchema, kind = 'client'): string {
+  const label = q.label || q.question_text
+  const answers =
+    'client' == kind ? mapAnswersForClientQuestion(q.id!) : mapAnswersForConsultantQuestion(q.id!)
+  console.log('Getting line for question:', q, 'answers:', answers)
+  return `${label}: ` + answers.map((a) => a.text).join(', ')
+}
+
 function copyAnswersToClipboard() {
   let text = ''
   for (const section of answerStore.schema?.sections || []) {
     for (const question of section.client_questions) {
       if (!question.copy_paste) continue
-      text += `Q: ${question.question_text}\t`
-      const answers = mapAnswersForClientQuestion(question.id!)
-      for (const answer of answers) {
-        text += `A: ${answer.text}`
-      }
-      text += '\n'
+      text += getLine(question, 'client') + '\n'
     }
   }
 
   for (const question of consultantQuestionnaire?.value?.consultant_questions || []) {
     if (!question.copy_paste) continue
-    text += `Q: ${question.question_text}\t`
-    const answers = mapAnswersForConsultantQuestion(question.id!)
-    for (const answer of answers) {
-      text += `A: ${answer.text}`
-    }
-    text += '\n'
+    text += getLine(question, 'consultant') + '\n'
   }
 
   copy(text).then(() => {
     toast.add({
       severity: 'success',
       summary: 'Copied to clipboard',
-      detail: 'Client answers copied to clipboard',
+      detail: 'Answers copied to clipboard',
       life: 3000,
     })
   })
@@ -112,7 +111,7 @@ function onNext() {
     </header>
     <section v-if="showConsultant">
       <div
-        v-for="(question) in consultantQuestionnaire?.consultant_questions"
+        v-for="question in consultantQuestionnaire?.consultant_questions"
         :key="question.id!"
         class="consultation-question"
       >

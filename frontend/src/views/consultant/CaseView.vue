@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCase } from '@/composables/useCase'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
@@ -76,6 +76,10 @@ function isCurrentRoute(status: string): boolean {
   return route.name === item.routeName
 }
 
+const inHistoryView = computed(() => {
+  return router.currentRoute.value.name === 'consultant-case-history'
+})
+
 onMounted(() => {
   clearAnswers()
   setCaseId(props.caseId).then(() => {
@@ -122,6 +126,10 @@ onMounted(() => {
           <span class="label">Last Modification</span>
           <span>{{ formatTimestamp(visit?.last_modified_at) }}</span>
         </div>
+        <div class="case-field">
+          <span class="label">Created At</span>
+          <span>{{ formatTimestamp(visit?.created_at) }}</span>
+        </div>
         <div class="case-field status">
           <span class="label"> Status </span>
           <Tag :value="labelForStatus(visit?.status!)" :class="visit?.status" rounded />
@@ -133,12 +141,12 @@ onMounted(() => {
           </div>
         </div>
       </Panel>
-      <Panel header="History">
+      <Panel header="History" v-if="!inHistoryView">
         <HistoryComponent :caseId="props.caseId" />
       </Panel>
     </aside>
     <section class="case-main">
-      <nav>
+      <nav v-if="!inHistoryView">
         <RouterLink
           v-for="item in navItems"
           :to="{ name: item.routeName, params: { caseId: props.caseId } }"
@@ -151,6 +159,15 @@ onMounted(() => {
           ]"
           >{{ item.label }}</RouterLink
         >
+      </nav>
+      <nav v-else>
+        <Button
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          class="nav-pill done"
+          @click="router.back()"
+          label="Back"
+        />
       </nav>
       <router-view />
     </section>

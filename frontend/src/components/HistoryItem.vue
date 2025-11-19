@@ -80,4 +80,7 @@ const questionName = computed(() => {
 i {
   font-size: 0.5rem;
 }
+span {
+  overflow: hidden;
+}
 </style>

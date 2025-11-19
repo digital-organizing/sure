@@ -49,6 +49,7 @@ class ClientQuestionSchema(ModelSchema):
             "code",
             "question_text",
             "format",
+            "label",
             "validation",
             "show_for_options",
             "copy_paste",
@@ -124,6 +125,7 @@ class ConsultantQuestionSchema(ModelSchema):
             "order",
             "code",
             "question_text",
+            "label",
             "format",
             "validation",
             "copy_paste",
@@ -368,6 +370,7 @@ class CaseFilters(Schema):
     location: FilterData
     status: FilterData
     last_modified_at: FilterOperator
+    created_at: FilterOperator
 
     def get_django_filters(self) -> Q:
         q_objects = Q()
@@ -379,6 +382,7 @@ class CaseFilters(Schema):
         q_objects &= self.location.get_filter("case__location_id")
         q_objects &= self.status.get_filter("status")
         q_objects &= self.last_modified_at.get_filter("last_modified_at")
+        q_objects &= self.created_at.get_filter("created_at")
 
         if self.search.value:
             if self.search.value.lower().startswith("suf-"):
@@ -419,6 +423,7 @@ class CaseListingSchema(ModelSchema):
             "id",
             "tags",
             "status",
+            "created_at",
         ]
 
     @staticmethod

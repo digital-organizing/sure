@@ -20,6 +20,10 @@ export const useFilterStore = defineStore('filters', () => {
       operator: FilterOperator.AND,
       constraints: [{ value: null, matchMode: FilterMatchMode.DATE_AFTER }],
     },
+    created_at: {
+      operator: FilterOperator.AND,
+      constraints: [{ value: null, matchMode: FilterMatchMode.DATE_AFTER }],
+    },
   })
   return {
     filters,

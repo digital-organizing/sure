@@ -150,6 +150,11 @@ export type ClientQuestionSchema = {
      */
     format?: string;
     /**
+     * Label
+     * Short label for the question
+     */
+    label?: string | null;
+    /**
      * Validation
      * Regex validation for open text questions
      */
@@ -279,6 +284,11 @@ export type ConsultantQuestionSchema = {
      */
     question_text: string;
     /**
+     * Label
+     * Short label for the question
+     */
+    label?: string | null;
+    /**
      * Format
      */
     format?: string;
@@ -353,6 +363,10 @@ export type CaseListingSchema = {
      * Status
      */
     status?: string;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -559,6 +573,7 @@ export type CaseFilters = {
     location: FilterData;
     status: FilterData;
     last_modified_at: FilterOperator;
+    created_at: FilterOperator;
 };
 
 /**

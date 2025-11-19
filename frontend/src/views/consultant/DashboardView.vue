@@ -196,9 +196,22 @@ async function selectCase(event: { data: { case: string } }) {
         </Select>
       </template>
     </Column>
-    <Column field="last_modified_at" header="Last Modified" data-type="date">
+    <Column field="last_modified_at" header="Last Modified" data-type="date" v-if="false">
       <template #body="{ data }">
         {{ formatDate(data.last_modified_at) }}
+      </template>
+      <template #filter="{ filterModel }">
+        <DatePicker
+          v-model="filterModel.value"
+          :show-icon="true"
+          placeholder="Select date"
+          date-format="yy-mm-dd"
+        />
+      </template>
+    </Column>
+    <Column field="created_at" header="Created At" data-type="date">
+      <template #body="{ data }">
+        {{ formatDate(data.created_at) }}
       </template>
       <template #filter="{ filterModel }">
         <DatePicker

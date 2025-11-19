@@ -47,6 +47,7 @@ defineExpose({
       v-model="textInput"
       :placeholder="question.question_text"
       auto-resize
+      :rows="5"
       class="text-input"
       v-if="question.format == 'long text field'"
     />

@@ -87,11 +87,11 @@ class ConsultantInviteForm(forms.Form):
         self.helper = FormHelper()
         self.helper.add_input(Submit("submit", ("Submit Hallo")))
 
-        self.fields["locations"].queryset = Location.objects.filter(
+        self.fields["locations"].queryset = Location.objects.filter(  # type: ignore
             tenant__admins=request.user
         )
-        self.fields["tenant"].queryset = Tenant.objects.filter(admins=request.user)
-        self.fields["tenant"].initial = Tenant.objects.filter(
+        self.fields["tenant"].queryset = Tenant.objects.filter(admins=request.user)  # type: ignore
+        self.fields["tenant"].initial = Tenant.objects.filter(  #    type: ignore
             admins=request.user
         ).first()
 
@@ -126,10 +126,12 @@ class ConsultantInviteForm(forms.Form):
             raise forms.ValidationError("A user with this email already exists.")
         return email
 
-    def clean(self) -> dict:
+    def clean(self):
         cleaned_data = super().clean()
-        tenant = cleaned_data.get("tenant")
-        locations = cleaned_data.get("locations")
+        if not cleaned_data:
+            return cleaned_data
+        tenant = cleaned_data["tenant"]
+        locations = cleaned_data["locations"]
 
         for location in locations:
             if location.tenant != tenant:

@@ -22,11 +22,7 @@ const allowEdit = computed(() => {
   return !props.disableEdit
 })
 
-const {
-  answerForClientQuestion,
-  submitClientAnswer,
-  fetchVisitDetails,
-} = useCase()
+const { answerForClientQuestion, submitClientAnswer, fetchVisitDetails } = useCase()
 
 function onSubmit() {
   if (questionComponentRef.value) {

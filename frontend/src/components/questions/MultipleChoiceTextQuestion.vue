@@ -56,8 +56,8 @@ const textInputs = computed<Record<string, string>>({
       const option = props.question.options?.find((opt) => opt.code === choiceId)
 
       // Use custom text if option allows it and text is provided
-      if (option?.allow_text && newTexts[choiceId]) {
-        return newTexts[choiceId]
+      if (option?.allow_text) {
+        return newTexts[choiceId] || ''
       }
 
       return option?.text || ''

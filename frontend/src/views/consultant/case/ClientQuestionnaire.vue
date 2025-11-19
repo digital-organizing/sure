@@ -49,5 +49,6 @@ function onNext() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-bottom: 0.5rem;
 }
 </style>

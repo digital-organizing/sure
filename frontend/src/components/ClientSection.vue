@@ -48,7 +48,6 @@ const visibleQuestions = computed(() => {
 
 <template>
   <div class="client-section-element">
-    <h2 class="section-title">{{ props.section.title }}</h2>
     <p class="section-description">{{ props.section.description }}</p>
     <ClientQuestion
       v-for="(question, index) in visibleQuestions"
@@ -94,21 +93,16 @@ const visibleQuestions = computed(() => {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+  position: sticky;
+  bottom: 0;
+  background-color: var(--color-ahs-white);
+  padding-bottom: 30px;
+  padding-top: 15px;
 }
 
 #next {
   align-self: flex-end;
   margin-left: auto;
-}
-
-.section-title {
-  color: #000;
-  font-family: "Circular Std";
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 24.5px; /* 136.111% */
-  margin-bottom: 0px;
 }
 
 .section-description {

@@ -31,7 +31,7 @@ const visibleQuestions = computed(() => {
   <div class="client-section-element">
     <div class="client-recap-section-header">
       <p class="client-recap-section-title">{{ props.section.title }}</p>
-      <Button id="edit" severity="secondary" variant="outlined" rounded> Edit </Button>
+      <Button class="client-recap-edit-button" severity="secondary" variant="outlined" rounded> Edit </Button>
     </div>
     <ClientRecapQuestion
       v-for="(question, index) in visibleQuestions"
@@ -44,7 +44,7 @@ const visibleQuestions = computed(() => {
 </template>
 
 <style scoped>
-.client-recap-section-title {
+.client-recap-section-header {
   display: flex;
   width: auto;
   justify-content: space-between;
@@ -62,13 +62,11 @@ const visibleQuestions = computed(() => {
   line-height: 42.14px; /* 234.111% */
   margin: 0;
 }
-#edit {
+.client-recap-edit-button {
   height: 21px;
-  border-color: var(--color-ahs-black);
-}
-
-#edit label {
-  padding: 4px;
-  color: var(--color-ahs-black);
+  border-color: var(--color-ahs-black)!important;
+  color: var(--color-ahs-black)!important;
+  padding-inline-start: 8px;
+  padding-inline-end: 8px;
 }
 </style>

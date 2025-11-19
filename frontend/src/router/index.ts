@@ -33,6 +33,9 @@ const router = createRouter({
       name: 'client-form',
       component: () => import('../views/ClientFormView.vue'),
       props: true,
+      meta: {
+        showInternalMenu: false,
+      },
     },
     {
       path: '/account',

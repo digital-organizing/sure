@@ -5,6 +5,10 @@ import { userAnswersStore } from '@/stores/answers'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+defineProps<{
+  caseId: string
+}>()
+
 const router = useRouter()
 const { onCaseId, loading, fetchClientSchema, fetchClientAnswers, clientAnswers, visit } = useCase()
 
@@ -29,6 +33,7 @@ function onNext() {
   <section v-if="loading">Loading client questionnaire...</section>
 
   <section v-if="answerStore.schema && clientAnswers !== null">
+    <h2>Client Questionnaire</h2>
     <div v-for="section in answerStore.schema.sections" :key="section.id!" class="section">
       <ConsultantSection :section="section" />
     </div>

@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
 from ninja import ModelSchema
 
-from tenants.models import Location, Tag, Tenant
+from tenants.models import InformationBanner, Location, Tag, Tenant
 
 
 class TenantSchema(ModelSchema):
     class Meta:
         model = Tenant
-        fields = ["id", "name"]
+        fields = ["id", "name", "logo"]
 
 
 class LocationSchema(ModelSchema):
@@ -28,3 +28,9 @@ class UserSchema(ModelSchema):
     class Meta:
         model = User
         fields = ["id", "username", "first_name", "last_name"]
+
+
+class BannerSchema(ModelSchema):
+    class Meta:
+        model = InformationBanner
+        fields = ["id", "name", "content", "severity"]

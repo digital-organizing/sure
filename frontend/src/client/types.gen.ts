@@ -731,6 +731,10 @@ export type TenantSchema = {
      * Name
      */
     name: string;
+    /**
+     * Logo
+     */
+    logo?: string | null;
 };
 
 /**
@@ -772,6 +776,28 @@ export type UserSchema = {
      * Last Name
      */
     last_name?: string | null;
+};
+
+/**
+ * BannerSchema
+ */
+export type BannerSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Content
+     */
+    content: string;
+    /**
+     * Severity
+     */
+    severity?: string;
 };
 
 export type CoreApiGetCsrfTokenData = {
@@ -1767,6 +1793,22 @@ export type TenantsApiListTagsResponses = {
 
 export type TenantsApiListTagsResponse = TenantsApiListTagsResponses[keyof TenantsApiListTagsResponses];
 
+export type TenantsApiGetTenantData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/tenants/tenant';
+};
+
+export type TenantsApiGetTenantResponses = {
+    /**
+     * OK
+     */
+    200: TenantSchema;
+};
+
+export type TenantsApiGetTenantResponse = TenantsApiGetTenantResponses[keyof TenantsApiGetTenantResponses];
+
 export type TenantsApiGetConsultantData = {
     body?: never;
     path: {
@@ -1787,6 +1829,23 @@ export type TenantsApiGetConsultantResponses = {
 };
 
 export type TenantsApiGetConsultantResponse = TenantsApiGetConsultantResponses[keyof TenantsApiGetConsultantResponses];
+
+export type TenantsApiGetBannersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/tenants/banners/';
+};
+
+export type TenantsApiGetBannersResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<BannerSchema>;
+};
+
+export type TenantsApiGetBannersResponse = TenantsApiGetBannersResponses[keyof TenantsApiGetBannersResponses];
 
 export type ClientOptions = {
     baseUrl: string;

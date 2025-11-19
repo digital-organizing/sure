@@ -6,8 +6,6 @@ import {
   type FilterData,
 } from '@/client'
 import { type PagedCaseListingSchema } from '@/client'
-import type { DataTableFilterMeta } from 'primevue/datatable'
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
 import { onMounted, ref, watch } from 'vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { useStatus } from '@/composables/useStatus'
@@ -15,6 +13,7 @@ import { useDateFormat } from '@vueuse/core'
 import { useLocations } from '@/composables/useLocations'
 import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
+import { useFilterStore } from '@/stores/filters'
 
 const router = useRouter()
 
@@ -54,28 +53,14 @@ const cases = ref<PagedCaseListingSchema>({
   count: 0,
 })
 
-const filters = ref<DataTableFilterMeta>({
-  search: { value: null, matchMode: 'contains' },
-  case: { value: null, matchMode: 'contains' },
-  client_id: { value: null, matchMode: 'contains' },
-  external_id: { value: null, matchMode: 'contains' },
-  tags: {
-    operator: FilterOperator.OR,
-    constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
-  },
-  location: { value: null, matchMode: 'equals' },
-  status: { value: null, matchMode: 'in' },
-  last_modified_at: {
-    operator: FilterOperator.AND,
-    constraints: [{ value: null, matchMode: FilterMatchMode.DATE_AFTER }],
-  },
-})
+const filterStore = useFilterStore()
 
 const fetchCases = useDebounceFn(() => {
+  console.log('Fetching cases with filters:', filterStore.filters)
   loading.value = true
   sureApiListCases({
     query: { page: page.value, page_size: 20 },
-    body: filters.value as CaseFilters,
+    body: filterStore.filters as CaseFilters,
   }).then((response) => {
     if (response.data) {
       cases.value = response.data
@@ -117,7 +102,7 @@ async function selectCase(event: { data: { case: string } }) {
     @page="onPageChange($event)"
     @filter="onFilterChange()"
     :loading="loading"
-    v-model:filters="filters"
+    v-model:filters="filterStore.filters"
     filter-display="menu"
     selection-mode="single"
     @row-select="selectCase"
@@ -129,38 +114,63 @@ async function selectCase(event: { data: { case: string } }) {
             <i class="pi pi-search" />
           </InputIcon>
           <InputText
-            v-model="(filters['search'] as unknown as FilterData).value as string"
+            v-model="(filterStore.filters['search'] as unknown as FilterData).value as string"
             placeholder="Search by Case or Client ID"
             @input="onFilterChange"
           />
         </IconField>
       </div>
     </template>
-    <Column field="case" header="Case" :show-filter-match-modes="false">
+    <Column field="case" header="Case" :show-filter-match-modes="false" :show-apply-button="false">
       <template #body="{ data }">
         {{ data.case }}
       </template>
-      <template #filter="{ filterModel }">
-        <InputText v-model="filterModel.value" type="text" placeholder="Search by case id" />
+      <template #filter="{ filterModel, filterCallback }">
+        <InputText
+          @input="filterCallback()"
+          v-model="filterModel.value"
+          type="text"
+          placeholder="Search by case id"
+        />
       </template>
     </Column>
-    <Column field="external_id" header="External ID" :show-filter-match-modes="false">
+    <Column
+      field="external_id"
+      header="Internal ID"
+      :show-filter-match-modes="false"
+      :show-apply-button="false"
+    >
       <template #body="{ data }">
         {{ data.external_id }}
       </template>
-      <template #filter="{ filterModel }">
-        <InputText v-model="filterModel.value" type="text" placeholder="Search by external id" />
+      <template #filter="{ filterModel, filterCallback }">
+        <InputText
+          @input="filterCallback()"
+          v-model="filterModel.value"
+          type="text"
+          placeholder="Search by internal id"
+        />
       </template>
     </Column>
-    <Column field="client_id" header="Client" :show-filter-match-modes="false">
+    <Column
+      field="client_id"
+      header="Client"
+      :show-filter-match-modes="false"
+      :show-apply-button="false"
+    >
       <template #body="{ data }">
         {{ data.client_id }}
       </template>
-      <template #filter="{ filterModel }">
-        <InputText v-model="filterModel.value" type="text" placeholder="Search by client id" />
+      <template #filter="{ filterModel, filterCallback }">
+        <InputText
+          @input="filterCallback()"
+          v-model="filterModel.value"
+          type="text"
+          placeholder="Search by client id"
+        />
       </template>
     </Column>
-    <Column field="tags" header="Tags" :show-filter-match-modes="false">
+    <Column field="tags" header="Tags" :show-filter-match-modes="false" :show-apply-button="false">
       <template #body="{ data }">
         <Tag
           v-for="tag in data.tags"
@@ -171,9 +181,10 @@ async function selectCase(event: { data: { case: string } }) {
           :severity="'secondary'"
         />
       </template>
-      <template #filter="{ filterModel }">
+      <template #filter="{ filterModel, filterCallback }">
         <Select
           v-model="filterModel.value"
+          @change="filterCallback()"
           :options="tagChoices"
           :show-toggle-all="false"
           option-label="label"

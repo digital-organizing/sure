@@ -12,27 +12,27 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-BASE_58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 
-CONTACT_ID_LENGTH = 6
-CASE_ID_LENGTH = 6
+CONTACT_ID_LENGTH = 7
+CASE_ID_LENGTH = 7
 
 
 def generate_contact_id():
-    """Generate a base 58 client ID of length CLIENT_ID_LENGTH (6)."""
-    return "".join(secrets.choice(BASE_58) for _ in range(CONTACT_ID_LENGTH))
+    """Generate a base 58 client ID of length CLIENT_ID_LENGTH (7)."""
+    return "".join(secrets.choice(BASE_34) for _ in range(CONTACT_ID_LENGTH))
 
 
 def generate_case_id():
-    """Generate a base 58 case ID of length CASE_ID_LENGTH (6)."""
-    return "".join(secrets.choice(BASE_58) for _ in range(CASE_ID_LENGTH))
+    """Generate a base 58 case ID of length CASE_ID_LENGTH (7)."""
+    return "".join(secrets.choice(BASE_34) for _ in range(CASE_ID_LENGTH))
 
 
 class Case(models.Model):
     """A case is one instance of a clients visit and the questions they answer."""
 
     id = models.CharField(
-        max_length=6,
+        max_length=8,
         primary_key=True,
         default=generate_case_id,
         verbose_name=_("Case ID"),
@@ -109,7 +109,7 @@ class Client(models.Model):
     """A client (person seeking help)"""
 
     id = models.CharField(
-        max_length=6,
+        max_length=8,
         primary_key=True,
         default=generate_contact_id,
         verbose_name=_("Client ID"),

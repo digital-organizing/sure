@@ -1,17 +1,28 @@
 <script setup lang="ts">
+import { tenantsApiGetTenant, type TenantSchema } from '@/client'
 import { useAccount } from '@/composables/useAccount'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const { account } = useAccount()
 const router = useRouter()
+
+const tenant = ref<TenantSchema | null>(null)
+
+onMounted(() => {
+  tenantsApiGetTenant().then((response) => {
+    if (response.data) tenant.value = response.data
+  })
+})
 </script>
 
 <template>
   <header>
     <section class="logos">
       <img
-        src="/logo.png"
-        alt="Logo"
+        v-if="tenant?.logo"
+        :src="tenant.logo"
+        :alt="tenant.name"
         class="logo"
         @click="router.push({ name: 'consultant-dashboard' })"
       />

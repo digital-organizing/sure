@@ -14,6 +14,7 @@
   --consultant-color: #0391ce;
   --tests-color: #0247fe;
   --results-color: #8601af;
+  --summary-color: #3d01a4;
   --communication-color: #646464;
 }
 
@@ -29,6 +30,9 @@
 }
 .tests_recorded {
   --status-color: var(--tests-color);
+}
+.summary {
+  --status-color: var(--summary-color);
 }
 .results_recorded {
   --status-color: var(--results-color);

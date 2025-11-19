@@ -13,7 +13,7 @@ from sesame.utils import get_parameters
 from unfold.views import UnfoldModelAdminViewMixin
 
 from tenants.forms import ConsultantInviteForm
-from tenants.models import Consultant, Tenant
+from tenants.models import Consultant
 
 
 class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
@@ -26,9 +26,7 @@ class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        user = self.request.user
-        tenant = Tenant.objects.filter(admins=user).first()
-        kwargs["tenant"] = tenant
+        kwargs["request"] = self.request
         return kwargs
 
     @transaction.atomic
@@ -42,14 +40,14 @@ class ConsultantInviteView(UnfoldModelAdminViewMixin, FormView):
             last_name=data["last_name"],
         )
         consultant = Consultant.objects.create(
-            tenant=form.tenant,
+            tenant=data["tenant"],
             user=user,
         )
         consultant.locations.set(data["locations"])
 
         if data.get("as_admin"):
-            form.tenant.admins.add(user)
-            form.tenant.save()
+            data["tenant"].admins.add(user)
+            data["tenant"].save()
             user.is_staff = True
             user.groups.add(Group.objects.get_or_create(name="Tenant Admins")[0])
 

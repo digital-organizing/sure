@@ -8,7 +8,7 @@ from django_otp import devices_for_user
 from unfold.admin import ModelAdmin, TabularInline
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
-from tenants.models import Consultant, Location, Tag, Tenant
+from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant
 from tenants.views import ConsultantInviteView
 
 
@@ -135,3 +135,19 @@ class TagAdmin(ModelAdmin):
         if request.user.is_superuser:
             return super().get_queryset(request)
         return super().get_queryset(request).filter(owner=request.user)
+
+
+@admin.register(InformationBanner)
+class InformationBannerAdmin(ModelAdmin):
+    """Admin for information banners."""
+
+    list_display = ("name", "created_at", "published_at", "expires_at", "tenant")
+    search_fields = ("content", "tenant__name")
+
+    autocomplete_fields = ("tenant", "locations")
+
+    def get_queryset(self, request):
+        """Limit queryset based on user permissions."""
+        if request.user.is_superuser:
+            return super().get_queryset(request)
+        return super().get_queryset(request).filter(tenant__admins=request.user)

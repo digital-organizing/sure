@@ -1,8 +1,16 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from ninja import Router
 
 from tenants.models import Tag
-from tenants.schema import LocationSchema, TagSchema, UserSchema
+from tenants.schema import (
+    BannerSchema,
+    LocationSchema,
+    TagSchema,
+    TenantSchema,
+    UserSchema,
+)
 
 router = Router()
 
@@ -22,9 +30,30 @@ def list_tags(request):
     return Tag.objects.filter(available_in__in=consultant.locations.all()).distinct()
 
 
+@router.get("/tenant", response=TenantSchema)
+def get_tenant(request):
+    consultant = request.user.consultant
+    return consultant.tenant
+
+
 @router.get("/consultants/{pk}/", response=UserSchema)
 def get_consultant(request, pk: int):
     # Logic to retrieve and return a consultant by primary key
     queryset = request.user.consultant.tenant.consultants.select_related("user")
     consultant = get_object_or_404(queryset, pk=pk)
     return consultant.user
+
+
+@router.get("/banners/", response=list[BannerSchema])
+def get_banners(request):
+    consultant = request.user.consultant
+    now = timezone.now()
+    banners = (
+        consultant.tenant.information_banners.filter(
+            locations__in=consultant.locations.all(),
+            published_at__lte=now,
+        )
+        .exclude(Q(expires_at__isnull=False) & Q(expires_at__lt=now))
+        .distinct()
+    )
+    return banners

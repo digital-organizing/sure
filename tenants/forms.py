@@ -10,7 +10,7 @@ from unfold import widgets
 from unfold.layout import Submit
 from unfold.widgets import UnfoldAdminEmailInputWidget
 
-from tenants.models import Tenant
+from tenants.models import Location, Tenant
 from tenants.tasks import send_background_mail
 
 
@@ -34,6 +34,17 @@ class ConsultantInviteForm(forms.Form):
         help_text="If checked, the consultant will have admin privileges for this tenant.",
     )
 
+    tenant = forms.ModelChoiceField(
+        label="Tenant",
+        queryset=Tenant.objects.all(),
+        widget=widgets.UnfoldAdminSelect2Widget(
+            {
+                "class": "w-full",
+                "size": "10",
+            }
+        ),
+    )
+
     locations = forms.ModelMultipleChoiceField(
         label="Assign Locations",
         queryset=None,  # to be set in __init__
@@ -49,17 +60,17 @@ class ConsultantInviteForm(forms.Form):
     def send_invitation_email(self, request, activation_link: str) -> None:
         """Send the invitation email to the consultant."""
 
-        template = Template(self.tenant.invitation_mail_template)
+        template = Template(self.cleaned_data["tenant"].invitation_mail_template)
         context = Context(
             {
                 "first_name": self.cleaned_data["first_name"],
-                "tenant": self.tenant,
+                "tenant": self.cleaned_data["tenant"],
                 "user": request.user,
                 "activation_link": mark_safe(activation_link),  # nosec
             }
         )
         message = template.render(context)
-        subject = self.tenant.invitation_mail_subject
+        subject = self.cleaned_data["tenant"].invitation_mail_subject
 
         send_background_mail.delay(
             {
@@ -71,13 +82,18 @@ class ConsultantInviteForm(forms.Form):
         )
 
     def __init__(self, *args, **kwargs):
-        tenant = kwargs.pop("tenant")
-        self.tenant: Tenant = tenant
+        request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.add_input(Submit("submit", ("Submit Hallo")))
 
-        self.fields["locations"].queryset = tenant.locations.all()  # type: ignore
+        self.fields["locations"].queryset = Location.objects.filter(
+            tenant__admins=request.user
+        )
+        self.fields["tenant"].queryset = Tenant.objects.filter(admins=request.user)
+        self.fields["tenant"].initial = Tenant.objects.filter(
+            admins=request.user
+        ).first()
 
         self.helper.layout = Layout(
             Row(
@@ -85,6 +101,7 @@ class ConsultantInviteForm(forms.Form):
                     Fieldset(
                         _("Custom form"),
                         Column(
+                            "tenant",
                             Row(
                                 Div("email", css_class="w-1/2"),
                             ),
@@ -108,3 +125,15 @@ class ConsultantInviteForm(forms.Form):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("A user with this email already exists.")
         return email
+
+    def clean(self) -> dict:
+        cleaned_data = super().clean()
+        tenant = cleaned_data.get("tenant")
+        locations = cleaned_data.get("locations")
+
+        for location in locations:
+            if location.tenant != tenant:
+                raise forms.ValidationError(
+                    f"Location {location.name} does not belong to tenant {tenant.name}."
+                )
+        return cleaned_data

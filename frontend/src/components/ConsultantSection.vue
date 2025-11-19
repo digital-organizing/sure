@@ -6,9 +6,11 @@ import ClientQuestionConsultant from './ClientQuestionConsultant.vue'
 
 const props = defineProps<{
   section: SectionSchema
+  disableEdit?: boolean
 }>()
 
 const show = ref(false)
+const showAll = ref(false)
 
 const answerStore = userAnswersStore()
 
@@ -20,19 +22,45 @@ function showQuestion(q: ClientQuestionSchema) {
   return q.show_for_options.some((option) => answerStore.isOptionSelected(option))
 }
 
+const hasHiddenQuestions = computed(() => {
+  return props.section.client_questions.some(
+    (question) => question.do_not_show_directly && showQuestion(question),
+  )
+})
+
 const questions = computed(() => {
-  return props.section?.client_questions.filter((question) => showQuestion(question)) || []
+  return (
+    props.section?.client_questions.filter(
+      (question) => showQuestion(question) && (showAll.value || !question.do_not_show_directly),
+    ) || []
+  )
 })
 </script>
 
 <template>
   <header v-if="section.client_questions.length > 0">
     <h2>{{ section.title }}</h2>
-    <Button icon="pi pi-eye" size="small" severity="secondary" @click="show = !show" />
+    <div class="buttons">
+      <Button
+        :icon="showAll ? 'pi pi-search-minus' : 'pi pi-search-plus'"
+        size="small"
+        severity="secondary"
+        v-if="hasHiddenQuestions && show"
+        @click="showAll = !showAll"
+        title="Show hidden questions"
+      />
+      <Button
+        :icon="show ? 'pi pi-eye-slash' : 'pi pi-eye'"
+        size="small"
+        severity="secondary"
+        @click="show = !show"
+        title="Expand section"
+      />
+    </div>
   </header>
   <section v-if="show" class="section">
     <div v-for="question in questions" :key="question.id!">
-      <ClientQuestionConsultant :question="question" />
+      <ClientQuestionConsultant :question="question" :disable-edit="props.disableEdit" />
     </div>
   </section>
 </template>
@@ -48,5 +76,9 @@ header {
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
+}
+.buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 </style>

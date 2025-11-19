@@ -4,7 +4,6 @@ import { useLocations } from '@/composables/useLocations'
 import { useQuestionnaires } from '@/composables/useQuestionnaires'
 import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue/usetoast'
-const toast = useToast()
 
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 
@@ -21,9 +20,10 @@ const phone = ref<string>('')
 const link = ref<string>('')
 const caseId = ref<string>('')
 const { copy, isSupported } = useClipboard()
+const toast = useToast()
 
 const qrCode = useQRCode(link, {
-  width: 200,
+  width: 250,
 })
 
 async function handleSubmit() {
@@ -74,8 +74,11 @@ function onCopy() {
   <Form @submit="handleSubmit" class="form-col stretch">
     <h2>Create New Case</h2>
     <div class="form-field">
-      <label for="external_id">External ID</label>
-      <InputText label="External ID" name="external_id" v-model="externalId" id="external_id" />
+      <label for="external_id">Internal ID</label>
+      <InputText label="Internal ID" name="external_id" v-model="externalId" id="external_id" />
+      <Message size="small" severity="secondary" variant="simple"
+        >An internal identifier for your reference (optional).</Message
+      >
     </div>
     <div class="form-field">
       <label for="questionnaire_id">Questionnaire</label>
@@ -102,8 +105,11 @@ function onCopy() {
       />
     </div>
     <div class="form-field">
-      <label for="phone">Phone</label>
-      <InputText id="phone" label="Phone" name="phone" v-model="phone" />
+      <label for="phone">Mobile Phone Number</label>
+      <InputText id="phone" label="Mobile Phone Number" name="phone" v-model="phone" />
+      <Message size="small" severity="secondary" variant="simple"
+        >Enter the clients phone number to send the questionnaire via SMS (optional).</Message
+      >
     </div>
     <Button label="Create Case" type="submit" />
   </Form>
@@ -126,7 +132,7 @@ function onCopy() {
         <a :href="link" target="_blank">{{ link }}</a>
         <Button
           icon="pi pi-copy"
-          severity="info"
+          severity="contrast"
           variant="link"
           @click="onCopy()"
           v-if="isSupported"

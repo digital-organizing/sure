@@ -30,6 +30,11 @@ const navItems = [
     status: 'tests_recorded',
   },
   {
+    label: 'Summary',
+    routeName: 'consultant-case-summary',
+    status: 'summary',
+  },
+  {
     label: 'Results',
     routeName: 'consultant-results',
     status: 'results_recorded',

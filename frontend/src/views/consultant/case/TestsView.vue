@@ -1,4 +1,6 @@
 <script setup lang="ts">
 defineProps<{ caseId: string }>()
 </script>
-<template>Empty</template>
+<template>
+  <Message severity="warn" icon="pi pi-hammer">This view is under construction</Message>
+</template>

@@ -92,6 +92,12 @@ const router = createRouter({
               component: TestsView,
             },
             {
+              path: 'summary',
+              name: 'consultant-case-summary',
+              component: () => import('@/views/consultant/case/CaseSummaryView.vue'),
+              props: true,
+            },
+            {
               path: 'results',
               component: ResultView,
               name: 'consultant-results',

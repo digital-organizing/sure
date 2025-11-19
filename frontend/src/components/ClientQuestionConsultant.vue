@@ -6,13 +6,21 @@ import { computed, ref } from 'vue'
 
 const props = defineProps<{
   question: ClientQuestionSchema
+  disableEdit?: boolean
 }>()
 
 const questionComponentRef = ref<{ getClientAnswer: () => AnswerSchema } | null>(null)
 
 const edit = ref(false)
 
-const show = ref(props.question.do_not_show_directly ? false : true)
+const show = ref(true)
+
+const allowEdit = computed(() => {
+  if (props.disableEdit === undefined) {
+    return true
+  }
+  return !props.disableEdit
+})
 
 const {
   answerForClientQuestion,
@@ -47,7 +55,13 @@ const remote = computed(() => {
           severity="secondary"
           @click="show = !show"
         />
-        <Button icon="pi pi-pencil" size="small" severity="secondary" @click="edit = !edit" />
+        <Button
+          :icon="edit ? 'pi pi-times' : 'pi pi-pencil'"
+          size="small"
+          severity="secondary"
+          @click="edit = !edit"
+          v-if="allowEdit"
+        />
       </div>
     </header>
     <section v-if="show" class="current-answers">

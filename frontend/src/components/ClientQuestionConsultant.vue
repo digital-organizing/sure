@@ -42,6 +42,7 @@ function getAnswer(q: number) {
       const option = options.find((o) => o.code === '' + c)
       if (!option) return answer.value!.texts[idx] || ''
       if (option.allow_text) return answer.value!.texts[idx] || ''
+      if (option.choices) return answer.value!.texts[idx] || ''
       return option.text_for_consultant || option.text || answer.value!.texts[idx] || ''
     })
     .join(', ')

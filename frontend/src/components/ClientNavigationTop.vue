@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import { defineProps, ref } from 'vue'
+import { computed, defineEmits, defineProps, ref } from 'vue'
 import Menu from 'primevue/menu'
 import Button from 'primevue/button'
 import IconMenu from './icons/IconMenu.vue'
+import type { SectionSchema } from '@/client'
 
 const props = defineProps<{
   sectionTitle: string
+  sections: SectionSchema[]
+}>()
+
+const emit = defineEmits<{
+  (e: 'select-section', index: number): void
 }>()
 
 const menu = ref()
+
+const menuItems = computed(() => {
+  if (!props.sections?.length) {
+    return []
+  }
+
+  return [
+    {
+      label: 'Sections',
+      items: props.sections.map((section, index) => ({
+        label: section.title,
+        command: () => emit('select-section', index),
+      })),
+    },
+  ]
+})
 
 function toggle(event: Event) {
   menu.value.toggle(event)
@@ -31,7 +53,7 @@ function toggle(event: Event) {
       >
         <IconMenu />
       </Button>
-      <Menu ref="menu" id="overlay_menu" :popup="true" />
+      <Menu ref="menu" id="overlay_menu" :model="menuItems" :popup="true" />
     </div>
   </div>
 </template>

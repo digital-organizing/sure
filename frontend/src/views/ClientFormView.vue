@@ -93,7 +93,11 @@ function onSubmit() {
   <div id="client-form-view">
     <div v-if="formStructure">
       <div id="navi-top" class="client-section-element">
-        <ClientNavigationTop :section-title="currentSectionTitle" />
+        <ClientNavigationTop
+          :section-title="currentSectionTitle"
+          :sections="formStructure.sections"
+          @select-section="goToSection"
+        />
         <ProgressBar :total="formStructure?.sections.length" :value="progressValue" />
       </div>
       <div id="client-sections" v-if="formIndex < (formStructure?.sections.length ?? 0)">

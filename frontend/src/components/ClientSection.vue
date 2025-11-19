@@ -67,7 +67,7 @@ const visibleQuestions = computed(() => {
 }
 
 .section-description {
-  color: #000;
+  color: var(--color-ahs-black);
   font-family: 'Circular Std';
   font-size: 18px;
   font-style: normal;

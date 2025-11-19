@@ -32,12 +32,52 @@ const visibleQuestions = computed(() => {
 
 <template>
     <div class="client-section-element">
+        <div class="client-recap-section-header">
+            <p class="client-recap-section-title">{{ props.section.title }}</p>
+            <Button 
+            id="edit"
+            severity="secondary"
+            variant="outlined"
+            rounded>
+                Edit
+            </Button>
+        </div>
         <ClientRecapQuestion 
-            v-for="question in visibleQuestions"
+            v-for="(question, index) in visibleQuestions"
             :key="question.id!"
             :question="question"
-            :index="1"
+            :index="index"
             ref="questions"
         />
     </div>
 </template>
+
+<style scoped>
+.client-recap-section-title {
+    display: flex;
+    width: auto;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+    }
+
+.client-recap-section-title {
+    color: #000;
+    text-align: center;
+    font-family: "Circular Std";
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 42.14px; /* 234.111% */
+    margin: 0;
+}
+#edit {
+    height: 21px;
+    border-color: var(--color-ahs-black);
+}
+
+#edit label {
+    padding: 4px;
+    color: var(--color-ahs-black);
+}
+</style>

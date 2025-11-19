@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SectionSchema } from '@/client';
+import type { QuestionnaireSchema, SectionSchema } from '@/client';
 import ClientBottomNavButtons from './ClientBottomNavButtons.vue';
 
 import { userAnswersStore } from '@/stores/answers'
@@ -10,7 +10,8 @@ import ClientRecapSection from './ClientRecapSection.vue';
 const props = defineProps<{
    hasNext: boolean
    hasPrevious: boolean
-   section: SectionSchema
+   form: QuestionnaireSchema
+   formIndex: number
 }>()
 
 const emits = defineEmits<{
@@ -27,14 +28,16 @@ const emits = defineEmits<{
     <div class="client-section-element">
         <div>
             <ClientRecapSection
-            :section="props.section"/>
+            v-for="(section, index) in props.form.sections"
+            :key="section.id ?? index"
+            :section="section"/>
         </div>
         <div class="client-bottom-button-section">
             <ClientBottomNavButtons
             @next="emits('next')"
             @previous="emits('previous')"
             @submit="emits('submit')"
-            :section="props.section"
+            :section="props.form.sections[props.formIndex]"
             :has-next="props.hasNext"
             :has-previous="props.hasPrevious"
             />

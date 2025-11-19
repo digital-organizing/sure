@@ -74,7 +74,8 @@ function submitQuestionnaire() {
         @submit="submitQuestionnaire"
         :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
         :has-previous="formIndex > 0"
-        :section="formStructure?.sections[formIndex]!"
+        :form="formStructure"
+        :form-index="formIndex"
         />
       </div>
       <div v-else>

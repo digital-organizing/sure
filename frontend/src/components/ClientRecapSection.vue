@@ -7,6 +7,11 @@ import { userAnswersStore } from '@/stores/answers'
 
 const props = defineProps<{
   section: SectionSchema
+  sectionIndex: number
+}>()
+
+const emits = defineEmits<{
+  (e: 'edit-section', index: number): void
 }>()
 
 const answersStore = userAnswersStore()
@@ -31,7 +36,15 @@ const visibleQuestions = computed(() => {
   <div class="client-section-element">
     <div class="client-recap-section-header">
       <p class="client-recap-section-title">{{ props.section.title }}</p>
-      <Button class="client-recap-edit-button" severity="secondary" variant="outlined" rounded> Edit </Button>
+      <Button
+        class="client-recap-edit-button"
+        severity="secondary"
+        variant="outlined"
+        rounded
+        @click="emits('edit-section', props.sectionIndex)"
+      >
+        Edit
+      </Button>
     </div>
     <ClientRecapQuestion
       v-for="(question, index) in visibleQuestions"

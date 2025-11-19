@@ -52,6 +52,13 @@ function previousQuestion() {
   }
 }
 
+function goToSection(index: number) {
+  formIndex.value = index
+  nextTick(() => {
+    scrollToTop()
+  })
+}
+
 function onSubmit() {
   sureApiSubmitCase({ path: { pk: props.caseId }, body: answersStore.answers })
     .then(() => {
@@ -85,6 +92,7 @@ function onSubmit() {
           @next="nextQuestion"
           @previous="previousQuestion"
           @submit="onSubmit"
+          @edit-section="goToSection"
           :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
           :has-previous="formIndex > 0"
           :form="formStructure"

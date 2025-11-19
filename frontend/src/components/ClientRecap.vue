@@ -16,6 +16,7 @@ const emits = defineEmits<{
   (e: 'next'): void
   (e: 'previous'): void
   (e: 'submit'): void
+  (e: 'edit-section', index: number): void
 }>()
 
 // const answersStore = userAnswersStore()
@@ -28,6 +29,8 @@ const emits = defineEmits<{
         v-for="(section, index) in props.form.sections"
         :key="section.id ?? index"
         :section="section"
+        :section-index="index"
+        @edit-section="(targetIndex) => emits('edit-section', targetIndex)"
       />
     </div>
     <div class="client-bottom-button-section">

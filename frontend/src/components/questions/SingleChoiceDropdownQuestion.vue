@@ -83,7 +83,7 @@ defineExpose({
         v-model="dropdownSelections[option.code!]"
         filter
         :options="option.choices"
-        :placeholder="'Select an option for ' + option.text"
+        :placeholder="'Select an option'"
         class="dropdown-select"
       />
     </div>

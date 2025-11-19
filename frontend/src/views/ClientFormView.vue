@@ -6,10 +6,12 @@ import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import { useScroll } from '@/composables/useScroll'
 import { userAnswersStore } from '@/stores/answers'
 import { nextTick, onMounted, ref, watch } from 'vue'
+import ClientRecap from '@/components/ClientRecap.vue'
 
 const formStructure = ref<QuestionnaireSchema | null>(null)
 const answersStore = userAnswersStore()
 const formIndex = ref<number>(0)
+const recapActive = ref(false)
 
 const { scrollToTop } = useScroll()
 
@@ -41,6 +43,11 @@ function previousQuestion() {
     formIndex.value--
   }
 }
+
+function submitQuestionnaire() {
+  recapActive.value = !recapActive.value
+}
+
 </script>
 
 <template>
@@ -50,14 +57,30 @@ function previousQuestion() {
         <ClientNavigationTop :sectionTitle="formStructure?.sections[formIndex].title" />
         <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
       </div>
-      <div id="client-sections">
+      <div id="client-sections" v-if="formIndex < (formStructure?.sections.length ?? 0) - 1">
         <ClientSection
+          @next="nextQuestion"
+          @previous="previousQuestion"
+          @submit="submitQuestionnaire"
+          :section="formStructure?.sections[formIndex]!"
+          :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
+          :has-previous="formIndex > 0"
+        />
+      </div>
+      <div id="client-recap" v-else-if="formIndex === (formStructure?.sections.length ?? 0) - 1">
+        <ClientRecap
         @next="nextQuestion"
         @previous="previousQuestion"
-        :section="formStructure?.sections[formIndex]!"
-        :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1"
+        @submit="submitQuestionnaire"
+        :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1 + 2"
         :has-previous="formIndex > 0"
-      />
+        :section="formStructure?.sections[formIndex]!"
+        />
+      </div>
+      <div v-else>
+        <p>
+          Phone Number Page
+        </p>
       </div>
       
     </div>

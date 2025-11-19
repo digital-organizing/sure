@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { RadioButton, InputText } from 'primevue'
+import { computed, ref, watch } from 'vue'
+import { RadioButton, InputText, Textarea } from 'primevue'
 import { type ClientQuestionSchema } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 
@@ -11,6 +11,7 @@ const props = defineProps<{
 const { answer, updateAnswer } = useQuestionAnswer(props.question)
 const selectedChoice = ref<string | null>(null)
 const textInputs = ref<Record<string, string>>({})
+const isConsultWish = computed(() => props.question.code === 'CONSULT-WISH')
 
 // Load existing answer
 if (answer.value.choices && answer.value.choices.length > 0) {
@@ -30,7 +31,7 @@ watch(
   [selectedChoice, textInputs],
   () => {
     if (selectedChoice.value !== null) {
-      const option = props.question.options?.find((opt) => opt.id === selectedChoice.value)
+      const option = props.question.options?.find((opt) => opt.code === selectedChoice.value)
       let text = option?.text || ''
 
       // Use custom text if option allows it and text is provided
@@ -72,13 +73,29 @@ defineExpose({
       <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}
       </label>
-      <InputText
-        v-if="option.allow_text && selectedChoice === option.code"
-        v-model="textInputs[option.id!]"
-        type="text"
-        :placeholder="'Additional text for ' + option.text"
-        class="text-input"
-      />
+      <template v-if="option.allow_text && selectedChoice === option.code">
+        <Textarea
+          v-if="isConsultWish"
+          v-model="textInputs[option.code]"
+          autoResize
+          :rows="4"
+          :placeholder="'Additional text for ' + option.text"
+          class="text-input consult-wish-textarea"
+        />
+        <InputText
+          v-else
+          v-model="textInputs[option.code]"
+          type="text"
+          :placeholder="'Additional text for ' + option.text"
+          class="text-input"
+        />
+      </template>
     </div>
   </div>
 </template>
+
+<style scoped>
+.consult-wish-textarea {
+  min-height: 120px;
+}
+</style>

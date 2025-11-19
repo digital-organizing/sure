@@ -192,6 +192,12 @@ class Section(models.Model):
     title = models.CharField(
         max_length=255, verbose_name=_("Title"), help_text=_("Title of the section")
     )
+    label = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Label"),
+        help_text=_("Short label for the section"),
+    )
     description = models.TextField(
         blank=True,
         verbose_name=_("Description"),

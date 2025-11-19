@@ -9,7 +9,7 @@ const props = defineProps<{
   disableEdit?: boolean
 }>()
 
-const show = ref(false)
+const show = ref(true)
 const showAll = ref(false)
 
 const answerStore = userAnswersStore()
@@ -39,7 +39,7 @@ const questions = computed(() => {
 
 <template>
   <header v-if="section.client_questions.length > 0">
-    <h2>{{ section.title }}</h2>
+    <h3>{{ section.label || section.title }}</h3>
     <div class="buttons">
       <Button
         :icon="showAll ? 'pi pi-search-minus' : 'pi pi-search-plus'"
@@ -74,8 +74,10 @@ header {
 .section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+}
+h3 {
+  margin: 0;
 }
 .buttons {
   display: flex;

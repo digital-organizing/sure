@@ -117,6 +117,11 @@ export type ClientOptionSchema = {
      * Allow text input for this option
      */
     allow_text?: boolean;
+    /**
+     * Text for Consultant
+     * Text to be shown to the consultant when this option is selected
+     */
+    text_for_consultant?: string | null;
 };
 
 /**
@@ -222,6 +227,11 @@ export type SectionSchema = {
      * Description of the section
      */
     description?: string | null;
+    /**
+     * Label
+     * Short label for the section
+     */
+    label?: string | null;
 };
 
 /**

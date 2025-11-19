@@ -9,5 +9,5 @@ const { labelForStatus } = useStatus()
 </script>
 
 <template>
-  <Tag :value="labelForStatus(props.value)" rounded :class="props.value" />
+  <Tag :value="labelForStatus(props.value)" rounded :class="props.value" class="status" />
 </template>

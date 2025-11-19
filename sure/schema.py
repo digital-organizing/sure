@@ -37,6 +37,7 @@ class ClientOptionSchema(ModelSchema):
             "code",
             "choices",
             "allow_text",
+            "text_for_consultant",
         ]
 
 
@@ -71,6 +72,7 @@ class SectionSchema(ModelSchema):
             "order",
             "title",
             "description",
+            "label",
         ]
 
     client_questions: list[ClientQuestionSchema]

@@ -24,7 +24,6 @@ const allowEdit = computed(() => {
 
 const {
   answerForClientQuestion,
-  mapAnswersForClientQuestion,
   submitClientAnswer,
   fetchVisitDetails,
 } = useCase()
@@ -39,6 +38,19 @@ function onSubmit() {
   }
 }
 
+function getAnswer(q: number) {
+  const options = props.question.options || []
+  const answer = answerForClientQuestion(q)
+  return answer.value?.choices
+    .map((c, idx) => {
+      const option = options.find((o) => o.code === '' + c)
+      if (!option) return answer.value!.texts[idx] || ''
+      if (option.allow_text) return answer.value!.texts[idx] || ''
+      return option.text_for_consultant || option.text || answer.value!.texts[idx] || ''
+    })
+    .join(', ')
+}
+
 const remote = computed(() => {
   return answerForClientQuestion(props.question.id!)
 })
@@ -47,14 +59,16 @@ const remote = computed(() => {
 <template>
   <section>
     <header>
-      <h3 :class="show ? 'show' : 'hidden'">{{ question.question_text }}</h3>
+      <div class="question-answer">
+        <h4 :class="show ? 'show' : 'hidden'">
+          {{ question.label ? question.label + ': ' : question.question_text }}
+        </h4>
+        <span v-if="show">
+          {{ getAnswer(question.id!) }}
+        </span>
+      </div>
+
       <div class="buttons">
-        <Button
-          :icon="show ? 'pi pi-eye-slash' : 'pi pi-eye'"
-          size="small"
-          severity="secondary"
-          @click="show = !show"
-        />
         <Button
           :icon="edit ? 'pi pi-times' : 'pi pi-pencil'"
           size="small"
@@ -64,14 +78,6 @@ const remote = computed(() => {
         />
       </div>
     </header>
-    <section v-if="show" class="current-answers">
-      <div v-for="answers in mapAnswersForClientQuestion(question.id!)" :key="answers.id">
-        <p class="answer">
-          <strong>{{ answers.code }}</strong
-          >: {{ answers.text }}
-        </p>
-      </div>
-    </section>
     <section class="edit-answer" v-if="edit">
       <Panel header="Edit">
         <ClientQuestion
@@ -93,17 +99,29 @@ header {
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
+
 .buttons {
   display: flex;
   gap: 0.5rem;
 }
+
 .answer {
   margin: 0.5rem 0;
 }
+
 .current-answers {
   margin-left: 0.5rem;
 }
+
+h4,
 h3 {
   margin: 0;
+}
+
+.question-answer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 </style>

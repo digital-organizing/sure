@@ -6,5 +6,13 @@ const props = defineProps({
 </script>
 
 <template>
-  <p>Progress: {{ props.value?.valueOf() }} / {{ props.total?.valueOf() }}</p>
+  <p id="progressbar">Progress: {{ props.value?.valueOf() }} / {{ props.total?.valueOf() }}</p>
 </template>
+
+<style scoped>
+#progressbar {
+    font-family: "Circular Std";
+    font-size: 16px;
+    margin: 0;
+}
+</style>

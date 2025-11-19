@@ -1,2 +1,8 @@
 @import './fonts.css';
 @import './base.css';
+
+
+.client-section-element{
+    padding-left: 20px;
+    padding-right: 20px;
+}

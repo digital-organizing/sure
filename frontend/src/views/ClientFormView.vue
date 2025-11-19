@@ -46,23 +46,43 @@ function previousQuestion() {
 <template>
   <div id="client-form-view">
     <div v-if="formStructure">
-      <ClientNavigationTop :sectionTitle="formStructure?.sections[formIndex].title" />
-      <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
-      <ClientSection
+      <div id="navi-top" class="client-section-element">
+        <ClientNavigationTop :sectionTitle="formStructure?.sections[formIndex].title" />
+        <ProgressBar :total="formStructure?.sections.length" :value="formIndex + 1" />
+      </div>
+      <div id="client-sections">
+        <ClientSection
         @next="nextQuestion"
         @previous="previousQuestion"
         :section="formStructure?.sections[formIndex]!"
         :has-next="formIndex < (formStructure?.sections.length ?? 0) - 1"
         :has-previous="formIndex > 0"
       />
+      </div>
+      
     </div>
   </div>
 </template>
 
 <style scoped>
-div {
-  margin: 20px;
+#navi-top {
+  display: flex;
+  width: 100%;
+  padding-top: 50px;
+  padding-bottom: 30px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  position: sticky;
+  background-color: var(--color-ahs-white);
+  z-index: 10;
+  top: 0;
 }
+
+#client-sections {
+  z-index: 5;
+}
+
 button {
   margin: 10px;
 }

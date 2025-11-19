@@ -47,7 +47,7 @@ const visibleQuestions = computed(() => {
 </script>
 
 <template>
-  <div class="client-section">
+  <div class="client-section-element">
     <h2 class="section-title">{{ props.section.title }}</h2>
     <p class="section-description">{{ props.section.description }}</p>
     <ClientQuestion

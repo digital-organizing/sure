@@ -85,17 +85,18 @@ defineExpose({
   align-items: top;
   gap: 16px;
   margin-bottom: 1rem;
+  margin-top: 0.5rem;
 }
 
 .question-text {
-  color: #000;
+  color: var(--color-ahs-black);
   font-family: 'Circular Std';
   font-size: 18px;
   font-style: normal;
   font-weight: 700;
   line-height: 20px; /* 111.111% */
   margin-bottom: 10px;
-  margin-top: 10px;
+  margin-top: 12.5px;
 }
 
 .question-content {
@@ -104,7 +105,7 @@ defineExpose({
 }
 
 .question-number {
-  color: #fff;
+  color: var(--color-ahs-white);
   text-align: center;
   font-family: 'Circular Std';
   font-size: 24px;

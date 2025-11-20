@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { sureApiGetCaseQuestionnaire, type QuestionnaireSchema } from '@/client'
 import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import IconPhone from '@/components/icons/IconPhone.vue'
 import IconPen from '@/components/icons/IconPen.vue'
 import IconRightArrow from '@/components/icons/IconRightArrow.vue'
-import { userAnswersStore } from '@/stores/answers'
 import { computed, onMounted, ref } from 'vue'
 import { RadioButton, InputText } from 'primevue'
 
@@ -12,17 +10,12 @@ const props = defineProps<{
   caseId: string
 }>()
 
-const formStructure = ref<QuestionnaireSchema | null>(null)
-const answersStore = userAnswersStore()
 const selectedConsentOption = ref<'yes' | 'no' | null>(null)
 const phoneNumber = ref('')
 const dateOfBirth = ref('')
 const showContactForm = computed(() => selectedConsentOption.value === 'yes')
 
-onMounted(async () => {
-  formStructure.value = (await sureApiGetCaseQuestionnaire({ path: { pk: props.caseId } })).data!
-  answersStore.setSchema(formStructure.value)
-
+onMounted(() => {
   const savedId = localStorage.getItem('clientFormCaseId')
   if (savedId !== props.caseId) {
     localStorage.setItem('clientFormCaseId', props.caseId)
@@ -32,11 +25,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="formStructure" class="client-form-view">
+  <div class="client-form-view">
     <div class="client-section-element" id="navi-top">
       <ClientNavigationTop
         :section-title="'Privacy'"
-        :sections="formStructure.sections"
+        :sections="[]"
         :language-selector-only="true"
       />
     </div>

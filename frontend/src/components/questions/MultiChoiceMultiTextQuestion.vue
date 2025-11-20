@@ -149,14 +149,13 @@ defineExpose({
           :key="index"
           class="text-input-wrapper"
         >
-          <InputGroup>
+          <InputGroup class="text-input">
             <InputText
               :inputId="`option-${option.id}-text-${index}`"
               v-model="textInputs[option.code!][index]"
               @input="triggerTextUpdate()"
               type="text"
               :placeholder="'Additional text for ' + option.text"
-              class="text-input"
             />
             <InputGroupAddon v-if="index != 0">
               <Button

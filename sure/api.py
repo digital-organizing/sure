@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F, Func, Prefetch
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
@@ -245,14 +246,15 @@ def update_case_tests(request, pk: str, test_pks: list[int]):
     visit = get_case(request, pk)
     warnings = []
 
-    exisitng = set(visit.tests.values_list("test_kind_id", flat=True))
-    new = set(test_pks) - exisitng
+    existing = set(visit.tests.values_list("test_kind_id", flat=True))
+    new = set(test_pks) - existing
 
     tests = [Test(visit=visit, test_kind_id=test_kind_id) for test_kind_id in new]
     Test.objects.bulk_create(tests)
 
-    visit.status = VisitStatus.CONSULTANT_SUBMITTED
-    visit.save()
+    with transaction.atomic():
+        visit.status = VisitStatus.CONSULTANT_SUBMITTED
+        visit.save(update_fields=["status"])
 
     return {"success": True, "warnings": warnings}
 
@@ -264,8 +266,9 @@ def update_case_status(request, pk: str, status: str):
     visit = get_case(request, pk)
     if status not in dict(VisitStatus.choices):
         raise ValueError(f"Invalid status: {status}")
-    visit.status = status
-    visit.save()
+    with transaction.atomic():
+        visit.status = status
+        visit.save(update_fields=["status"])
     return {"success": True}
 
 
@@ -300,12 +303,10 @@ def update_case_test_results(request, pk: str, test_results: dict[int, str]):
 @inject_language
 def update_case_tags(request, pk: str, tags: list[str]):
     """Update tags for a case."""
-    visit = get_case(request, pk)
-    visit.tags.clear()
-    # This is necessary for some reason, otherwise changes are not stored
-    visit.save()
-    visit.tags = tags
-    visit.save()
+    with transaction.atomic():
+        visit = get_case(request, pk)
+        visit.tags = tags
+        visit.save(update_fields=["tags"])
     return {"success": True}
 
 

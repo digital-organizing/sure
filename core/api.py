@@ -2,6 +2,7 @@ import django_agent_trust
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django_otp import devices_for_user
@@ -96,8 +97,9 @@ def set_initial_password(
             data=[err.message for err in e.error_list],
             status=400,
         )
-    user.set_password(new_password)
-    user.save()
+    with transaction.atomic():
+        user.set_password(new_password)
+        user.save()
     login(request, user)
     return {"success": True}
 
@@ -148,8 +150,9 @@ def verify_otp_view(request, device_id: Form[str], token: Form[str]):
             data=LoginResponse(success=False, error="Invalid token"),
             status=401,
         )
-    device.confirmed = True
-    device.save()
+    with transaction.atomic():
+        device.confirmed = True
+        device.save()
     otp_login(request, device)
     return {"success": True}
 
@@ -188,12 +191,14 @@ def generate_otp_backup_codes_view(request):
         user=request.user, name="Backup Codes"
     )
     if not created:
-        static_device.delete()
-        static_device = StaticDevice.objects.create(
-            user=request.user, name="Backup Codes"
-        )
-    for _i in range(10):
-        static_device.token_set.create(token=StaticToken.random_token())
+        with transaction.atomic():
+            static_device.delete()
+            static_device = StaticDevice.objects.create(
+                user=request.user, name="Backup Codes"
+            )
+    with transaction.atomic():
+        for _i in range(10):
+            static_device.token_set.create(token=StaticToken.random_token())
     return static_device.token_set.values_list("token", flat=True)
 
 
@@ -227,8 +232,25 @@ def change_password_view(request, old_password: Form[str], new_password: Form[st
             data=LoginResponse(success=False, error="Old password is incorrect"),
             status=401,
         )
-    user.set_password(new_password)
-    user.save()
+    if old_password == new_password:
+        return api.create_response(
+            request,
+            data=LoginResponse(
+                success=False, error="New password must be different from old password"
+            ),
+            status=400,
+        )
+    try:
+        validate_password(new_password, user)
+    except ValidationError as e:
+        return api.create_response(
+            request,
+            data=[err.message for err in e.error_list],
+            status=400,
+        )
+    with transaction.atomic():
+        user.set_password(new_password)
+        user.save()
     return {"success": True}
 
 

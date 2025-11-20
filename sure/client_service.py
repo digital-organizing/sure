@@ -136,6 +136,7 @@ def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
     return contact
 
 
+@transaction.atomic
 def connect_case(case: Case, phone_number: str, token: str, consent: str) -> Connection:
     """Connect a case to a client identified by the given phone number and token."""
     if consent != ConsentChoice.ALLOWED:
@@ -203,8 +204,9 @@ def record_client_answers(
             user=user,
         )
 
-    visit.status = VisitStatus.CLIENT_SUBMITTED
-    visit.save()
+    with transaction.atomic():
+        visit.status = VisitStatus.CLIENT_SUBMITTED
+        visit.save(update_fields=["status"])
 
 
 def _compare_lists(list1: list, list2: list) -> bool:
@@ -244,8 +246,9 @@ def record_consultant_answers(visit: Visit, answers: list[AnswerSchema], user: U
             texts=texts,
             user=user,
         )
-    visit.status = VisitStatus.CONSULTANT_SUBMITTED
-    visit.save()
+    with transaction.atomic():
+        visit.status = VisitStatus.CONSULTANT_SUBMITTED
+        visit.save(update_fields=["status"])
 
     return warnings
 

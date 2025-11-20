@@ -43,7 +43,6 @@ function getLine(q: ClientQuestionSchema | ConsultantQuestionSchema, kind = 'cli
   const label = q.label || q.question_text
   const answers =
     'client' == kind ? mapAnswersForClientQuestion(q.id!) : mapAnswersForConsultantQuestion(q.id!)
-  console.log('Getting line for question:', q, 'answers:', answers)
   return `${label}: ` + answers.map((a) => a.text).join(', ')
 }
 

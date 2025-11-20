@@ -56,7 +56,6 @@ const cases = ref<PagedCaseListingSchema>({
 const filterStore = useFilterStore()
 
 const fetchCases = useDebounceFn(() => {
-  console.log('Fetching cases with filters:', filterStore.filters)
   loading.value = true
   sureApiListCases({
     query: { page: page.value, page_size: 20 },

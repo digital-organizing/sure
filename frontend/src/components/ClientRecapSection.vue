@@ -77,8 +77,8 @@ const visibleQuestions = computed(() => {
 }
 .client-recap-edit-button {
   height: 21px;
-  border-color: var(--color-ahs-black)!important;
-  color: var(--color-ahs-black)!important;
+  border-color: var(--color-ahs-black) !important;
+  color: var(--color-ahs-black) !important;
   padding-inline-start: 8px;
   padding-inline-end: 8px;
 }

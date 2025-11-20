@@ -87,7 +87,7 @@ function onSubmit() {
 }
 
 #submit {
-    align-self: flex-end;
-    margin-left: auto;
+  align-self: flex-end;
+  margin-left: auto;
 }
 </style>

@@ -3,8 +3,8 @@
 @import 'primeicons/primeicons.css';
 
 .client-form-view {
-    max-width: 800px;
-    margin: auto;
+  max-width: 800px;
+  margin: auto;
 }
 
 .client-section-element {
@@ -39,34 +39,34 @@
 }
 
 .client-phone-body {
-    color: var(--color-ahs-black);
-    font-family: "Circular Std";
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 450;
-    line-height: 24.5px;
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 24.5px;
 }
 
 .client-phone-subtitle {
-    color: var(--color-ahs-black);
-    font-family: "Circular Std";
-    font-size: 18px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: 24.5px; 
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24.5px;
 }
 
 .button-extra-large {
-    display: flex;
-    width: 207px;
-    height: 49.975px;
-    padding: 13.977px 19.568px;
-    justify-content: center;
-    align-items: center;
-    gap: 11.182px;
-    aspect-ratio: 207.00/49.98;
-    font-size: 24px;
-    font-weight: 700;
-    font-family: "Circular Std";
-    line-height: normal;
+  display: flex;
+  width: 207px;
+  height: 49.975px;
+  padding: 13.977px 19.568px;
+  justify-content: center;
+  align-items: center;
+  gap: 11.182px;
+  aspect-ratio: 207/49.98;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Circular Std';
+  line-height: normal;
 }

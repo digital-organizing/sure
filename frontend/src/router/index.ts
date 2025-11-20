@@ -38,6 +38,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/client/:caseId/phone',
+      name: 'client-phone',
+      component: () => import('../views/ClientPhoneNumberView.vue'),
+      props: true,
+      meta: {
+        showInternalMenu: false,
+      },
+    },
+    {
       path: '/account',
       name: 'account',
       component: () => import('../views/user/AccountView.vue'),

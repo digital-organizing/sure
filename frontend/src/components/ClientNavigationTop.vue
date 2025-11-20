@@ -8,6 +8,7 @@ import type { SectionSchema } from '@/client'
 const props = defineProps<{
   sectionTitle: string
   sections: SectionSchema[]
+  languageSelectorOnly: boolean
 }>()
 
 const emit = defineEmits<{
@@ -16,8 +17,9 @@ const emit = defineEmits<{
 
 const menu = ref()
 
+// TODO get Languages and also put a language selector in the menuItems
 const menuItems = computed(() => {
-  if (!props.sections?.length) {
+  if (props.languageSelectorOnly || !props.sections?.length) {
     return []
   }
 

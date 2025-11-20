@@ -338,3 +338,6 @@ CONSTANCE_CONFIG = {
         "Template for the 2FA reset notification email.",
     ),
 }
+
+OTP_TOTP_ISSUER = env.str("OTP_TOTP_ISSUER", default="SURE")
+OTP_TOTP_IMAGE = env.str("OTP_TOTP_IMAGE", default="")

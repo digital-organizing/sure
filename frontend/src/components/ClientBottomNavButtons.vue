@@ -57,7 +57,7 @@ function onSubmit() {
       id="submit"
       v-if="!props.hasNext"
       type="submit"
-      label="Next"
+      label="Submit"
       @click="onSubmit"
       severity="primary"
       rounded
@@ -83,5 +83,11 @@ function onSubmit() {
 
 #previous {
   height: 28.5px;
+  padding: 5.25px 8.75px;
+}
+
+#submit {
+    align-self: flex-end;
+    margin-left: auto;
 }
 </style>

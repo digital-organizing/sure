@@ -6,6 +6,7 @@ import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import { useScroll } from '@/composables/useScroll'
 import { userAnswersStore } from '@/stores/answers'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import ClientRecap from '@/components/ClientRecap.vue'
 
 const formStructure = ref<QuestionnaireSchema | null>(null)
@@ -36,6 +37,7 @@ const props = defineProps<{
 }>()
 
 const { scrollToTop } = useScroll()
+const router = useRouter()
 
 onMounted(async () => {
   formStructure.value = (await sureApiGetCaseQuestionnaire({ path: { pk: props.caseId } })).data!
@@ -82,6 +84,7 @@ function onSubmit() {
   sureApiSubmitCase({ path: { pk: props.caseId }, body: answersStore.answers })
     .then(() => {
       alert('Form submitted successfully!')
+      router.push(`/client/${props.caseId}/phone`)
     })
     .catch(() => {
       alert('Error submitting form. Please try again.')
@@ -90,12 +93,13 @@ function onSubmit() {
 </script>
 
 <template>
-  <div id="client-form-view">
+  <div class="client-form-view">
     <div v-if="formStructure">
       <div id="navi-top" class="client-section-element">
         <ClientNavigationTop
           :section-title="currentSectionTitle"
           :sections="formStructure.sections"
+          :language-selector-only="false"
           @select-section="goToSection"
         />
         <ProgressBar :total="formStructure?.sections.length" :value="progressValue" />
@@ -121,9 +125,6 @@ function onSubmit() {
           :form="formStructure"
           :form-index="formIndex"
         />
-      </div>
-      <div v-else>
-        <p>Phone Number Page</p>
       </div>
     </div>
   </div>
@@ -156,8 +157,5 @@ button {
   justify-content: space-between;
   margin-top: 30px;
 }
-#client-form-view {
-  max-width: 800px;
-  margin: auto;
-}
+
 </style>

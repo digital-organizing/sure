@@ -72,7 +72,7 @@ function selectBundle(id: number) {
 
 async function submitSelectedTests() {
   await updateCaseTests([...selectedTests.value])
-  router.push({ name: 'consultant-results', params: { caseId: props.caseId } })
+  router.push({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
 }
 </script>
 <template>

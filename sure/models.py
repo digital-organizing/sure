@@ -594,7 +594,7 @@ class Test(models.Model):
         help_text=_("The user who recorded the test"),
     )
 
-    test_results: models.QuerySet["TestResult"]
+    results: models.QuerySet["TestResult"]
 
     class Meta:
         constraints = [

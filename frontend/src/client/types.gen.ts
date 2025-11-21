@@ -508,6 +508,84 @@ export type SubmitCaseSchema = {
 };
 
 /**
+ * TestResultSchema
+ */
+export type TestResultSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Result Option
+     */
+    result_option: number;
+    /**
+     * Note
+     * Additional notes about the test result
+     */
+    note?: string | null;
+    /**
+     * User
+     * The user who recorded the test result (consultant)
+     */
+    user?: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * TestSchema
+ */
+export type TestSchema = {
+    /**
+     * Results
+     */
+    results: Array<TestResultSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Test Kind
+     */
+    test_kind: number;
+    /**
+     * Note
+     * Additional notes about the test result
+     */
+    note?: string | null;
+    /**
+     * User
+     * The user who recorded the test
+     */
+    user?: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * TestResultInputSchema
+ */
+export type TestResultInputSchema = {
+    /**
+     * Number
+     */
+    number: number;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Note
+     */
+    note: string;
+};
+
+/**
  * CreateCaseResponse
  */
 export type CreateCaseResponse = {
@@ -670,6 +748,10 @@ export type TestCategorySchema = {
      */
     test_kinds: Array<TestKindSchema>;
     /**
+     * Number
+     */
+    number: number;
+    /**
      * ID
      */
     id?: number | null;
@@ -688,6 +770,10 @@ export type TestKindSchema = {
      */
     test_bundles: Array<TestBundleSchema>;
     /**
+     * Result Options
+     */
+    result_options: Array<TestResultOptionSchema>;
+    /**
      * ID
      */
     id?: number | null;
@@ -704,6 +790,11 @@ export type TestKindSchema = {
      * Additional notes about the test
      */
     note?: string | null;
+    /**
+     * Interpretation Needed
+     * Does this test kind need interpretation?
+     */
+    interpretation_needed?: boolean;
 };
 
 /**
@@ -1413,6 +1504,28 @@ export type SureApiSubmitConsultantCaseResponses = {
 
 export type SureApiSubmitConsultantCaseResponse = SureApiSubmitConsultantCaseResponses[keyof SureApiSubmitConsultantCaseResponses];
 
+export type SureApiGetCaseTestsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/tests/';
+};
+
+export type SureApiGetCaseTestsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TestSchema>;
+};
+
+export type SureApiGetCaseTestsResponse = SureApiGetCaseTestsResponses[keyof SureApiGetCaseTestsResponses];
+
 export type SureApiUpdateCaseTestsData = {
     /**
      * Test Pks
@@ -1473,20 +1586,17 @@ export type SureApiUpdateCaseStatusResponses = {
 export type SureApiUpdateCaseStatusResponse = SureApiUpdateCaseStatusResponses[keyof SureApiUpdateCaseStatusResponses];
 
 export type SureApiUpdateCaseTestResultsData = {
-    body?: never;
+    /**
+     * Test Results
+     */
+    body: Array<TestResultInputSchema>;
     path: {
         /**
          * Pk
          */
         pk: string;
     };
-    query: {
-        /**
-         * Test Results
-         */
-        test_results: {
-            [key: string]: string;
-        };
+    query?: {
         /**
          * Lang
          */

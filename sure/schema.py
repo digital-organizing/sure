@@ -6,7 +6,7 @@ import phonenumbers
 from django.conf import settings
 from django.db.models import Q
 from django.utils.timezone import localtime, make_aware
-from ninja import ModelSchema, Schema
+from ninja import Field, ModelSchema, Schema
 from pydantic import BeforeValidator
 
 from sure.models import (
@@ -19,9 +19,11 @@ from sure.models import (
     ConsultantQuestion,
     Questionnaire,
     Section,
+    Test,
     TestBundle,
     TestCategory,
     TestKind,
+    TestResult,
     TestResultOption,
     Visit,
 )
@@ -461,30 +463,6 @@ class TestBundleSchema(ModelSchema):
         ]
 
 
-class TestKindSchema(ModelSchema):
-    class Meta:
-        model = TestKind
-        fields = [
-            "id",
-            "number",
-            "name",
-            "note",
-        ]
-
-    test_bundles: list[TestBundleSchema]
-
-
-class TestCategorySchema(ModelSchema):
-    class Meta:
-        model = TestCategory
-        fields = [
-            "id",
-            "name",
-        ]
-
-    test_kinds: list[TestKindSchema]
-
-
 class TestResultOptionSchema(ModelSchema):
     class Meta:
         model = TestResultOption
@@ -494,3 +472,63 @@ class TestResultOptionSchema(ModelSchema):
             "label",
             "color",
         ]
+
+
+class TestKindSchema(ModelSchema):
+    class Meta:
+        model = TestKind
+        fields = [
+            "id",
+            "number",
+            "name",
+            "note",
+            "interpretation_needed",
+        ]
+
+    test_bundles: list[TestBundleSchema]
+    result_options: list[TestResultOptionSchema]
+
+
+class TestResultInputSchema(Schema):
+    number: int
+    label: str
+    note: str
+
+
+class TestCategorySchema(ModelSchema):
+    class Meta:
+        model = TestCategory
+        fields = [
+            "number",
+            "id",
+            "name",
+        ]
+
+    test_kinds: list[TestKindSchema]
+
+
+class TestResultSchema(ModelSchema):
+    class Meta:
+        model = TestResult
+        fields = [
+            "result_option",
+            "note",
+            "user",
+            "created_at",
+        ]
+
+    label: str = Field(..., alias="result_option.label")
+
+
+class TestSchema(ModelSchema):
+    class Meta:
+        model = Test
+        fields = [
+            "id",
+            "test_kind",
+            "note",
+            "user",
+            "created_at",
+        ]
+
+    results: list[TestResultSchema]

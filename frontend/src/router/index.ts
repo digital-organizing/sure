@@ -102,6 +102,7 @@ const router = createRouter({
               path: 'tests',
               name: 'consultant-tests',
               component: TestsView,
+              props: true,
             },
             {
               path: 'summary',
@@ -113,6 +114,8 @@ const router = createRouter({
               path: 'results',
               component: ResultView,
               name: 'consultant-results',
+
+              props: true,
             },
             {
               path: 'communication',

@@ -17,6 +17,8 @@ import {
   type CaseHistory,
   sureApiGetVisitHistory,
   type QuestionnaireSchema,
+  sureApiUpdateCaseTests,
+  sureApiUpdateCaseTestResults,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -359,6 +361,42 @@ export const useCase = createGlobalState(() => {
       })
   }
 
+  async function updateCaseTests(testKindIds: number[]) {
+    await sureApiUpdateCaseTests({ path: { pk: visit.value!.case }, body: testKindIds })
+      .then(() => {})
+      .catch((error) => {
+        error.value = 'Failed to update case tests: ' + error.message
+      })
+      .then(async () => {
+        await fetchVisitDetails()
+      })
+  }
+
+  async function updateCaseTestResults(
+    results: { [nr: string]: string | null },
+    notes: { [nr: string]: string | null },
+  ) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    const request = Object.entries(results).map((entry) => {
+      return {
+        number: Number(entry[0]),
+        label: entry[1]!,
+        note: notes[Number(entry[0])] || '',
+      }
+    })
+    await sureApiUpdateCaseTestResults({ path: { pk: visit.value.case }, body: request })
+      .then(() => {})
+      .catch((error) => {
+        error.value = 'Failed to update case test results: ' + error.message
+      })
+      .then(async () => {
+        await fetchVisitDetails()
+      })
+  }
+
   return {
     visit,
     error,
@@ -383,6 +421,8 @@ export const useCase = createGlobalState(() => {
     submitClientAnswer,
     submitConsultantAnswers,
     setCaseTags,
+    updateCaseTests,
+    updateCaseTestResults,
     fetchCaseHistory,
     history,
     historyItems,

@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import type { ClientQuestionSchema, ConsultantQuestionSchema } from '@/client'
+import {
+  sureApiGetCaseTests,
+  type ClientQuestionSchema,
+  type ConsultantQuestionSchema,
+  type TestSchema,
+} from '@/client'
 import ConsultantSection from '@/components/ConsultantSection.vue'
 import { useCase } from '@/composables/useCase'
+import { useTests } from '@/composables/useTests'
 import { userAnswersStore } from '@/stores/answers'
 import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 defineProps<{
@@ -15,7 +21,6 @@ defineProps<{
 const router = useRouter()
 const {
   onCaseId,
-  loading,
   fetchClientSchema,
   fetchClientAnswers,
   mapAnswersForClientQuestion,
@@ -24,18 +29,36 @@ const {
   visit,
   consultantQuestionnaire,
 } = useCase()
+const { testKinds } = useTests()
+
 const showClient = ref(false)
 const showConsultant = ref(true)
 
 const { copy } = useClipboard()
 const toast = useToast()
 
+const selectedTests = ref<TestSchema[]>([])
+
 const answerStore = userAnswersStore()
+
+const selectedTestKinds = computed(() => {
+  return selectedTests.value.map((test) => {
+    return {
+      testKind: testKinds.value.find((tk) => tk.id === test.test_kind)!,
+      test,
+    }
+  })
+})
 
 onMounted(() => {
   onCaseId(() => {
     fetchClientAnswers()
     fetchClientSchema()
+    sureApiGetCaseTests({ path: { pk: visit.value!.case } }).then((response) => {
+      if (Array.isArray(response.data)) {
+        selectedTests.value = response.data
+      }
+    })
   })
 })
 
@@ -79,8 +102,6 @@ function onNext() {
 }
 </script>
 <template>
-  <section v-if="loading">Loading client questionnaire...</section>
-
   <section v-if="answerStore.schema && clientAnswers !== null">
     <header>
       <h2>Client Questionnaire</h2>
@@ -125,6 +146,27 @@ function onNext() {
         <Tag v-for="tag in visit?.tags || []" :key="tag" :value="tag" severity="secondary" />
       </div>
     </section>
+    <section>
+      <h3>Selected Tests</h3>
+      <div v-for="test in selectedTestKinds" :key="test.testKind.id!" class="selected-test">
+        <span>
+          {{ test.testKind.name }}
+        </span>
+        <span
+          class="test-result"
+          :style="
+            '--test-color: ' +
+            (test.testKind.result_options.find((r) => r.label === test.test.results[0]?.label)
+              ?.color || '#aaa')
+          "
+        >
+          {{
+            test.test.results.sort((a, b) => a.label.localeCompare(b.label)).at(0)?.label ||
+            'no result'
+          }}
+        </span>
+      </div>
+    </section>
     <section class="copy-summary">
       <Button
         icon="pi pi-copy"
@@ -158,5 +200,28 @@ header {
 }
 section {
   margin-bottom: 2rem;
+}
+.selected-test {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+.test-result {
+  font-weight: bold;
+  background-color: var(--test-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.3rem;
+  color: white;
+}
+
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  margin-top: 1em;
+}
+h2 {
+  margin-top: 0;
 }
 </style>

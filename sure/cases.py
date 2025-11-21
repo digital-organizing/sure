@@ -49,3 +49,16 @@ def annotate_last_modified(queryset: QuerySet[Visit]) -> QuerySet[Visit]:
             Subquery(latest_test_result),
         )
     )
+
+
+def annotate_latest_result(queryset: QuerySet[Test]) -> QuerySet[Test]:
+    """Annotates each Test with its latest_result (TestResult).
+
+    Returns:
+        QuerySet[Test]: The Test queryset with latest_result annotation
+    """
+    latest_result_subquery = TestResult.objects.filter(test=OuterRef("pk")).order_by(
+        "-created_at"
+    )
+
+    return queryset.annotate(latest_result=Subquery(latest_result_subquery[:1]))

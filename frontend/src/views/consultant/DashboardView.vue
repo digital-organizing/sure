@@ -250,7 +250,7 @@ async function selectCase(event: { data: { case: string } }) {
           :show-toggle-all="false"
         >
           <template #option="slotProps">
-            <StatusTag :value="slotProps.option.value" rounded />
+            <StatusTag class="status" :value="slotProps.option.value" rounded />
           </template>
         </MultiSelect>
       </template>

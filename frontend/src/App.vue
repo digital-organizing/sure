@@ -13,6 +13,7 @@ const showInternalMenu = computed(() => route.meta.showInternalMenu !== false)
 <template>
   <InternalMenuBar v-if="account.verified && showInternalMenu" />
   <Toast />
+  <ConfirmDialog></ConfirmDialog>
   <RouterView />
 </template>
 

@@ -9,6 +9,7 @@ import router from './router'
 import { client } from './client/client.gen.ts'
 import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
 import ToastService from 'primevue/toastservice'
+import ConfirmationService from 'primevue/confirmationservice'
 
 import PrimeVue from 'primevue/config'
 import Material from '@primeuix/themes/material'
@@ -148,6 +149,7 @@ app.use(PrimeVue, {
   },
 })
 app.use(ToastService)
+app.use(ConfirmationService)
 
 // Initialize stores after Pinia is set up
 const initializeStores = () => {

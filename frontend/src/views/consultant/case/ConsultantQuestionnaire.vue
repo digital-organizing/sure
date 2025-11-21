@@ -103,23 +103,6 @@ function onBack() {
 </template>
 
 <style scoped>
-h3 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.nr {
-  font-weight: bold;
-  background-color: var(--color-text);
-  color: var(--color-background);
-  border-radius: 100%;
-  height: 1.5em;
-  width: 1.5em;
-  display: block;
-  text-align: center;
-  line-height: 1.5em;
-  flex: 0 0 auto;
-}
 .question {
   margin-left: 2.5em;
 }

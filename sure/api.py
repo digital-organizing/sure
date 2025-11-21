@@ -55,7 +55,9 @@ from sure.schema import (
     SubmitCaseResponse,
     SubmitCaseSchema,
     TestCategorySchema,
+    TestResultInputSchema,
     TestResultOptionSchema,
+    TestSchema,
 )
 from tenants.models import Consultant
 
@@ -249,14 +251,28 @@ def update_case_tests(request, pk: str, test_pks: list[int]):
     existing = set(visit.tests.values_list("test_kind_id", flat=True))
     new = set(test_pks) - existing
 
-    tests = [Test(visit=visit, test_kind_id=test_kind_id) for test_kind_id in new]
+    tests = [
+        Test(visit=visit, test_kind_id=test_kind_id, user=request.user)
+        for test_kind_id in new
+    ]
     Test.objects.bulk_create(tests)
 
     with transaction.atomic():
-        visit.status = VisitStatus.CONSULTANT_SUBMITTED
+        visit.status = VisitStatus.TESTS_RECORDED
         visit.save(update_fields=["status"])
 
     return {"success": True, "warnings": warnings}
+
+
+@router.get("/case/{pk}/tests/", response=list[TestSchema])
+def get_case_tests(request, pk: str):
+    visit = get_case(request, pk)
+    tests = (
+        visit.tests.select_related("test_kind")
+        .prefetch_related("results", "results__result_option")
+        .all()
+    )
+    return tests
 
 
 @router.post("/case/{pk}/status/", response=SubmitCaseResponse)
@@ -274,16 +290,30 @@ def update_case_status(request, pk: str, status: str):
 
 @router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
 @inject_language
-def update_case_test_results(request, pk: str, test_results: dict[int, str]):
+def update_case_test_results(
+    request, pk: str, test_results: list[TestResultInputSchema]
+):
     visit = get_case(request, pk)
     test_kinds = visit.tests.all()
     warnings = []
 
-    for nr, label in test_results.items():
+    for result in test_results:
+        nr = result.number
+        label = result.label
+        note = result.note
+
         test = test_kinds.filter(test_kind__number=nr).first()
         if not test:
             warnings.append(
                 f"No test found for test kind number {nr} in case {visit.case.human_id}."
+            )
+            continue
+
+        latest_result = test.results.order_by("-created_at").first()
+        if latest_result and latest_result.result_option.label == label:
+            warnings.append(
+                f"Test result for test kind {test.test_kind.name} in case "
+                f"{visit.case.human_id} is already '{label}'. Skipping."
             )
             continue
 
@@ -296,7 +326,11 @@ def update_case_test_results(request, pk: str, test_results: dict[int, str]):
             )
             continue
 
-        test.test_results.create(result_option=option, user=request.user)
+        test.results.create(result_option=option, note=note, user=request.user)
+    with transaction.atomic():
+        visit.status = VisitStatus.RESULTS_RECORDED
+        visit.save(update_fields=["status"])
+    return {"success": True, "warnings": warnings}
 
 
 @router.post("/case/{pk}/tags/", response=SubmitCaseResponse)

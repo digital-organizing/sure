@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
+    Checkbox: typeof import('primevue/checkbox')['default']
     CheckboxGroup: typeof import('primevue/checkboxgroup')['default']
     ClientBottomNavButtons: typeof import('./src/components/ClientBottomNavButtons.vue')['default']
     ClientNavigationBottom: typeof import('./src/components/ClientNavigationBottom.vue')['default']
@@ -24,6 +25,7 @@ declare module 'vue' {
     ClientRecapSection: typeof import('./src/components/ClientRecapSection.vue')['default']
     ClientSection: typeof import('./src/components/ClientSection.vue')['default']
     Column: typeof import('primevue/column')['default']
+    ConfirmDialog: typeof import('primevue/confirmdialog')['default']
     ConsultantQuestion: typeof import('./src/components/ConsultantQuestion.vue')['default']
     ConsultantSection: typeof import('./src/components/ConsultantSection.vue')['default']
     copy: typeof import('./src/components/icons/IconPhone copy.vue')['default']
@@ -61,6 +63,7 @@ declare module 'vue' {
     PastVisitsComponent: typeof import('./src/components/PastVisitsComponent.vue')['default']
     ProgressBar: typeof import('./src/components/ProgressBar.vue')['default']
     PublicMenuBar: typeof import('./src/components/PublicMenuBar.vue')['default']
+    RadioButton: typeof import('primevue/radiobutton')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']

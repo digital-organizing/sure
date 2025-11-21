@@ -10,6 +10,7 @@
   --color-green: #d0ea2b;
   --color-green-2: #66b032;
   --color-orange: #fb9902;
+  --created-color: #fb9902;
   --client-color: #66b032;
   --consultant-color: #0391ce;
   --tests-color: #0247fe;
@@ -19,7 +20,7 @@
 }
 
 .created {
-  --status-color: var(--client-color);
+  --status-color: var(--created-color);
 }
 
 .client_submitted {
@@ -42,6 +43,9 @@
 }
 .closed {
   --status-color: var(--results-color);
+}
+.canceled {
+  --status-color: var(--color-ahs-light-gray);
 }
 /* semantic color variables for this project */
 :root {
@@ -135,6 +139,7 @@ a.p-button {
   align-self: stretch;
 }
 
-.status .p-tag {
+.status .p-tag,
+.status.p-tag {
   background-color: var(--status-color);
 }

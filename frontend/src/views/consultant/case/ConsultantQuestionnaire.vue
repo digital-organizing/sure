@@ -64,8 +64,9 @@ function onBack() {
 <template>
   <div v-if="loading">Loading consultant questionnaire...</div>
   <div>
-    <h2>Consultant Questionnaire Content</h2>
-
+    <header class="case">
+      <h2>Consultant Questionnaire Content</h2>
+    </header>
     <Form class="form-col">
       <div
         v-for="(question, idx) in consultantQuestionnaire?.consultant_questions"

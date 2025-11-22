@@ -88,3 +88,17 @@ h3 {
   line-height: 1.5em;
   flex: 0 0 auto;
 }
+
+.p-tag-label {
+  text-align: center;
+}
+header.case {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  margin-top: 1em;
+}
+header.case h2 {
+  margin-top: 0;
+}

@@ -76,7 +76,7 @@ async function submitSelectedTests() {
 }
 </script>
 <template>
-  <header>
+  <header class="case">
     <h2>Select Tests to be Performed</h2>
     <Button
       icon="pi pi-eraser"
@@ -119,16 +119,6 @@ async function submitSelectedTests() {
 <style scoped>
 .test {
   margin-left: 2.5rem;
-}
-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  margin-top: 1em;
-}
-h2 {
-  margin-top: 0;
 }
 .test-category {
   margin-bottom: 1.5rem;

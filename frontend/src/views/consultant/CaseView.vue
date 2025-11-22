@@ -184,6 +184,7 @@ article {
   grid-template-columns: auto 1fr;
   padding-left: 1rem;
   padding-right: 1rem;
+  gap: 1rem;
 }
 
 .nav-pill {
@@ -198,8 +199,6 @@ h1 {
 aside {
   grid-area: side;
   border-right: 1px solid var(--border-color);
-  padding-right: 1rem;
-  margin-right: 1rem;
   display: flex;
   flex-direction: column;
   width: 250px;
@@ -214,6 +213,8 @@ nav {
   display: flex;
   gap: 3px;
   margin-bottom: 1rem;
+
+  overflow-x: auto;
 }
 
 .done {
@@ -254,5 +255,31 @@ nav a {
 
 .case-field .label {
   font-weight: bold;
+}
+
+@media screen and (max-width: 600px) {
+  article {
+    grid-template-areas:
+      'title title refresh'
+      'main main main'
+      'side side side';
+    grid-template-columns: 1fr;
+  }
+
+  aside {
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    padding-right: 0;
+    margin-right: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  aside .p-panel {
+    flex: 1;
+  }
 }
 </style>

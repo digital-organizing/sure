@@ -52,7 +52,7 @@ onMounted(() => {
       <Button asChild v-slot="slotProps">
         <RouterLink :to="{ name: 'consultant-new-case' }" :class="slotProps.class">
           <i class="pi pi-plus" />
-          New Case
+          New&nbsp;Case
         </RouterLink>
       </Button>
       <div class="account">
@@ -74,6 +74,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
+  overflow-x: auto;
 }
 
 .logos {

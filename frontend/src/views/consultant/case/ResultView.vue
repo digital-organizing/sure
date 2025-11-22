@@ -120,7 +120,9 @@ function onBack() {
 </script>
 
 <template>
-  <h2>Test Results</h2>
+  <header class="case">
+    <h2>Test Results</h2>
+  </header>
   <Message v-if="categoryIterator.length == 0" severity="info">
     No tests have been selected for this case. Please go back to the test selection and choose tests
     to be performed.
@@ -145,7 +147,7 @@ function onBack() {
         {{ test.testKind.name }}
       </h4>
       <div class="input">
-        <div v-if="test.testKind.interpretation_needed">
+        <div v-if="test.testKind.interpretation_needed" class="note">
           <InputGroup>
             <InputText v-model="notes[test.testKind.number]" class="note-input" />
             <InputGroupAddon>
@@ -195,6 +197,7 @@ function onBack() {
   justify-content: space-between;
   padding-left: 2.5rem;
   padding-right: 1rem;
+  gap: 1rem;
 }
 
 .input {
@@ -222,5 +225,29 @@ function onBack() {
 }
 .error .missing {
   background-color: var(--p-message-warn-background);
+}
+
+h4 {
+  margin: 0;
+}
+.test-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+@media screen and (max-width: 1000px) {
+  .test {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .note {
+    width: 100%;
+  }
+  .input {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 }
 </style>

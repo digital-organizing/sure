@@ -14,7 +14,9 @@ function loadMoreHistory() {
 
 <template>
   <section>
-    <h2>Case History</h2>
+    <header class="case">
+      <h2>Case History</h2>
+    </header>
     <HistoryItem
       v-for="item of historyItems"
       :key="item.id!"

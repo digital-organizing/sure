@@ -103,7 +103,7 @@ function onNext() {
 </script>
 <template>
   <section v-if="answerStore.schema && clientAnswers !== null">
-    <header>
+    <header class="case">
       <h2>Client Questionnaire</h2>
       <Button
         :icon="showClient ? 'pi pi-eye-slash' : 'pi pi-eye'"
@@ -212,16 +212,5 @@ section {
   padding: 0.2rem 0.5rem;
   border-radius: 0.3rem;
   color: white;
-}
-
-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  margin-top: 1em;
-}
-h2 {
-  margin-top: 0;
 }
 </style>

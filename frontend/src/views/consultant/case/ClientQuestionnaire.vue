@@ -33,7 +33,9 @@ function onNext() {
   <section v-if="loading">Loading client questionnaire...</section>
 
   <section v-if="answerStore.schema && clientAnswers !== null">
-    <h2>Client Questionnaire</h2>
+    <header class="case">
+      <h2>Client Questionnaire</h2>
+    </header>
     <div v-for="section in answerStore.schema.sections" :key="section.id!" class="section">
       <ConsultantSection :section="section" />
     </div>

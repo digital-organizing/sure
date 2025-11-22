@@ -11,7 +11,7 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import translation
 from django.utils.translation import get_language_from_request
-from ninja import Body, Form, Query, Router, Schema
+from ninja import Form, Query, Router, Schema
 from ninja.errors import HttpError
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.utils import contribute_operation_args

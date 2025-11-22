@@ -12,7 +12,6 @@ from sure.client_service import (
     get_client_by_id,
     record_client_answers,
     verify_access_to_location,
-    verify_token,
 )
 from sure.models import (
     Client,

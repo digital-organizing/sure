@@ -310,7 +310,7 @@ def update_case_test_results(
             continue
 
         latest_result = test.results.order_by("-created_at").first()
-        if latest_result and latest_result.result_option.label == label:
+        if latest_result and latest_result.result_option.label == label and latest_result.note == note:
             warnings.append(
                 f"Test result for test kind {test.test_kind.name} in case "
                 f"{visit.case.human_id} is already '{label}'. Skipping."

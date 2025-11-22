@@ -8,7 +8,6 @@ import {
   sureApiListClientCases,
   type CaseListingSchema,
   type ConsultantAnswerSchema,
-  type PagedCaseListingSchema,
   sureApiGetCaseInternal,
   sureApiSubmitCase,
   type AnswerSchema,
@@ -19,6 +18,9 @@ import {
   type QuestionnaireSchema,
   sureApiUpdateCaseTests,
   sureApiUpdateCaseTestResults,
+  type RelatedCaseSchema,
+  type TestSchema,
+  sureApiGetCaseTests,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -26,8 +28,10 @@ import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
 
 export const useCase = createGlobalState(() => {
   const visit = ref<CaseListingSchema | null>(null)
+  const relatedCases = ref<RelatedCaseSchema[] | null>(null)
   const clientAnswers = ref<ClientAnswerSchema[] | null>(null)
   const consultantAnswers = ref<ConsultantAnswerSchema[] | null>(null)
+  const selectedTests = ref<TestSchema[]>([])
 
   const store = userAnswersStore()
   const consultantStore = consultantAnswersStore()
@@ -35,7 +39,6 @@ export const useCase = createGlobalState(() => {
   const consultantQuestionnaire = ref<InternalQuestionnaireSchema | null>(null)
   const clientQuestionnaire = ref<QuestionnaireSchema | null>(null)
 
-  const pastVisits = ref<PagedCaseListingSchema | null>(null)
   const selectedVisitId = ref<string | null>(null)
   const loading = ref(false)
   const callbacks = ref<((caseId: string | null) => void)[]>([])
@@ -58,16 +61,17 @@ export const useCase = createGlobalState(() => {
       client_answers: [],
       consultant_answers: [],
     }
-    pastVisits.value = null
+    relatedCases.value = []
+    selectedTests.value = []
+    await fetchVisitDetails()
 
     await Promise.all([
-      fetchVisitDetails(),
       fetchClientAnswers(),
       fetchConsultantAnswers(),
       fetchClientSchema(),
       fetchConsultantSchema(),
-      fetchPastVisits(),
       fetchCaseHistory(),
+      fetchSelectedTests(),
     ])
 
     if (visitId) {
@@ -152,6 +156,7 @@ export const useCase = createGlobalState(() => {
       .finally(() => {
         loading.value = false
       })
+    await fetchRelatedCases()
   }
 
   async function fetchClientSchema() {
@@ -197,6 +202,48 @@ export const useCase = createGlobalState(() => {
         loading.value = false
       })
   }
+
+  async function fetchRelatedCases() {
+    if (!visit.value || !visit.value.client) {
+      return (relatedCases.value = [])
+    }
+
+    await sureApiListClientCases({ path: { pk: visit.value.client } })
+      .then((response) => {
+        if (response.data) {
+          relatedCases.value = response.data.items.filter(
+            (item) => item.case_id !== visit.value!.case,
+          )
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch related cases:', error)
+        error.value = 'Failed to fetch related cases: ' + error.message
+      })
+  }
+
+  async function fetchSelectedTests() {
+    if (!visit.value) {
+      selectedTests.value = []
+      return
+    }
+    loading.value = true
+    await sureApiGetCaseTests({ path: { pk: visit.value!.case } })
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          selectedTests.value = response.data
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch case tests:', error)
+        error.value = 'Failed to fetch case tests: ' + error.message
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  }
+
+  // Assuming there's an API endpoint to fetch tests for a case
 
   function answerForClientQuestion(questionId: number) {
     return computed(() => {
@@ -313,21 +360,6 @@ export const useCase = createGlobalState(() => {
       })
   }
 
-  async function fetchPastVisits() {
-    if (visit.value && visit.value.client) {
-      await sureApiListClientCases({ path: { pk: visit.value.client } })
-        .then((response) => {
-          if (response.data) {
-            pastVisits.value = response.data!
-          }
-        })
-        .catch((error) => {
-          console.error('Failed to fetch client cases:', error)
-          error.value = 'Failed to fetch client cases: ' + error.message
-        })
-    }
-  }
-
   async function submitClientAnswer(answer: AnswerSchema) {
     await sureApiSubmitCase({ body: { answers: [answer] }, path: { pk: visit.value!.case } })
       .then(() => {})
@@ -359,6 +391,9 @@ export const useCase = createGlobalState(() => {
       .catch((error) => {
         error.value = 'Failed to update case tags: ' + error.message
       })
+      .then(async () => {
+        await fetchVisitDetails()
+      })
   }
 
   async function updateCaseTests(testKindIds: number[]) {
@@ -368,7 +403,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to update case tests: ' + error.message
       })
       .then(async () => {
-        await fetchVisitDetails()
+        await Promise.all([fetchVisitDetails(), fetchSelectedTests()])
       })
   }
 
@@ -393,7 +428,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to update case test results: ' + error.message
       })
       .then(async () => {
-        await fetchVisitDetails()
+        await Promise.all([fetchVisitDetails(), fetchSelectedTests()])
       })
   }
 
@@ -405,10 +440,8 @@ export const useCase = createGlobalState(() => {
     consultantAnswers,
     consultantQuestionnaire,
     clientQuestionnaire,
-    pastVisits,
     setCaseId,
     fetchVisitDetails,
-    fetchPastVisits,
     fetchClientAnswers,
     fetchConsultantAnswers,
     fetchClientSchema,
@@ -424,6 +457,8 @@ export const useCase = createGlobalState(() => {
     updateCaseTests,
     updateCaseTestResults,
     fetchCaseHistory,
+    relatedCases,
+    selectedTests,
     history,
     historyItems,
   }

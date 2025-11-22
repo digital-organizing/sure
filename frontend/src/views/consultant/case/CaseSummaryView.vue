@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import {
-  sureApiGetCaseTests,
-  type ClientQuestionSchema,
-  type ConsultantQuestionSchema,
-  type TestSchema,
-} from '@/client'
+import { type ClientQuestionSchema, type ConsultantQuestionSchema } from '@/client'
 import ConsultantSection from '@/components/ConsultantSection.vue'
 import { useCase } from '@/composables/useCase'
 import { useTests } from '@/composables/useTests'
 import { userAnswersStore } from '@/stores/answers'
 import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 defineProps<{
@@ -20,11 +15,9 @@ defineProps<{
 
 const router = useRouter()
 const {
-  onCaseId,
-  fetchClientSchema,
-  fetchClientAnswers,
   mapAnswersForClientQuestion,
   mapAnswersForConsultantQuestion,
+  selectedTests,
   clientAnswers,
   visit,
   consultantQuestionnaire,
@@ -37,8 +30,6 @@ const showConsultant = ref(true)
 const { copy } = useClipboard()
 const toast = useToast()
 
-const selectedTests = ref<TestSchema[]>([])
-
 const answerStore = userAnswersStore()
 
 const selectedTestKinds = computed(() => {
@@ -47,18 +38,6 @@ const selectedTestKinds = computed(() => {
       testKind: testKinds.value.find((tk) => tk.id === test.test_kind)!,
       test,
     }
-  })
-})
-
-onMounted(() => {
-  onCaseId(() => {
-    fetchClientAnswers()
-    fetchClientSchema()
-    sureApiGetCaseTests({ path: { pk: visit.value!.case } }).then((response) => {
-      if (Array.isArray(response.data)) {
-        selectedTests.value = response.data
-      }
-    })
   })
 })
 
@@ -161,8 +140,8 @@ function onNext() {
           "
         >
           {{
-            test.test.results.sort((a, b) => a.label.localeCompare(b.label)).at(0)?.label ||
-            'no result'
+            test.test.results.sort((a, b) => -a.created_at.localeCompare(b.created_at)).at(0)
+              ?.label || 'no result'
           }}
         </span>
       </div>

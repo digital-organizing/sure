@@ -4,30 +4,35 @@ from functools import wraps
 from typing import Any
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Func, Prefetch
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import translation
 from django.utils.translation import get_language_from_request
-from ninja import Query, Router, Schema
+from ninja import Body, Form, Query, Router, Schema
 from ninja.errors import HttpError
 from ninja.pagination import PageNumberPagination, paginate
 from ninja.utils import contribute_operation_args
 
 from sure.cases import annotate_last_modified
+from sure.client_service import can_connect_case
+from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
     create_case,
     create_visit,
     get_case,
     get_case_link,
+    get_case_unverified,
     record_client_answers,
     record_consultant_answers,
     send_case_link,
-    strip_id,
-    verify_access_to_location,
 )
+from sure.client_service import send_token as send_token_service
+from sure.client_service import strip_id, verify_access_to_location
 from sure.models import (
+    Case,
     ClientOption,
     ClientQuestion,
     ConsultantOption,
@@ -45,13 +50,17 @@ from sure.schema import (
     CaseHistory,
     CaseListingSchema,
     ClientAnswerSchema,
+    ConnectSchema,
     ConsultantAnswerSchema,
     CreateCaseResponse,
     CreateCaseSchema,
     InternalQuestionnaireSchema,
     OptionSchema,
+    PhoneNumberSchema,
     QuestionnaireListingSchema,
     QuestionnaireSchema,
+    RelatedCaseSchema,
+    StatusSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
     TestCategorySchema,
@@ -148,6 +157,39 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
 
     return questionnaire
+
+
+@router.post("/case/{pk}/send-token/", auth=None, response=None)
+def send_token(request, pk: str, phone_number: PhoneNumberSchema):
+    """Send a token to the given phone number for accessing the case."""
+    visit = get_case(request, pk)
+
+    if not can_connect_case(visit.case):
+        raise HttpError(400, "Case cannot be connected")
+
+    try:
+        send_token_service(phone_number.phone_number, visit.case)
+    except ValueError as e:
+        raise HttpError(400, str(e)) from e
+
+    return None
+
+
+@router.post("/case/{pk}/connect/", auth=None, response=StatusSchema)
+@inject_language
+def connect_case(request, pk: str, data: ConnectSchema):
+    visit = get_case(request, pk)
+
+    if not can_connect_case(visit.case):
+        raise HttpError(400, "Case cannot be connected")
+
+    contact = connect_case_service(
+        visit.case, data.phone_number, data.token, data.consent
+    )
+    if contact is None:
+        raise HttpError(400, "Invalid token")
+
+    return StatusSchema(success=True, message="Case connected successfully")
 
 
 @router.get("/case/{pk}/internal/", response=InternalQuestionnaireSchema)
@@ -310,7 +352,11 @@ def update_case_test_results(
             continue
 
         latest_result = test.results.order_by("-created_at").first()
-        if latest_result and latest_result.result_option.label == label and latest_result.note == note:
+        if (
+            latest_result
+            and latest_result.result_option.label == label
+            and latest_result.note == note
+        ):
             warnings.append(
                 f"Test result for test kind {test.test_kind.name} in case "
                 f"{visit.case.human_id} is already '{label}'. Skipping."
@@ -342,6 +388,40 @@ def update_case_tags(request, pk: str, tags: list[str]):
         visit.tags = tags
         visit.save(update_fields=["tags"])
     return {"success": True}
+
+
+@router.post(
+    "/case/{pk}/set-key/", response={200: StatusSchema, 400: StatusSchema}, auth=None
+)
+def set_case_key(request, pk: str, key: Form["str"]):
+    visit = get_case_unverified(pk)
+
+    if visit.status != VisitStatus.CLIENT_SUBMITTED:
+        raise HttpError(400, "Cannot set key for a case that is not in CREATED status")
+
+    try:
+        visit.case.set_key(key)
+    except ValueError as e:
+        return 400, {"success": False, "message": str(e)}
+    except ValidationError as e:
+        print(e.messages)
+        return 400, {"success": False, "message": e.messages}
+    return {"success": True}
+
+
+@router.post("/case/{pk}/communication/", auth=None)
+def view_case_communication(request, pk: str, key: Form["str"]):
+    """View or log communication related to a case."""
+    visit = get_case_unverified(pk)
+
+    if not visit.case.check_key(key):
+        raise HttpError(403, "Invalid access key for the case")
+
+    if visit.status != VisitStatus.RESULTS_SENT:
+        raise HttpError(400, "Results not ready for this case yet")
+
+    # Log communication and return information
+    return "ok"
 
 
 @router.post("/case/create/", response=CreateCaseResponse)
@@ -434,7 +514,7 @@ def get_case_tags_options(request):
     return sorted(distinct_tags)
 
 
-@router.get("/client/{pk}/cases/", response=list[CaseListingSchema])
+@router.get("/client/{pk}/cases/", response=list[RelatedCaseSchema])
 @inject_language
 @paginate(PageNumberPagination, page_size=20)
 def list_client_cases(request, pk: str):
@@ -442,16 +522,10 @@ def list_client_cases(request, pk: str):
     consultant = get_object_or_404(Consultant, user=request.user)
     client_id = strip_id(pk)
 
-    visits = annotate_last_modified(
-        Visit.objects.filter(
-            case__location__in=consultant.locations.all(),
-            case__connection__client__id=client_id,
-        )
-        .select_related("case", "questionnaire", "case__connection", "case__location")
-        .prefetch_related("client_answers", "consultant_answers", "test_results")
+    return Case.objects.filter(
+        connection__client__id=client_id,
+        location__in=consultant.locations.all(),
     ).order_by("-created_at")
-
-    return visits
 
 
 @router.get("/questionnaires/", response=list[QuestionnaireListingSchema], auth=None)

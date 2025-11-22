@@ -235,6 +235,52 @@ export type SectionSchema = {
 };
 
 /**
+ * PhoneNumberSchema
+ */
+export type PhoneNumberSchema = {
+    /**
+     * Phone Number
+     */
+    phone_number: string;
+};
+
+/**
+ * StatusSchema
+ */
+export type StatusSchema = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * Message
+     */
+    message?: string | Array<string> | null;
+    /**
+     * Warnings
+     */
+    warnings?: Array<string> | null;
+};
+
+/**
+ * ConnectSchema
+ */
+export type ConnectSchema = {
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Consent
+     */
+    consent: string;
+    /**
+     * Phone Number
+     */
+    phone_number: string;
+};
+
+/**
  * ConsultantOptionSchema
  */
 export type ConsultantOptionSchema = {
@@ -708,6 +754,34 @@ export type OptionSchema = {
      * Value
      */
     value: string;
+};
+
+/**
+ * PagedRelatedCaseSchema
+ */
+export type PagedRelatedCaseSchema = {
+    /**
+     * Items
+     */
+    items: Array<RelatedCaseSchema>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
+ * RelatedCaseSchema
+ */
+export type RelatedCaseSchema = {
+    /**
+     * Case Id
+     */
+    case_id: string;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -1312,6 +1386,51 @@ export type SureApiGetCaseQuestionnaireResponses = {
 
 export type SureApiGetCaseQuestionnaireResponse = SureApiGetCaseQuestionnaireResponses[keyof SureApiGetCaseQuestionnaireResponses];
 
+export type SureApiSendTokenData = {
+    body: PhoneNumberSchema;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/send-token/';
+};
+
+export type SureApiSendTokenResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type SureApiConnectCaseData = {
+    body: ConnectSchema;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/connect/';
+};
+
+export type SureApiConnectCaseResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiConnectCaseResponse = SureApiConnectCaseResponses[keyof SureApiConnectCaseResponses];
+
 export type SureApiGetCaseInternalData = {
     body?: never;
     path: {
@@ -1643,6 +1762,71 @@ export type SureApiUpdateCaseTagsResponses = {
 
 export type SureApiUpdateCaseTagsResponse = SureApiUpdateCaseTagsResponses[keyof SureApiUpdateCaseTagsResponses];
 
+export type SureApiSetCaseKeyData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/set-key/';
+};
+
+export type SureApiSetCaseKeyErrors = {
+    /**
+     * Bad Request
+     */
+    400: StatusSchema;
+};
+
+export type SureApiSetCaseKeyError = SureApiSetCaseKeyErrors[keyof SureApiSetCaseKeyErrors];
+
+export type SureApiSetCaseKeyResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiSetCaseKeyResponse = SureApiSetCaseKeyResponses[keyof SureApiSetCaseKeyResponses];
+
+export type SureApiViewCaseCommunicationData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/communication/';
+};
+
+export type SureApiViewCaseCommunicationResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type SureApiCreateCaseViewData = {
     body: CreateCaseSchema;
     path?: never;
@@ -1818,7 +2002,7 @@ export type SureApiListClientCasesResponses = {
     /**
      * OK
      */
-    200: PagedCaseListingSchema;
+    200: PagedRelatedCaseSchema;
 };
 
 export type SureApiListClientCasesResponse = SureApiListClientCasesResponses[keyof SureApiListClientCasesResponses];

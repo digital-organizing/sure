@@ -29,6 +29,12 @@ from sure.models import (
 )
 
 
+class StatusSchema(Schema):
+    success: bool
+    message: str | list[str] | None = None
+    warnings: list[str] | None = None
+
+
 class ClientOptionSchema(ModelSchema):
     class Meta:
         model = ClientOption
@@ -447,7 +453,7 @@ class CaseListingSchema(ModelSchema):
         connection = getattr(visit.case, "connection", None)
         if not connection:
             return ""
-        return connection.client.humnan_id
+        return connection.client.human_id
 
     @staticmethod
     def resolve_last_modified_at(visit: Visit) -> str:
@@ -532,3 +538,27 @@ class TestSchema(ModelSchema):
         ]
 
     results: list[TestResultSchema]
+
+
+class PhoneNumberSchema(Schema):
+    phone_number: Annotated[str, BeforeValidator(validate_phone_number)]
+
+
+class ConnectSchema(Schema):
+    token: str
+    consent: str
+    phone_number: Annotated[str, BeforeValidator(validate_phone_number)]
+
+
+class RelatedCaseSchema(ModelSchema):
+    case_id: str
+
+    class Meta:
+        model = Case
+        fields = [
+            "created_at",
+        ]
+
+    @staticmethod
+    def resolve_case_id(case: Case) -> str:
+        return case.human_id

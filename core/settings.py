@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "constance",
     "sure.apps.SureConfig",
     "guard",
+    "sms",
     "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
@@ -142,6 +143,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+KEY_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
 ]
 
@@ -341,3 +351,13 @@ CONSTANCE_CONFIG = {
 
 OTP_TOTP_ISSUER = env.str("OTP_TOTP_ISSUER", default="SURE")
 OTP_TOTP_IMAGE = env.str("OTP_TOTP_IMAGE", default="")
+
+
+CASE_CONNECTION_WINDOW_MINUTES = env.int("CASE_CONNECTION_WINDOW_MINUTES", default=60)
+TOKEN_VALIDITY_MINUTES = env.int("TOKEN_VALIDITY_MINUTES", default=30)
+
+SMSUP_API_TOKEN = env.str("SMSUP_API_TOKEN", default="")
+
+TOKEN_RESEND_INTERVAL_MINUTES = env.int(
+    "TOKEN_RESEND_INTERVAL_MINUTES", default=0 if DEBUG else 3
+)

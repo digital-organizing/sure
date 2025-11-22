@@ -43,6 +43,7 @@ class CaseManagementTest(TestCase):
         )
         location = tenant.locations.create(name="Test Location")
         consultant.locations.set([location])
+        self.case = create_case(location.pk, owner)
 
         self.location = location
 
@@ -65,7 +66,7 @@ class CaseManagementTest(TestCase):
 
     def test_generate_token(self):
         phone_number = "+41797360516"
-        token = generate_token(phone_number)
+        token = generate_token(phone_number, self.case)
         contact = Contact.objects.filter(
             phone_number=canonicalize_phone_number(phone_number)
         ).first()
@@ -77,22 +78,10 @@ class CaseManagementTest(TestCase):
         contact = Contact.objects.get(phone_number=phone_number)
         self.assertTrue(contact.tokens.filter(token=token.token).exists())
 
-    def test_verify_token(self):
-        phone_number = "+41797360516"
-        _, token = generate_token(phone_number)
-
-        contact = verify_token(token, phone_number, use=False)
-
-        self.assertIsNotNone(contact)
-        assert contact is not None
-        self.assertEqual(contact.phone_number, canonicalize_phone_number(phone_number))
-
-        self.assertIsNone(contact.tokens.get(token=token).used_at)
-
     def test_connect_case(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case)
 
         connection = connect_case(
             case, phone_number, token, consent=ConsentChoice.ALLOWED
@@ -116,7 +105,7 @@ class CaseManagementTest(TestCase):
     def test_connect_case_no_consent(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case)
 
         with self.assertRaises(ValueError):
             connect_case(case, phone_number, token, consent=ConsentChoice.DENIED)
@@ -124,7 +113,7 @@ class CaseManagementTest(TestCase):
     def test_connect_case_invalid_token(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)
-        generate_token(phone_number)
+        generate_token(phone_number, case)
 
         with self.assertRaises(ValueError):
             connect_case(
@@ -190,11 +179,11 @@ class CaseManagementTest(TestCase):
         case2 = create_case(self.location.pk, self.user)
         phone_number = "+41797360516"
 
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case1)
 
         connect_case(case1, phone_number, token, consent=ConsentChoice.ALLOWED)
 
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case2)
         connect_case(case2, phone_number, token, consent=ConsentChoice.ALLOWED)
 
         contact = Contact.objects.get(phone_number=phone_number)

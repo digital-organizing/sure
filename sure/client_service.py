@@ -1,5 +1,7 @@
 """Functions for creating and managing clients and their cases."""
 
+from datetime import timedelta
+
 import phonenumbers
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -8,9 +10,9 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 import tenants.models
+from sms.service import send_sms
 from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
-from sure.twilio import send_sms
 
 from .models import (
     Case,
@@ -76,43 +78,46 @@ def get_case_link(case: Case) -> str:
     return settings.SITE_URL + "?case=" + case.human_id
 
 
-def generate_token(phone_number: str) -> tuple[Contact, str]:
+def generate_token(phone_number: str, case: Case) -> tuple[Contact, str]:
     """Generate a token for the given phone number, creating a contact if necessary."""
     contact, _ = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
     )
-    token = contact.generate_token()
+    token = contact.generate_token(case)
     return contact, token
 
 
 def send_case_link(case: Case, phone_number: str):
     """Send a link to access the case to the given phone number."""
-    contact, token = generate_token(phone_number)
+    contact, token = Contact.objects.get_or_create(
+        phone_number=canonicalize_phone_number(phone_number),
+    )
 
-    link = get_case_link(case) + "&token=" + token
+    link = get_case_link(case)
 
     msg = "Open this link to access your case: " + link
 
     send_sms(contact.phone_number, msg)
 
 
-def send_token(phone_number: str):
+def send_token(phone_number: str, case: Case):
     """Send a verification token to the given phone number"""
 
     contact, _ = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
     )
-    token = contact.generate_token()
-    # Send the token via SMS (implementation not shown)
-    link = f"{settings.SITE_URL}/verify/?token={token}"
+    if contact.has_recent_token():
+        raise ValueError(
+            "A recent token has already been sent, please wait before requesting a new one."
+        )
 
-    msg = "Click this link to verify your phone number: " + link
+    token = contact.generate_token(case)
+    msg = "Enter this token to verify your phone number: " + token
 
     send_sms(contact.phone_number, msg)
 
 
-@transaction.atomic
-def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
+def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:
     """Verify that the given token is valid for the given phone number.
 
     If 'use' is True, mark the token as used.
@@ -125,24 +130,36 @@ def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
     if not contact:
         return None
 
-    valid_token = contact.tokens.filter(token=token, used_at__isnull=True).first()
-    if not valid_token:
+    if not contact.verify_token(token, case):
         return None
 
-    if use:
-        valid_token.used_at = timezone.now()
-        valid_token.save()
-
     return contact
+
+
+def can_connect_case(case: Case) -> bool:
+    """Check if a case can be connected to a client."""
+    if Connection.objects.filter(case=case).exists():
+        return False
+
+    if case.created_at < timezone.now() - timedelta(
+        minutes=settings.CASE_CONNECTION_WINDOW_MINUTES
+    ):
+        return False
+
+    return True
 
 
 @transaction.atomic
 def connect_case(case: Case, phone_number: str, token: str, consent: str) -> Connection:
     """Connect a case to a client identified by the given phone number and token."""
+
+    if not can_connect_case(case):
+        raise ValueError("Case cannot be connected")
+
     if consent != ConsentChoice.ALLOWED:
         raise ValueError("Consent must be allowed to connect case")
 
-    contact = verify_token(token, phone_number, use=True)
+    contact = verify_token(token, phone_number, case)
     if not contact:
         raise ValueError("Invalid token or phone number")
 
@@ -260,5 +277,13 @@ def get_case(request, pk):
 
     if not verify_access_to_location(visit.case.location, request.user):
         raise PermissionError("User does not have access to this location")
+
+    return visit
+
+
+def get_case_unverified(pk):
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
 
     return visit

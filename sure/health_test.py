@@ -9,10 +9,11 @@ OPTIONS_LAB = "Result options by lab"
 
 
 def create_options(row, test: TestKind, options_str: str):
-    if options_str.startswith("XXX"):
-        options = ["reactive", "negative", "unclear"]
-    else:
-        options = [opt.strip() for opt in options_str.split("/") if opt.strip()]
+    options = (
+        ["reactive", "negative", "unclear"]
+        if options_str.startswith("XXX")
+        else [opt.strip() for opt in options_str.split("/") if opt.strip()]
+    )
 
     for option in options:
         label = option
@@ -70,10 +71,7 @@ def create_tests(df_tests_only):
             options_str = row[OPTIONS_LAB]
             rapid = False
 
-        if options_str.startswith("XXX"):
-            note = options_str[3:].strip()
-        else:
-            note = ""
+        note = options_str[3:].strip() if options_str.startswith("XXX") else ""
 
         test, _ = TestKind.objects.update_or_create(
             number=row["Number"],

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { sureApiGetCaseTests, type TestSchema } from '@/client'
 import { useCase } from '@/composables/useCase'
 import { useTests } from '@/composables/useTests'
 import { useConfirm } from 'primevue/useconfirm'
@@ -11,10 +10,9 @@ const props = defineProps<{ caseId: string }>()
 const router = useRouter()
 const confirm = useConfirm()
 
-const { onCaseId, updateCaseTestResults, visit } = useCase()
+const { onCaseId, updateCaseTestResults, selectedTests } = useCase()
 
 const { testKinds, testCategories } = useTests()
-const selectedTests = ref<TestSchema[]>([])
 
 const results = ref<{ [id: string]: string | null }>({})
 const notes = ref<{ [id: string]: string }>({})
@@ -22,21 +20,15 @@ const showError = ref(false)
 
 onMounted(() => {
   onCaseId(() => {
-    sureApiGetCaseTests({ path: { pk: visit.value!.case } }).then((response) => {
-      if (!Array.isArray(response.data)) {
+    selectedTestKinds.value.forEach((test) => {
+      const latest = test.test.results
+        .sort((a, b) => b.created_at.localeCompare(a.created_at))
+        .at(0)
+      if (!latest) {
         return
       }
-      selectedTests.value = response.data
-      selectedTestKinds.value.forEach((test) => {
-        const latest = test.test.results
-          .sort((a, b) => b.created_at.localeCompare(a.created_at))
-          .at(0)
-        if (!latest) {
-          return
-        }
-        results.value[test.testKind.number] = latest.label
-        notes.value[test.testKind.number] = latest.note || ''
-      })
+      results.value[test.testKind.number] = latest.label
+      notes.value[test.testKind.number] = latest.note || ''
     })
   })
 })
@@ -239,7 +231,8 @@ h4 {
   .test {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
   }
   .note {
     width: 100%;

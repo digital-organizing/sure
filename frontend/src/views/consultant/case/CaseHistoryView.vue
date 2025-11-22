@@ -6,8 +6,6 @@ defineProps<{ caseId: string }>()
 const { historyItems, fetchCaseHistory } = useCase()
 
 function loadMoreHistory() {
-  // Placeholder for loading more history items
-  // Implement pagination or fetching more items as needed
   fetchCaseHistory(20, true)
 }
 </script>

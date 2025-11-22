@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCase } from '@/composables/useCase'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
@@ -46,7 +46,9 @@ const navItems = [
   },
 ]
 
-useTitle(props.caseId + ' - Case View')
+const title = computed(() => 'Case ' + props.caseId + ' - Case View')
+
+useTitle(title)
 
 const { labelForStatus, indexForStatus } = useStatus()
 
@@ -57,7 +59,7 @@ function formatTimestamp(timestamp: string | null | undefined): string {
   return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
 }
 
-const { visit, setCaseId } = useCase()
+const { visit, setCaseId, relatedCases, loading } = useCase()
 
 const { clearAnswers } = userAnswersStore()
 
@@ -102,10 +104,17 @@ onMounted(() => {
     }
   })
 })
+
+watch(
+  () => props.caseId,
+  (newCaseId) => {
+    setCaseId(newCaseId)
+  },
+)
 </script>
 
 <template>
-  <article>
+  <article :class="loading ? 'loading' : ''">
     <h1>Case-ID {{ props.caseId }}</h1>
 
     <div class="refresh">
@@ -115,23 +124,23 @@ onMounted(() => {
       <Panel header="Case Details">
         <div class="case-field">
           <span class="label">Client ID</span>
-          <span>{{ visit?.client || '-' }}</span>
+          <span class="value">{{ visit?.client || '-' }}</span>
         </div>
         <div class="case-field">
           <span class="label">Case ID</span>
-          <span>{{ visit?.case }}</span>
+          <span class="value">{{ visit?.case }}</span>
         </div>
         <div class="case-field">
           <span class="label">Location</span>
-          <span>{{ visit?.location }}</span>
+          <span class="value">{{ visit?.location }}</span>
         </div>
         <div class="case-field">
           <span class="label">Last Modification</span>
-          <span>{{ formatTimestamp(visit?.last_modified_at) }}</span>
+          <span class="value">{{ formatTimestamp(visit?.last_modified_at) }}</span>
         </div>
         <div class="case-field">
           <span class="label">Created At</span>
-          <span>{{ formatTimestamp(visit?.created_at) }}</span>
+          <span class="value">{{ formatTimestamp(visit?.created_at) }}</span>
         </div>
         <div class="case-field status">
           <span class="label"> Status </span>
@@ -141,6 +150,17 @@ onMounted(() => {
           <span class="label">Tags</span>
           <div class="tags">
             <Tag v-for="tag in visit?.tags" :key="tag" :value="tag" rounded severity="secondary" />
+          </div>
+        </div>
+        <div class="history case-field" v-if="relatedCases && relatedCases.length > 0">
+          <span class="label">Past visits</span>
+          <div class="visits">
+            <RouterLink
+              v-for="relatedCase in relatedCases"
+              :key="relatedCase.case_id!"
+              :to="{ name: 'consultant-case-summary', params: { caseId: relatedCase.case_id } }"
+              >{{ formatDate(new Date(relatedCase.created_at), 'DD.MM.YYYY') }}</RouterLink
+            >
           </div>
         </div>
       </Panel>
@@ -254,7 +274,11 @@ nav a {
 }
 
 .case-field .label {
+  font-weight: normal;
+}
+.case-field .value {
   font-weight: bold;
+  margin-top: 0.2rem;
 }
 
 @media screen and (max-width: 600px) {
@@ -281,5 +305,16 @@ nav a {
   aside .p-panel {
     flex: 1;
   }
+}
+.visits {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+}
+.visits a {
+  text-decoration: underline;
+  font-weight: bold;
+  color: var(--text-color);
 }
 </style>

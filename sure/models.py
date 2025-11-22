@@ -4,15 +4,23 @@ This includes clients, cases, and connections, as well as the questionnaires and
 
 import secrets
 import uuid
+from datetime import timedelta
 
 import phonenumbers
 from colorfield.fields import ColorField
 from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.password_validation import (
+    get_password_validators,
+    validate_password,
+)
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
+DIGITS = "0123456789"
 
 CONTACT_ID_LENGTH = 7
 CASE_ID_LENGTH = 7
@@ -51,6 +59,29 @@ class Case(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
+    key = models.TextField(
+        blank=True,
+        verbose_name=_("Access Key"),
+        help_text=_("An optional access key for the case data"),
+    )
+
+    def set_key(self, key: str):
+        """Set the access key for the case."""
+        validate_password(
+            key, password_validators=get_password_validators(settings.KEY_VALIDATORS)
+        )
+
+        key = make_password(key)
+
+        with transaction.atomic():
+            if self.key != "":
+                raise ValueError("Key is already set and cannot be changed")
+            self.key = key
+            self.save(update_fields=["key"])
+
+    def check_key(self, key: str) -> bool:
+        return check_password(key, self.key) and self.key != ""
+
     @property
     def human_id(self):
         """SUF: Sure 'Fall' or Form/Formulaire"""
@@ -74,7 +105,7 @@ class ConsentChoice(models.TextChoices):
 
 def generate_token():
     """Generate a secure random token."""
-    return secrets.token_urlsafe(32)
+    return "".join(secrets.choice(DIGITS) for _ in range(6))
 
 
 class Contact(models.Model):
@@ -99,10 +130,48 @@ class Contact(models.Model):
         verbose_name = _("Contact")
         verbose_name_plural = _("Contacts")
 
-    def generate_token(self) -> str:
+    def has_recent_token(self) -> bool:
+        """Check if a recent token has been generated for this contact."""
+        recent_token = self.tokens.filter(
+            created_at__gte=timezone.now()
+            - timedelta(minutes=settings.TOKEN_RESEND_INTERVAL_MINUTES),
+            used_at__isnull=True,
+            disabled=False,
+        ).first()
+
+        return recent_token is not None
+
+    @transaction.atomic
+    def generate_token(self, case: Case) -> str:
         """Generate a new token for this contact."""
-        token = Token.objects.create(contact=self)
+        # Check if recent token exists
+        if self.has_recent_token():
+            raise ValueError(
+                "A recent token has already been generated, "
+                "please wait before requesting a new one."
+            )
+
+        self.tokens.filter(used_at__isnull=True).update(disabled=True)
+
+        token = self.tokens.create(case=case)
         return token.token
+
+    @transaction.atomic
+    def verify_token(self, token: str, case: Case) -> "Token | None":
+        """Verify if the given token is valid for this contact."""
+        valid_token = self.tokens.filter(
+            token=token,
+            used_at__isnull=True,
+            disabled=False,
+            case=case,
+        ).first()
+
+        if valid_token is None:
+            return None
+
+        valid_token.used_at = timezone.now()
+        valid_token.save(update_fields=["used_at"])
+        return valid_token
 
 
 class Client(models.Model):
@@ -157,6 +226,14 @@ class Token(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     used_at = models.DateTimeField(blank=True, null=True, verbose_name=_("Used At"))
+
+    disabled = models.BooleanField(
+        default=False,
+        verbose_name=_("Disabled"),
+        help_text=_("Whether this token is disabled and cannot be used"),
+    )
+
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="tokens")
 
 
 class Questionnaire(models.Model):

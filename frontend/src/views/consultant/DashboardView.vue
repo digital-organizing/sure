@@ -158,7 +158,7 @@ async function selectCase(event: { data: { case: string } }) {
       :show-apply-button="false"
     >
       <template #body="{ data }">
-        {{ data.client_id }}
+        {{ data.client }}
       </template>
       <template #filter="{ filterModel, filterCallback }">
         <InputText

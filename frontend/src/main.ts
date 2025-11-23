@@ -7,7 +7,6 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { client } from './client/client.gen.ts'
-import { coreApiGetCsrfToken } from './client/sdk.gen.ts'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 
@@ -23,26 +22,28 @@ import { createSentryPiniaPlugin } from '@sentry/vue'
 
 // Import stores for initialization
 
-function getCsrfToken() {
-  return (
-    document.cookie
-      ?.split(';')
-      .find((c) => c.trim().startsWith('csrftoken='))
-      ?.split('=')[1] || ''
-  )
+function getCookie(name: string) {
+  let cookieValue = null
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim()
+      // Does this cookie string begin with the name we want?
+      if (cookie.substring(0, name.length + 1) === name + '=') {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+        break
+      }
+    }
+  }
+  return cookieValue
 }
+let token = (document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement)?.value || ''
 
 // Add CSRF token to all requests
 client.interceptors.request.use(async (request) => {
   const url = new URL(request.url)
   if (url.pathname.startsWith('/api/csrf')) {
     return request
-  }
-  let token = getCsrfToken()
-  if (!token) {
-    // Make request to get the token
-    await coreApiGetCsrfToken()
-    token = getCsrfToken()
   }
   request.headers.append('X-CSRFToken', token)
   return request
@@ -54,6 +55,7 @@ client.interceptors.response.use(async (response) => {
       router.push({ path: '/login', query: { next: router.currentRoute.value.fullPath } })
     }
   }
+  token = getCookie('csrftoken') || token
   return response
 })
 

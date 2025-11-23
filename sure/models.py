@@ -70,6 +70,8 @@ class Case(models.Model):
         validate_password(
             key, password_validators=get_password_validators(settings.KEY_VALIDATORS)
         )
+        if len(key) > 512:
+            raise ValueError("Key is too long (maximum is 512 characters)")
 
         key = make_password(key)
 
@@ -479,7 +481,7 @@ class BaseAnswer(models.Model):
     Uses arrays to store multiple choices and texts and single choice."""
 
     choices = ArrayField(models.IntegerField(), blank=True, default=list)
-    texts = ArrayField(models.TextField(), blank=True, default=list)
+    texts = ArrayField(models.TextField(max_length=2000), blank=True, default=list)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     user = models.ForeignKey(
         "auth.User",
@@ -555,6 +557,7 @@ class TestKind(models.Model):
     )
 
     note = models.TextField(
+        max_length=2000,
         blank=True,
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test"),
@@ -581,6 +584,7 @@ class TestResultOption(models.Model):
         help_text=_("Can this result option be sent by SMS?"),
     )
     information_text = models.TextField(
+        max_length=2000,
         blank=True,
         verbose_name=_("Information Text"),
         help_text=_("Information text to be sent to the client"),
@@ -656,6 +660,7 @@ class Test(models.Model):
         TestKind, on_delete=models.CASCADE, related_name="test_results"
     )
     note = models.TextField(
+        max_length=2000,
         blank=True,
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test result"),
@@ -688,6 +693,7 @@ class TestResult(models.Model):
     )
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="results")
     note = models.TextField(
+        max_length=2000,
         blank=True,
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test result"),

@@ -3,8 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.middleware.csrf import get_token
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt
 from django_otp import devices_for_user
 from django_otp import login as otp_login
 from django_otp import user_has_device, verify_token
@@ -12,26 +11,23 @@ from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from ninja import Form, NinjaAPI, Schema
 from ninja.security import django_auth
+from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 from sesame.utils import get_user
 
 import sure.api
 import tenants.api
 from core.auth import auth_2fa, auth_2fa_or_trusted
 
-api = NinjaAPI(auth=auth_2fa_or_trusted)
+api = NinjaAPI(
+    auth=auth_2fa_or_trusted,
+    throttle=[
+        AnonRateThrottle("5/s"),
+        AuthRateThrottle("50/s"),
+    ],
+)
 
 api.add_router("/sure", sure.api.router)
 api.add_router("/tenants", tenants.api.router)
-
-
-class CsrfTokenResponse(Schema):
-    csrfToken: str
-
-
-@ensure_csrf_cookie
-@api.post("/csrf", auth=None, response=CsrfTokenResponse)
-def get_csrf_token(request) -> CsrfTokenResponse:
-    return CsrfTokenResponse(csrfToken=get_token(request))
 
 
 class LoginResponse(Schema):

@@ -1,7 +1,6 @@
 import {
   coreApiAccount,
   coreApiGenerateOtpBackupCodesView,
-  coreApiGetCsrfToken,
   coreApiListOtpDevicesView,
   coreApiLoginView,
   coreApiLogoutView,
@@ -57,7 +56,6 @@ export const useAccount = createGlobalState(() => {
     }
     loading.value = false
     error.value = null
-    await coreApiGetCsrfToken()
   }
 
   async function fetchTwoFaDevices() {
@@ -107,7 +105,7 @@ export const useAccount = createGlobalState(() => {
       if (response.error) {
         throw new Error(response.error.error!)
       }
-      await Promise.all([fetchTwoFaDevices(), fetchAccount(), coreApiGetCsrfToken()])
+      await Promise.all([fetchTwoFaDevices(), fetchAccount()])
     } catch (e: unknown) {
       error.value = (e as Error).message
     } finally {
@@ -178,7 +176,6 @@ export const useAccount = createGlobalState(() => {
         is_staff: null,
         is_superuser: null,
       }
-      await coreApiGetCsrfToken()
     } catch (e) {
       error.value = 'Failed to logout: ' + e
     } finally {

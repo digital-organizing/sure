@@ -162,9 +162,10 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
 @router.post(
     "/case/{pk}/send-token/", auth=None, response={200: StatusSchema, 400: StatusSchema}
 )
-def send_token(request, pk: str, phone_number: PhoneNumberSchema):
+def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
     """Send a token to the given phone number for accessing the case."""
     visit = get_case_unverified(pk)
+    request.session["phone_number"] = phone_number.phone_number
 
     if not can_connect_case(visit.case):
         return 400, StatusSchema(success=False, message="Case cannot be connected")
@@ -178,11 +179,19 @@ def send_token(request, pk: str, phone_number: PhoneNumberSchema):
 
 @router.post("/case/{pk}/connect/", auth=None, response=StatusSchema)
 @inject_language
-def connect_case(request, pk: str, data: ConnectSchema):
+def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
     visit = get_case_unverified(pk)
 
     if not can_connect_case(visit.case):
         raise HttpError(400, "Case cannot be connected")
+
+    if "phone_number" not in request.session:
+        raise HttpError(400, "Phone number not provided. Please request a token first.")
+
+    if request.session["phone_number"] != data.phone_number:
+        raise HttpError(
+            400, "Phone number does not match the one used for token request."
+        )
 
     contact = connect_case_service(
         visit.case, data.phone_number, data.token, data.consent

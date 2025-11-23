@@ -83,7 +83,6 @@ function goToSection(index: number) {
 function onSubmit() {
   sureApiSubmitCase({ path: { pk: props.caseId }, body: answersStore.answers })
     .then(() => {
-      alert('Form submitted successfully!')
       router.push(`/client/${props.caseId}/phone`)
     })
     .catch(() => {

@@ -6,10 +6,13 @@ import IconRightArrow from '@/components/icons/IconRightArrow.vue'
 import { computed, onMounted, ref } from 'vue'
 import { RadioButton, InputText } from 'primevue'
 import { sureApiConnectCase, sureApiSendToken, sureApiSetCaseKey } from '@/client'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   caseId: string
 }>()
+
+const router = useRouter()
 
 const selectedConsentOption = ref<'allowed' | 'not_allowed' | null>(null)
 const error = ref<string | null>(null)
@@ -105,13 +108,13 @@ async function onVerify() {
 
 async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) {
   if (!e.valid) return
-  console.log('Form submitted with data:', e)
   const key = e.values.key as string
   const response = await sureApiSetCaseKey({ path: { pk: props.caseId }, body: { key } })
   if (response.error && !response.error?.success) {
     error.value = response.error?.warnings?.join(', ') || 'An error occurred while setting the key.'
     return
   }
+  router.push({ name: 'client-done', params: { caseId: props.caseId } })
 }
 </script>
 

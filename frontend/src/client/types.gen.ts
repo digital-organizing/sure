@@ -225,16 +225,6 @@ export type SectionSchema = {
 };
 
 /**
- * PhoneNumberSchema
- */
-export type PhoneNumberSchema = {
-    /**
-     * Phone Number
-     */
-    phone_number: string;
-};
-
-/**
  * StatusSchema
  */
 export type StatusSchema = {
@@ -250,6 +240,16 @@ export type StatusSchema = {
      * Warnings
      */
     warnings?: Array<string> | null;
+};
+
+/**
+ * PhoneNumberSchema
+ */
+export type PhoneNumberSchema = {
+    /**
+     * Phone Number
+     */
+    phone_number: string;
 };
 
 /**
@@ -1372,12 +1372,23 @@ export type SureApiSendTokenData = {
     url: '/api/sure/case/{pk}/send-token/';
 };
 
+export type SureApiSendTokenErrors = {
+    /**
+     * Bad Request
+     */
+    400: StatusSchema;
+};
+
+export type SureApiSendTokenError = SureApiSendTokenErrors[keyof SureApiSendTokenErrors];
+
 export type SureApiSendTokenResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: StatusSchema;
 };
+
+export type SureApiSendTokenResponse = SureApiSendTokenResponses[keyof SureApiSendTokenResponses];
 
 export type SureApiConnectCaseData = {
     body: ConnectSchema;

@@ -159,26 +159,27 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     return questionnaire
 
 
-@router.post("/case/{pk}/send-token/", auth=None, response=None)
+@router.post(
+    "/case/{pk}/send-token/", auth=None, response={200: StatusSchema, 400: StatusSchema}
+)
 def send_token(request, pk: str, phone_number: PhoneNumberSchema):
     """Send a token to the given phone number for accessing the case."""
-    visit = get_case(request, pk)
+    visit = get_case_unverified(pk)
 
     if not can_connect_case(visit.case):
-        raise HttpError(400, "Case cannot be connected")
+        return 400, StatusSchema(success=False, message="Case cannot be connected")
 
     try:
         send_token_service(phone_number.phone_number, visit.case)
     except ValueError as e:
-        raise HttpError(400, str(e)) from e
-
-    return None
+        return 400, StatusSchema(success=False, message=str(e))
+    return StatusSchema(success=True, message="Token sent successfully")
 
 
 @router.post("/case/{pk}/connect/", auth=None, response=StatusSchema)
 @inject_language
 def connect_case(request, pk: str, data: ConnectSchema):
-    visit = get_case(request, pk)
+    visit = get_case_unverified(pk)
 
     if not can_connect_case(visit.case):
         raise HttpError(400, "Case cannot be connected")

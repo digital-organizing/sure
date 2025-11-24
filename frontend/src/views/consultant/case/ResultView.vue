@@ -10,12 +10,13 @@ const props = defineProps<{ caseId: string }>()
 const router = useRouter()
 const confirm = useConfirm()
 
-const { onCaseId, updateCaseTestResults, selectedTests } = useCase()
+const { onCaseId, updateCaseTestResults, selectedTests, freeFormTests } = useCase()
 
 const { testKinds, testCategories } = useTests()
 
 const results = ref<{ [id: string]: string | null }>({})
 const notes = ref<{ [id: string]: string }>({})
+const freeFormResults = ref<{ [id: string]: string }>({})
 const showError = ref(false)
 
 onMounted(() => {
@@ -30,6 +31,9 @@ onMounted(() => {
       results.value[test.testKind.number] = latest.label
       notes.value[test.testKind.number] = latest.note || ''
     })
+    freeFormTests.value.forEach((test) => {
+      freeFormResults.value[test.id!] = test.result || ''
+    })
   })
 })
 
@@ -43,9 +47,20 @@ const selectedTestKinds = computed(() => {
 })
 
 const missingResults = computed(() => {
-  return selectedTestKinds.value.filter((tk) => {
-    return results.value[tk.testKind.number!] == null
-  })
+  return selectedTestKinds.value
+    .filter((tk) => {
+      return results.value[tk.testKind.number!] == null
+    })
+    .map((tk) => {
+      return tk.testKind.name
+    })
+    .concat(
+      freeFormTests.value
+        .filter((test) => {
+          return !freeFormResults.value[test.id!]
+        })
+        .map((test) => test.name),
+    )
 })
 
 const categoryIterator = computed(() => {
@@ -102,7 +117,7 @@ function onSaveResults() {
 }
 
 function submitResults() {
-  updateCaseTestResults(results.value, notes.value).then(() => {
+  updateCaseTestResults(results.value, notes.value, freeFormResults.value).then(() => {
     router.push({ name: 'consultant-communication', params: { caseId: props.caseId } })
   })
 }
@@ -166,13 +181,24 @@ function onBack() {
       </div>
     </div>
   </div>
+  <div class="text-category" v-if="freeFormTests.length > 0" :class="{ error: showError }">
+    <h3><span class="nr">0</span>Free-form Tests</h3>
+    <div v-for="test in freeFormTests" :key="test.id!" class="test-category">
+      <div class="test" :class="freeFormResults[test.id!] ? 'done' : 'missing'">
+        <h4>{{ test.name }}</h4>
+        <div class="input">
+          <InputText v-model="freeFormResults[test.id!]" placeholder="Enter result" />
+        </div>
+      </div>
+    </div>
+  </div>
   <div>
     <Message v-if="missingResults.length > 0" severity="warn" icon="pi pi-exclamation-triangle">
       {{ missingResults.length }} test results are missing. Please provide results for all selected
       tests before proceeding.
       <ul>
-        <li v-for="test in missingResults" :key="test.testKind.id!">
-          {{ test.testKind.name }}
+        <li v-for="test in missingResults" :key="test!">
+          {{ test }}
         </li>
       </ul>
     </Message>
@@ -190,6 +216,7 @@ function onBack() {
   padding-left: 2.5rem;
   padding-right: 1rem;
   gap: 1rem;
+  height: 45px;
 }
 
 .input {
@@ -206,15 +233,18 @@ function onBack() {
 .p-inputgroup {
   max-width: 18rem;
 }
+
 .option-item {
   display: inline-flex;
   align-items: center;
   margin-bottom: 0;
   gap: 0.3rem;
 }
+
 .test-category {
   margin-bottom: 1.5rem;
 }
+
 .error .missing {
   background-color: var(--p-message-warn-background);
 }
@@ -222,11 +252,13 @@ function onBack() {
 h4 {
   margin: 0;
 }
+
 .test-category {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
+
 @media screen and (max-width: 1000px) {
   .test {
     flex-direction: column;
@@ -234,9 +266,11 @@ h4 {
     gap: 0.3rem;
     margin-bottom: 0.5rem;
   }
+
   .note {
     width: 100%;
   }
+
   .input {
     justify-content: flex-start;
     flex-wrap: wrap;

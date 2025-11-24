@@ -51,7 +51,7 @@ client.interceptors.request.use(async (request) => {
 
 client.interceptors.response.use(async (response) => {
   if (response.status == 401) {
-    if (router.currentRoute.value.name !== 'login') {
+    if (router.currentRoute.value.meta['doNotRedirectToLogin'] !== true) {
       router.push({ path: '/login', query: { next: router.currentRoute.value.fullPath } })
     }
   }

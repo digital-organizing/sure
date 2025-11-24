@@ -70,8 +70,8 @@ class Case(models.Model):
         validate_password(
             key, password_validators=get_password_validators(settings.KEY_VALIDATORS)
         )
-        if len(key) > 512:
-            raise ValueError("Key is too long (maximum is 512 characters)")
+        if len(key) > settings.MAX_KEY_LENGTH:
+            raise ValueError(f"Key is too long (maximum is {settings.MAX_KEY_LENGTH} characters)")
 
         key = make_password(key)
 
@@ -685,6 +685,38 @@ class Test(models.Model):
                 name="unique_test_per_visit_and_kind",
             )
         ]
+
+
+class FreeFormTest(models.Model):
+    visit = models.ForeignKey(
+        Visit, on_delete=models.CASCADE, related_name="free_form_tests"
+    )
+
+    name = models.CharField(max_length=255, verbose_name=_("Test Name"))
+
+    result = models.CharField(
+        max_length=255,
+        verbose_name=_("Test Result"),
+        help_text=_("Result of the free form test"),
+        blank=True,
+    )
+
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("User"),
+        help_text=_("The user who recorded the free form test"),
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    result_recorded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Result Recorded At"),
+        help_text=_("Timestamp when the result was recorded"),
+    )
 
 
 class TestResult(models.Model):

@@ -33,8 +33,9 @@ async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
   const password = e.values['password']
 
   const result = await setInitialPassword(password, token.value, email.value)
-  if (result) {
-    errors.value = result
+  if (result?.error) {
+    error.value = result.error || ''
+    return
   }
   await Promise.all([fetchAccount(), fetchTwoFaDevices()])
   if (account.value.verified && twoFaDevices.value.length > 0) {

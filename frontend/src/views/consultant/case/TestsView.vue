@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { sureApiGetCaseTests, type TestBundleSchema } from '@/client'
+import { sureApiGetCaseFreeFormTests, sureApiGetCaseTests } from '@/client'
 import { useCase } from '@/composables/useCase'
 import { useTests } from '@/composables/useTests'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{ caseId: string }>()
@@ -13,47 +13,27 @@ const { updateCaseTests, error } = useCase()
 
 const selectedTests = ref<number[]>([])
 
+const freeFormTests = ref<string[]>([])
+
 onMounted(() => {
   sureApiGetCaseTests({ path: { pk: props.caseId } }).then((response) => {
     if (Array.isArray(response.data)) {
       selectedTests.value = response.data.map((test) => test.test_kind)
     }
   })
-})
-
-function isBundleSelected(bundle: TestBundleSchema) {
-  return testKinds.value
-    .filter((test) => test.test_bundles.some((b) => b.id === bundle.id))
-    .every((test) => selectedTests.value.includes(test.id!))
-}
-
-const seletectedBundles = computed({
-  get() {
-    return testBundles.value
-      .filter((bundle) => isBundleSelected(bundle))
-      .map((bundle) => bundle.id!)
-  },
-  set: (newValue: number[]) => {
-    const oldSelection = seletectedBundles.value
-
-    testBundles.value.forEach((bundle) => {
-      if (newValue.includes(bundle.id!)) {
-        selectBundle(bundle.id!)
-      } else if (oldSelection.includes(bundle.id!)) {
-        deselectBundle(bundle.id!)
-      }
-    })
-  },
-})
-
-function deselectBundle(id: number) {
-  selectedTests.value = selectedTests.value.filter((testId) => {
-    const test = testKinds.value.find((t) => t.id === testId)!
-    if (test.test_bundles.some((bundle) => bundle.id === id)) {
-      return false
+  sureApiGetCaseFreeFormTests({ path: { pk: props.caseId } }).then((response) => {
+    if (Array.isArray(response.data)) {
+      freeFormTests.value = response.data.map((test) => test.name)
     }
-    return true
   })
+})
+
+const seletectedBundles = ref<number[]>([])
+
+function onBundleChange(e: Event, bundleId: number) {
+  if ((e.target as HTMLInputElement)?.checked) {
+    selectBundle(bundleId)
+  }
 }
 
 function selectBundle(id: number) {
@@ -71,7 +51,7 @@ function selectBundle(id: number) {
 }
 
 async function submitSelectedTests() {
-  await updateCaseTests([...selectedTests.value])
+  await updateCaseTests([...selectedTests.value], [...freeFormTests.value])
   router.push({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
 }
 </script>
@@ -82,13 +62,24 @@ async function submitSelectedTests() {
       icon="pi pi-eraser"
       label="Clear Selection"
       class="mb-4"
-      @click="selectedTests = []"
+      @click="
+        () => {
+          selectedTests = []
+          seletectedBundles = []
+        }
+      "
       severity="secondary"
     />
   </header>
   <Message v-if="error" severity="error" :text="error" />
+  <h3>Bundles</h3>
   <div v-for="bundle in testBundles" :key="bundle.id!" class="test option-item">
-    <Checkbox v-model="seletectedBundles" :value="bundle.id!" :input-id="'bundle_' + bundle.id" />
+    <Checkbox
+      v-model="seletectedBundles"
+      @change="onBundleChange($event, bundle.id!)"
+      :value="bundle.id!"
+      :input-id="'bundle_' + bundle.id"
+    />
 
     <label class="ml-2" :for="'bundle_' + bundle.id">{{ bundle.name }}</label>
   </div>
@@ -102,6 +93,28 @@ async function submitSelectedTests() {
       <label class="ml-2" :for="'test_' + test.id">{{ test.name }}</label>
     </div>
   </div>
+  <div class="free-form test">
+    <div v-for="(name, idx) in freeFormTests" :key="idx" class="free-form-item">
+      <InputGroup>
+        <InputText v-model="freeFormTests[idx]" placeholder="Enter custom test name" />
+        <InputGroupAddon>
+          <Button
+            icon="pi pi-times"
+            class="ml-2"
+            @click="freeFormTests.splice(idx, 1)"
+            variant="text"
+          />
+        </InputGroupAddon>
+      </InputGroup>
+    </div>
+    <Button
+      icon="pi pi-plus"
+      severity="secondary"
+      class="mt-2"
+      @click="freeFormTests.push('')"
+      v-if="freeFormTests.length == 0 || freeFormTests.at(-1)!.length > 0"
+    />
+  </div>
   <section class="case-footer">
     <Button
       label="Back"
@@ -109,7 +122,7 @@ async function submitSelectedTests() {
       @click="router.push({ name: 'consultant-questionnaire', params: { caseId: props.caseId } })"
     />
     <Button
-      :label="`Save ${selectedTests.length} Selected Tests`"
+      :label="`Save ${selectedTests.length + freeFormTests.length} Selected Tests`"
       class="mt-4"
       @click="submitSelectedTests"
     />
@@ -122,5 +135,11 @@ async function submitSelectedTests() {
 }
 .test-category {
   margin-bottom: 1.5rem;
+}
+.free-form {
+  margin-top: 2rem;
+}
+.free-form-item {
+  margin-bottom: 0.5rem;
 }
 </style>

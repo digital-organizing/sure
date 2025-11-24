@@ -60,6 +60,9 @@ const router = createRouter({
           path: '/login',
           name: 'login',
           component: () => import('../views/user/LoginView.vue'),
+          meta: {
+            doNotRedirectToLogin: true,
+          },
         },
         {
           path: '/logout',
@@ -70,6 +73,9 @@ const router = createRouter({
           path: '/setup',
           name: 'setup',
           component: () => import('../views/user/SetupView.vue'),
+          meta: {
+            doNotRedirectToLogin: true,
+          },
         },
         {
           path: '/setup-2fa',

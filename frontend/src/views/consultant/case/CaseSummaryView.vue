@@ -18,6 +18,7 @@ const {
   mapAnswersForClientQuestion,
   mapAnswersForConsultantQuestion,
   selectedTests,
+  freeFormTests,
   clientAnswers,
   visit,
   consultantQuestionnaire,
@@ -143,6 +144,14 @@ function onNext() {
             test.test.results.sort((a, b) => -a.created_at.localeCompare(b.created_at)).at(0)
               ?.label || 'no result'
           }}
+        </span>
+      </div>
+      <div v-for="test in freeFormTests" :key="test.id!" class="selected-test">
+        <span>
+          {{ test.name }}
+        </span>
+        <span class="test-result" :style="'--test-color: #aaa'">
+          {{ test.result || 'no result' }}
         </span>
       </div>
     </section>

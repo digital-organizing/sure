@@ -21,6 +21,8 @@ import {
   type RelatedCaseSchema,
   type TestSchema,
   sureApiGetCaseTests,
+  sureApiGetCaseFreeFormTests,
+  type FreeFormTestSchema,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -32,6 +34,7 @@ export const useCase = createGlobalState(() => {
   const clientAnswers = ref<ClientAnswerSchema[] | null>(null)
   const consultantAnswers = ref<ConsultantAnswerSchema[] | null>(null)
   const selectedTests = ref<TestSchema[]>([])
+  const freeFormTests = ref<FreeFormTestSchema[]>([])
 
   const store = userAnswersStore()
   const consultantStore = consultantAnswersStore()
@@ -225,9 +228,20 @@ export const useCase = createGlobalState(() => {
   async function fetchSelectedTests() {
     if (!visit.value) {
       selectedTests.value = []
+      freeFormTests.value = []
       return
     }
     loading.value = true
+    sureApiGetCaseFreeFormTests({ path: { pk: visit.value!.case } })
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          freeFormTests.value = response.data
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch case free form tests:', error)
+        error.value = 'Failed to fetch case free form tests: ' + error.message
+      })
     await sureApiGetCaseTests({ path: { pk: visit.value!.case } })
       .then((response) => {
         if (Array.isArray(response.data)) {
@@ -396,8 +410,11 @@ export const useCase = createGlobalState(() => {
       })
   }
 
-  async function updateCaseTests(testKindIds: number[]) {
-    await sureApiUpdateCaseTests({ path: { pk: visit.value!.case }, body: testKindIds })
+  async function updateCaseTests(testKindIds: number[], freeFormTests: string[]) {
+    await sureApiUpdateCaseTests({
+      path: { pk: visit.value!.case },
+      body: { free_form_tests: freeFormTests, test_kind_ids: testKindIds },
+    })
       .then(() => {})
       .catch((error) => {
         error.value = 'Failed to update case tests: ' + error.message
@@ -410,19 +427,29 @@ export const useCase = createGlobalState(() => {
   async function updateCaseTestResults(
     results: { [nr: string]: string | null },
     notes: { [nr: string]: string | null },
+    freeFormResults: { [id: string]: string },
   ) {
     if (!visit.value) {
       error.value = 'No visit selected.'
       return
     }
-    const request = Object.entries(results).map((entry) => {
+    const testResults = Object.entries(results).map((entry) => {
       return {
         number: Number(entry[0]),
         label: entry[1]!,
         note: notes[Number(entry[0])] || '',
       }
     })
-    await sureApiUpdateCaseTestResults({ path: { pk: visit.value.case }, body: request })
+    const freeFormResultsEntries = Object.entries(freeFormResults).map((entry) => {
+      return {
+        id: +entry[0],
+        result: entry[1],
+      }
+    })
+    await sureApiUpdateCaseTestResults({
+      path: { pk: visit.value.case },
+      body: { test_results: testResults, free_form_results: freeFormResultsEntries },
+    })
       .then(() => {})
       .catch((error) => {
         error.value = 'Failed to update case test results: ' + error.message
@@ -459,6 +486,7 @@ export const useCase = createGlobalState(() => {
     fetchCaseHistory,
     relatedCases,
     selectedTests,
+    freeFormTests,
     history,
     historyItems,
   }

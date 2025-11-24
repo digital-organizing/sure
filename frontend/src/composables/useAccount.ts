@@ -9,6 +9,7 @@ import {
   coreApiSetupOtpView,
   coreApiVerifyOtpView,
   type AccountResponse,
+  type LoginResponse,
 } from '@/client'
 import { createGlobalState } from '@vueuse/core'
 import { computed, ref } from 'vue'
@@ -50,9 +51,9 @@ export const useAccount = createGlobalState(() => {
     if (response === null) {
       return null
     }
-    if (response.response.status === 400) {
+    if (response.response.status !== 200) {
       error.value = 'Failed to set initial password'
-      return response.error as unknown as string[]
+      return response.error as LoginResponse
     }
     loading.value = false
     error.value = null

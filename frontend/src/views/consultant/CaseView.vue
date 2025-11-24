@@ -2,10 +2,11 @@
 import { useCase } from '@/composables/useCase'
 import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { formatDate, useTitle } from '@vueuse/core'
+import { formatDate, useClipboard, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
 import { userAnswersStore } from '@/stores/answers'
 import { useStatus } from '@/composables/useStatus'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 
@@ -50,6 +51,8 @@ const title = computed(() => 'Case ' + props.caseId + ' - Case View')
 
 useTitle(title)
 
+const toast = useToast()
+
 const { labelForStatus, indexForStatus } = useStatus()
 
 function formatTimestamp(timestamp: string | null | undefined): string {
@@ -81,6 +84,19 @@ function isCurrentRoute(status: string): boolean {
 const inHistoryView = computed(() => {
   return router.currentRoute.value.name === 'consultant-case-history'
 })
+
+function copyClientLink() {
+  const { copy } = useClipboard()
+  const clientLink = `${window.location.origin}/client/${props.caseId}`
+  copy(clientLink)
+
+  toast.add({
+    severity: 'success',
+    summary: 'Client Link Copied',
+    detail: 'The client link has been copied to your clipboard.',
+    life: 3000,
+  })
+}
 
 onMounted(() => {
   clearAnswers()
@@ -130,6 +146,7 @@ watch(
           <span class="label">Case ID</span>
           <span class="value">{{ visit?.case }}</span>
         </div>
+        <div></div>
         <div class="case-field">
           <span class="label">Location</span>
           <span class="value">{{ visit?.location }}</span>
@@ -163,6 +180,17 @@ watch(
             >
           </div>
         </div>
+
+        <template #footer>
+          <Button
+            label="Copy Client link"
+            size="small"
+            variant="outlined"
+            severity="secondary"
+            v-if="visit?.status == 'created'"
+            @click="copyClientLink()"
+          ></Button>
+        </template>
       </Panel>
       <Panel header="History" v-if="!inHistoryView">
         <HistoryComponent :caseId="props.caseId" />

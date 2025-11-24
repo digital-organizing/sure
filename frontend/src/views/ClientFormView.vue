@@ -14,6 +14,7 @@ const answersStore = userAnswersStore()
 const formIndex = ref<number>(0)
 const totalSections = computed(() => formStructure.value?.sections.length ?? 0)
 const isRecapStep = computed(() => formIndex.value === totalSections.value)
+const error = ref<string | null>(null)
 const currentSectionTitle = computed(() => {
   if (!formStructure.value) {
     return ''
@@ -40,7 +41,18 @@ const { scrollToTop } = useScroll()
 const router = useRouter()
 
 onMounted(async () => {
-  formStructure.value = (await sureApiGetCaseQuestionnaire({ path: { pk: props.caseId } })).data!
+  const response = await sureApiGetCaseQuestionnaire({ path: { pk: props.caseId } })
+  if (response.response.status === 302) {
+    router.push(`/client/${props.caseId}/phone`)
+    return
+  }
+  if (response.error && response.error.message) {
+    error.value = Array.isArray(response.error.message)
+      ? response.error.message.join(', ')
+      : response.error.message
+    return
+  }
+  formStructure.value = response.data!
   answersStore.setSchema(formStructure.value)
 
   const savedIndex = localStorage.getItem('clientFormIndex')
@@ -93,6 +105,9 @@ function onSubmit() {
 
 <template>
   <div class="client-form-view">
+    <Message class="form-error" severity="error" v-if="error"
+      ><strong>Error:</strong> {{ error }}</Message
+    >
     <div v-if="formStructure">
       <div id="navi-top" class="client-section-element">
         <ClientNavigationTop
@@ -155,5 +170,8 @@ button {
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
+}
+.form-error {
+  margin-top: 1rem;
 }
 </style>

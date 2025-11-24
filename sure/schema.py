@@ -17,6 +17,7 @@ from sure.models import (
     ConsultantAnswer,
     ConsultantOption,
     ConsultantQuestion,
+    FreeFormTest,
     Questionnaire,
     Section,
     Test,
@@ -501,6 +502,16 @@ class TestResultInputSchema(Schema):
     note: str
 
 
+class FreeFormResultSchema(Schema):
+    id: int
+    result: str
+
+
+class SubmitTestResultsSchema(Schema):
+    test_results: list[TestResultInputSchema]
+    free_form_results: list[FreeFormResultSchema]
+
+
 class TestCategorySchema(ModelSchema):
     class Meta:
         model = TestCategory
@@ -562,3 +573,20 @@ class RelatedCaseSchema(ModelSchema):
     @staticmethod
     def resolve_case_id(case: Case) -> str:
         return case.human_id
+
+
+class FreeFormTestSchema(ModelSchema):
+    class Meta:
+        model = FreeFormTest
+        fields = [
+            "id",
+            "name",
+            "user",
+            "created_at",
+            "result",
+        ]
+
+
+class SubmitTestsSchema(Schema):
+    test_kind_ids: list[int]
+    free_form_tests: list[str]

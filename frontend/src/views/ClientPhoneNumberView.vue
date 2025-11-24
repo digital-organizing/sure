@@ -7,6 +7,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RadioButton, InputText } from 'primevue'
 import { sureApiConnectCase, sureApiSendToken, sureApiSetCaseKey } from '@/client'
 import { useRouter } from 'vue-router'
+import { useCountdown } from '@vueuse/core'
 
 const props = defineProps<{
   caseId: string
@@ -16,11 +17,20 @@ const router = useRouter()
 
 const selectedConsentOption = ref<'allowed' | 'not_allowed' | null>(null)
 const error = ref<string | null>(null)
+const errorVerify = ref<string | null>(null)
+const errorKey = ref<string | null>(null)
 
 const phonenumber = ref<string>('')
+const phonenumberSent = ref<string>('')
 const showVerify = ref<boolean>(false)
 const verified = ref<boolean>(false)
 const token = ref<string>('')
+
+const countdownSeconds = 0
+const { remaining, start } = useCountdown(countdownSeconds, {
+  onComplete() {},
+  onTick() {},
+})
 
 const showContactForm = computed(() => {
   console.log('Selected consent option:', selectedConsentOption.value)
@@ -37,9 +47,6 @@ const canFinish = computed(() => {
 
 const resolver = ({ values }: { values: Record<string, unknown> }) => {
   const errors: Record<string, { message: string }[]> = {}
-  if (!values.key || (typeof values.key === 'string' && values.key.trim() === '')) {
-    errors['key'] = [{ message: 'Secure key is required.' }]
-  }
   if (selectedConsentOption.value === 'allowed') {
     if (
       !values.phonenumber ||
@@ -62,20 +69,30 @@ onMounted(() => {
   }
 })
 
+function ensureString(v: string | string[] | null | undefined): string {
+  if (!v) return ''
+  if (Array.isArray(v)) {
+    return v[0] || ''
+  }
+  return v
+}
+
 async function startVerification() {
   error.value = null
   const response = await sureApiSendToken({
     body: { phone_number: phonenumber.value },
     path: { pk: props.caseId },
   })
-  if (response.error && !response.error?.success) {
-    if (Array.isArray(response.error?.message)) {
-      error.value = response.error?.message.join(', ')
-    } else {
-      error.value = response.error?.message || 'An error occurred while sending the token.'
-    }
+  if (response.error) {
+    error.value = ensureString(response.error?.message)
     return
   }
+  if (response.response.status !== 200) {
+    error.value = 'Invalid phone number. Please check and try again.'
+    return
+  }
+  phonenumberSent.value = ensureString(response.data?.message)
+  start(90)
   showVerify.value = true
 }
 
@@ -83,25 +100,19 @@ async function onVerify() {
   if (!token.value || token.value.trim() === '' || selectedConsentOption.value !== 'allowed') return
   error.value = null
 
-  await sureApiConnectCase({
+  const response = await sureApiConnectCase({
     path: { pk: props.caseId },
     body: {
       phone_number: phonenumber.value,
       token: token.value,
       consent: selectedConsentOption.value,
     },
-  }).then((response) => {
-    if (!response.data?.success) {
-      if (Array.isArray(response.data?.message)) {
-        error.value = response.data?.message.join(', ')
-      } else {
-        error.value = response.data?.message || 'An error occurred while verifying the token.'
-      }
-      return
-    }
-    // Successfully connected
   })
-
+  if (response.error) {
+    errorVerify.value =
+      ensureString(response.error.message) || 'An error occurred during verification.'
+    return
+  }
   showVerify.value = false
   verified.value = true
 }
@@ -111,7 +122,8 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   const key = e.values.key as string
   const response = await sureApiSetCaseKey({ path: { pk: props.caseId }, body: { key } })
   if (response.error && !response.error?.success) {
-    error.value = response.error?.warnings?.join(', ') || 'An error occurred while setting the key.'
+    errorKey.value =
+      ensureString(response.error?.message) || 'An error occurred while setting the key.'
     return
   }
   router.push({ name: 'client-done', params: { caseId: props.caseId } })
@@ -130,9 +142,9 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     <div class="client-section-element" id="phone-flex">
       <div class="client-phone-body">
         <p>
-          Text to follow from data protection specialist For the test results and future
-          consultations, there are two ways we can identify you. In either case, your data is secure
-          and access is strictly regulated:
+          We process your personal data solely to provide you with our consultation. Your personal
+          data is stored only for the duration of the consultation and for no longer than three
+          months.
         </p>
       </div>
       <div class="client-phone-icon">
@@ -161,19 +173,23 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         smartphone to generate and store a secure key.
       </div>
     </div>
-    <Form :resolver="resolver" :validate-on-blur="true" v-slot="$form" @submit="onSubmit">
-      <div class="client-section-element">
+    <div class="client-section-element client-phone-body">
+      <div v-if="verified">
+        <Message severity="info"
+          >Your phone number ({{ phonenumberSent }}) has been verified successfully.</Message
+        >
+      </div>
+      <Form
+        :resolver="resolver"
+        :validate-on-blur="true"
+        v-slot="$form"
+        @submit="onSubmit"
+        v-if="!verified"
+      >
         <div class="client-phone-question">
           <div class="client-phone-question-title">
             How would you like us to identify you for test results and follow-up?
           </div>
-          <FloatLabel>
-            <Password input-id="client-key" required name="key" />
-            <label for="client-key" class="client-option-label"> Your secure key </label>
-          </FloatLabel>
-          <Message v-if="$form.key?.error" severity="error" size="small" variant="simple">{{
-            $form.key.error.message
-          }}</Message>
           <div class="client-option-item" :class="{ active: selectedConsentOption === 'allowed' }">
             <RadioButton
               v-model="selectedConsentOption"
@@ -197,13 +213,15 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
                   placeholder="+41 79 123 45 67"
                   class="text-input"
                 />
-                <InputGroupAddon position="append">
+                <InputGroupAddon>
                   <Button
                     icon="pi pi-lock"
                     severity="primary"
                     @click="startVerification"
-                    :disabled="!!phonenumber && !$form.phonenumber?.valid"
-                    label="Verify"
+                    :disabled="(!!phonenumber && !$form.phonenumber?.valid) || remaining > 0"
+                    :label="remaining === 0 ? 'Verify' : remaining + 's'"
+                    variant="text"
+                    size="large"
                   >
                   </Button>
                 </InputGroupAddon>
@@ -215,20 +233,35 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
                 variant="simple"
                 >{{ $form.phonenumber.error.message }}</Message
               >
+              <Message v-if="error" severity="error" size="small" variant="simple">{{
+                error
+              }}</Message>
             </div>
             <div v-if="showVerify" class="client-phone-input">
-              <label for="verification-code">Enter the Verification Code</label>
+              <label for="verification-code"
+                >Enter the Verification Code sent to {{ phonenumberSent }}</label
+              >
               <InputGroup>
                 <InputText
                   id="verification-code"
                   label="Enter the verification code sent to your phone"
                   v-model="token"
+                  class="text-input"
                 />
 
                 <InputGroupAddon>
-                  <Button label="Submit Code" severity="primary" @click="onVerify" />
+                  <Button severity="primary" variant="text" icon="pi pi-send" @click="onVerify" />
                 </InputGroupAddon>
               </InputGroup>
+              <section>
+                <span
+                  >If you did not receive the code, please check your phone number and try again.
+                </span>
+                <span v-if="remaining > 0"
+                  >You can request a new code in {{ remaining }} seconds.</span
+                >
+              </section>
+              <Message v-if="errorVerify" severity="error" size="small">{{ errorVerify }}</Message>
             </div>
           </div>
           <div
@@ -248,22 +281,28 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
             </label>
           </div>
         </div>
-      </div>
-      <Message v-if="error" severity="error" size="small" variant="outlined">{{ error }}</Message>
+      </Form>
+    </div>
 
-      <div class="client-section-element" id="finalize-button-section">
-        <div class="client-bottom-button-section">
-          <Button
-            class="button-extra-large"
-            severity="primary"
-            rounded
-            type="submit"
-            v-if="canFinish && $form.valid"
-            >Finalize <IconRightArrow
-          /></Button>
-        </div>
-      </div>
-    </Form>
+    <div class="client-section-element client-phone-body" id="finalize-button-section">
+      <Form v-if="canFinish" class="form-col" @submit="onSubmit" ref="$form">
+        <p>
+          To protect your results, please set a secure key below. You will need this key to access
+          your test results and for any follow-up consultations. You can use the password manager of
+          your browser or smartphone to generate and store a secure key.
+        </p>
+        <label for="client-key" class="client-option-label"> Your secure key </label>
+        <Password input-id="client-key" required name="key" :feedback="false" />
+
+        <Message v-if="errorKey" severity="error" size="small" variant="outlined">{{
+          errorKey
+        }}</Message>
+        <Button class="button-extra-large" severity="primary" rounded type="submit"
+          >Finalize
+          <IconRightArrow />
+        </Button>
+      </Form>
+    </div>
   </div>
 </template>
 
@@ -295,7 +334,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   gap: 20px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10%;
+  margin-bottom: 2rem;
 }
 
 .client-phone-question {
@@ -328,6 +367,6 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   align-items: center;
   justify-content: center;
   margin-bottom: 50px;
-  margin-top: 40px;
+  margin-top: 1rem;
 }
 </style>

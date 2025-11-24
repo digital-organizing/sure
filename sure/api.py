@@ -9,7 +9,7 @@ from django.db import transaction
 from django.db.models import F, Func, Prefetch
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
-from django.utils import translation
+from django.utils import timezone, translation
 from django.utils.translation import get_language_from_request
 from ninja import Form, Query, Router, Schema
 from ninja.errors import HttpError
@@ -37,6 +37,7 @@ from sure.models import (
     ClientQuestion,
     ConsultantOption,
     ConsultantQuestion,
+    FreeFormTest,
     Questionnaire,
     Section,
     Test,
@@ -54,6 +55,7 @@ from sure.schema import (
     ConsultantAnswerSchema,
     CreateCaseResponse,
     CreateCaseSchema,
+    FreeFormTestSchema,
     InternalQuestionnaireSchema,
     OptionSchema,
     PhoneNumberSchema,
@@ -63,8 +65,9 @@ from sure.schema import (
     StatusSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
+    SubmitTestResultsSchema,
+    SubmitTestsSchema,
     TestCategorySchema,
-    TestResultInputSchema,
     TestResultOptionSchema,
     TestSchema,
 )
@@ -144,15 +147,28 @@ def _prefetch_questionnaire(internal=False):
     return query
 
 
-@router.get("/case/{pk}/questionnaire/", response=QuestionnaireSchema, auth=None)
+@router.get(
+    "/case/{pk}/questionnaire/",
+    response={200: QuestionnaireSchema, 302: StatusSchema, 403: StatusSchema},
+    auth=None,
+)
 @inject_language
 def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     """Get the questionnaire associated with a case."""
     pk = strip_id(pk)
 
     visit = get_object_or_404(Visit, case_id=pk)
+    if visit.status == VisitStatus.CLIENT_SUBMITTED and visit.case.key == "":
+        return 302, {
+            "success": False,
+            "message": "Questionnaire already submitted, key not set",
+        }
+
     if visit.status != VisitStatus.CREATED and request.user.is_authenticated is False:
-        raise HttpError(403, "Questionnaire already submitted")
+        return 403, {
+            "success": False,
+            "message": "Access denied to the case questionnaire",
+        }
 
     questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
 
@@ -174,10 +190,12 @@ def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
         send_token_service(phone_number.phone_number, visit.case)
     except ValueError as e:
         return 400, StatusSchema(success=False, message=str(e))
-    return StatusSchema(success=True, message="Token sent successfully")
+    return StatusSchema(success=True, message=phone_number.phone_number)
 
 
-@router.post("/case/{pk}/connect/", auth=None, response=StatusSchema)
+@router.post(
+    "/case/{pk}/connect/", auth=None, response={200: StatusSchema, 400: StatusSchema}
+)
 @inject_language
 def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
     visit = get_case_unverified(pk)
@@ -193,11 +211,14 @@ def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
             400, "Phone number does not match the one used for token request."
         )
 
-    contact = connect_case_service(
-        visit.case, data.phone_number, data.token, data.consent
-    )
+    try:
+        contact = connect_case_service(
+            visit.case, data.phone_number, data.token, data.consent
+        )
+    except ValueError as e:
+        return 400, StatusSchema(success=False, message=str(e))
     if contact is None:
-        raise HttpError(400, "Invalid token")
+        return 400, StatusSchema(success=False, message="Failed to connect case")
 
     return StatusSchema(success=True, message="Case connected successfully")
 
@@ -296,9 +317,11 @@ def submit_consultant_case(request, pk: str, answers: SubmitCaseSchema):
 
 @router.post("/case/{pk}/tests/", response=SubmitCaseResponse)
 @inject_language
-def update_case_tests(request, pk: str, test_pks: list[int]):
+def update_case_tests(request, pk: str, data: SubmitTestsSchema):
     visit = get_case(request, pk)
     warnings = []
+
+    test_pks = data.test_kind_ids
 
     existing = set(visit.tests.values_list("test_kind_id", flat=True))
     new = set(test_pks) - existing
@@ -308,6 +331,14 @@ def update_case_tests(request, pk: str, test_pks: list[int]):
         for test_kind_id in new
     ]
     Test.objects.bulk_create(tests)
+
+    free_form_tests = data.free_form_tests
+    for test_name in free_form_tests:
+        if test_name.strip() == "":
+            continue
+        FreeFormTest.objects.get_or_create(
+            visit=visit, name=test_name, user=request.user
+        )
 
     with transaction.atomic():
         visit.status = VisitStatus.TESTS_RECORDED
@@ -327,6 +358,13 @@ def get_case_tests(request, pk: str):
     return tests
 
 
+@router.get("/case/{pk}/free-form-tests/", response=list[FreeFormTestSchema])
+def get_case_free_form_tests(request, pk: str):
+    visit = get_case(request, pk)
+    free_form_tests = visit.free_form_tests.all()
+    return free_form_tests
+
+
 @router.post("/case/{pk}/status/", response=SubmitCaseResponse)
 @inject_language
 def update_case_status(request, pk: str, status: str):
@@ -342,14 +380,12 @@ def update_case_status(request, pk: str, status: str):
 
 @router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
 @inject_language
-def update_case_test_results(
-    request, pk: str, test_results: list[TestResultInputSchema]
-):
+def update_case_test_results(request, pk: str, test_results: SubmitTestResultsSchema):
     visit = get_case(request, pk)
     test_kinds = visit.tests.all()
     warnings = []
 
-    for result in test_results:
+    for result in test_results.test_results:
         nr = result.number
         label = result.label
         note = result.note
@@ -383,6 +419,18 @@ def update_case_test_results(
             continue
 
         test.results.create(result_option=option, note=note, user=request.user)
+
+    for free_form_result in test_results.free_form_results:
+        test = visit.free_form_tests.filter(id=free_form_result.id).first()
+        if not test:
+            warnings.append(
+                f"No free form test found with id {free_form_result.id} in case {visit.case.human_id}."
+            )
+            continue
+        test.result = free_form_result.result
+        test.result_recorded_at = timezone.now()
+        test.save(update_fields=["result", "result_recorded_at"])
+
     with transaction.atomic():
         visit.status = VisitStatus.RESULTS_RECORDED
         visit.save(update_fields=["status"])

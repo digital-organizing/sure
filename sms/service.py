@@ -36,12 +36,12 @@ def send_sms(to: str, body: str):
         "sender": "SURE",
     }
 
-    if settings.DEBUG:
+    if settings.SIMULATE_SMS:
         print(f"Simulating SMS send to {to}: {body}")
 
     response = requests.get(
         "https://api.smsup.ch/send/simulate"
-        if settings.DEBUG
+        if settings.SIMULATE_SMS
         else "https://api.smsup.ch/send",
         headers=headers,
         params=params,

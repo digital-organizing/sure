@@ -544,6 +544,20 @@ export type SubmitCaseSchema = {
 };
 
 /**
+ * SubmitTestsSchema
+ */
+export type SubmitTestsSchema = {
+    /**
+     * Test Kind Ids
+     */
+    test_kind_ids: Array<number>;
+    /**
+     * Free Form Tests
+     */
+    free_form_tests: Array<string>;
+};
+
+/**
  * TestResultSchema
  */
 export type TestResultSchema = {
@@ -601,6 +615,62 @@ export type TestSchema = {
      * Created At
      */
     created_at: string;
+};
+
+/**
+ * FreeFormTestSchema
+ */
+export type FreeFormTestSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Test Name
+     */
+    name: string;
+    /**
+     * User
+     * The user who recorded the free form test
+     */
+    user?: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Test Result
+     * Result of the free form test
+     */
+    result?: string | null;
+};
+
+/**
+ * FreeFormResultSchema
+ */
+export type FreeFormResultSchema = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Result
+     */
+    result: string;
+};
+
+/**
+ * SubmitTestResultsSchema
+ */
+export type SubmitTestResultsSchema = {
+    /**
+     * Test Results
+     */
+    test_results: Array<TestResultInputSchema>;
+    /**
+     * Free Form Results
+     */
+    free_form_results: Array<FreeFormResultSchema>;
 };
 
 /**
@@ -1351,6 +1421,15 @@ export type SureApiGetCaseQuestionnaireData = {
     url: '/api/sure/case/{pk}/questionnaire/';
 };
 
+export type SureApiGetCaseQuestionnaireErrors = {
+    /**
+     * Forbidden
+     */
+    403: StatusSchema;
+};
+
+export type SureApiGetCaseQuestionnaireError = SureApiGetCaseQuestionnaireErrors[keyof SureApiGetCaseQuestionnaireErrors];
+
 export type SureApiGetCaseQuestionnaireResponses = {
     /**
      * OK
@@ -1406,6 +1485,15 @@ export type SureApiConnectCaseData = {
     };
     url: '/api/sure/case/{pk}/connect/';
 };
+
+export type SureApiConnectCaseErrors = {
+    /**
+     * Bad Request
+     */
+    400: StatusSchema;
+};
+
+export type SureApiConnectCaseError = SureApiConnectCaseErrors[keyof SureApiConnectCaseErrors];
 
 export type SureApiConnectCaseResponses = {
     /**
@@ -1631,10 +1719,7 @@ export type SureApiGetCaseTestsResponses = {
 export type SureApiGetCaseTestsResponse = SureApiGetCaseTestsResponses[keyof SureApiGetCaseTestsResponses];
 
 export type SureApiUpdateCaseTestsData = {
-    /**
-     * Test Pks
-     */
-    body: Array<number>;
+    body: SubmitTestsSchema;
     path: {
         /**
          * Pk
@@ -1658,6 +1743,28 @@ export type SureApiUpdateCaseTestsResponses = {
 };
 
 export type SureApiUpdateCaseTestsResponse = SureApiUpdateCaseTestsResponses[keyof SureApiUpdateCaseTestsResponses];
+
+export type SureApiGetCaseFreeFormTestsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/free-form-tests/';
+};
+
+export type SureApiGetCaseFreeFormTestsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<FreeFormTestSchema>;
+};
+
+export type SureApiGetCaseFreeFormTestsResponse = SureApiGetCaseFreeFormTestsResponses[keyof SureApiGetCaseFreeFormTestsResponses];
 
 export type SureApiUpdateCaseStatusData = {
     body?: never;
@@ -1690,10 +1797,7 @@ export type SureApiUpdateCaseStatusResponses = {
 export type SureApiUpdateCaseStatusResponse = SureApiUpdateCaseStatusResponses[keyof SureApiUpdateCaseStatusResponses];
 
 export type SureApiUpdateCaseTestResultsData = {
-    /**
-     * Test Results
-     */
-    body: Array<TestResultInputSchema>;
+    body: SubmitTestResultsSchema;
     path: {
         /**
          * Pk

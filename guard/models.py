@@ -10,6 +10,8 @@ class ProtectedEndpoint(models.Model):
     window = models.IntegerField(default=900)
     block_duration = models.IntegerField(default=3600)
 
+    notification_email = models.EmailField(blank=True, null=True)
+
     def __str__(self):
         return f"{self.description}"
 

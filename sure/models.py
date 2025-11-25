@@ -71,7 +71,9 @@ class Case(models.Model):
             key, password_validators=get_password_validators(settings.KEY_VALIDATORS)
         )
         if len(key) > settings.MAX_KEY_LENGTH:
-            raise ValueError(f"Key is too long (maximum is {settings.MAX_KEY_LENGTH} characters)")
+            raise ValueError(
+                f"Key is too long (maximum is {settings.MAX_KEY_LENGTH} characters)"
+            )
 
         key = make_password(key)
 

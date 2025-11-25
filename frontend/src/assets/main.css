@@ -102,3 +102,31 @@ header.case {
 header.case h2 {
   margin-top: 0;
 }
+
+.client-welcome-h1 {
+  color: var(--color-ahs-black);
+  text-align: center;
+  font-family: "Circular Std";
+  font-size: 45px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 42.14px;
+}
+
+.client-welcome-body {
+  color: var(--color-ahs-black);
+  text-align: center;
+  font-family: "Circular Std";
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 24.5px;
+}
+
+.client-welcome-logo-header {
+  display: flex;
+  width: 375px;
+  padding: 50px 20px 30px 20px;
+  align-items: center;
+  gap: 5px;
+}

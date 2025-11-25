@@ -30,6 +30,15 @@ const router = createRouter({
     },
     {
       path: '/client/:caseId',
+      name: 'client-start',
+      component: () => import('../views/ClientWelcomeView.vue'),
+      props: true,
+      meta: {
+        showInternalMenu: false,
+      },
+    },
+    {
+      path: '/client/:caseId/form',
       name: 'client-form',
       component: () => import('../views/ClientFormView.vue'),
       props: true,

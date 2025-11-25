@@ -28,7 +28,8 @@ class LocationAdmin(ModelAdmin):
     list_display = ("name", "tenant")
     search_fields = ("name", "tenant__name")
 
-    autocomplete_fields = ("tenant","excluded_questions")
+    autocomplete_fields = ("tenant",)
+    filter_horizontal = ("excluded_questions",)
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Location]:
         if request.user.is_superuser:

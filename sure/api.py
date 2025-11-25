@@ -74,18 +74,23 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-def _prefetch_questionnaire(internal=False):
+def _prefetch_questionnaire(internal=False, excluded_question_ids=None):
+    client_questions_qs = ClientQuestion.objects.order_by("order").prefetch_related(
+        Prefetch("options", queryset=ClientOption.objects.order_by("order"))
+    )
+
+    if excluded_question_ids:
+        client_questions_qs = client_questions_qs.exclude(
+            id__in=excluded_question_ids, optional_for_centers=True
+        )
+
     query = Questionnaire.objects.prefetch_related(
         Prefetch(
             "sections",
             queryset=Section.objects.order_by("order").prefetch_related(
                 Prefetch(
                     "client_questions",
-                    queryset=ClientQuestion.objects.order_by("order").prefetch_related(
-                        Prefetch(
-                            "options", queryset=ClientOption.objects.order_by("order")
-                        )
-                    ),
+                    queryset=client_questions_qs,
                 )
             ),
         )
@@ -128,14 +133,12 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
             "message": "Access denied to the case questionnaire",
         }
 
-    questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
-
     location = visit.case.location
-    if location is not None:
-        excluded_ids = location.excluded_questions.values_list("id", flat=True)
-        filtered_questions = questionnaire.sections.exclude(id__in=excluded_ids)
-        
-        questionnaire.sections = filtered_questions
+    excluded_ids = location.excluded_questions.values_list("id", flat=True)
+
+    questionnaire = _prefetch_questionnaire(excluded_question_ids=excluded_ids).get(
+        pk=visit.questionnaire.pk
+    )
 
     return questionnaire
 
@@ -169,8 +172,7 @@ def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
         raise HttpError(400, "Case cannot be connected")
 
     if "phone_number" not in request.session:
-        raise HttpError(
-            400, "Phone number not provided. Please request a token first.")
+        raise HttpError(400, "Phone number not provided. Please request a token first.")
 
     if request.session["phone_number"] != data.phone_number:
         raise HttpError(
@@ -244,8 +246,8 @@ def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
     client_answers = visit.client_answers.all().order_by("-created_at")
     consultant_answers = visit.consultant_answers.all().order_by("-created_at")
     return {
-        "client_answers": client_answers[offset: offset + limit],
-        "consultant_answers": consultant_answers[offset: offset + limit],
+        "client_answers": client_answers[offset : offset + limit],
+        "consultant_answers": consultant_answers[offset : offset + limit],
     }
 
 
@@ -421,8 +423,7 @@ def set_case_key(request, pk: str, key: Form["str"]):
     visit = get_case_unverified(pk)
 
     if visit.status != VisitStatus.CLIENT_SUBMITTED:
-        raise HttpError(
-            400, "Cannot set key for a case that is not in CREATED status")
+        raise HttpError(400, "Cannot set key for a case that is not in CREATED status")
 
     try:
         visit.case.set_key(key)
@@ -454,8 +455,7 @@ def view_case_communication(request, pk: str, key: Form["str"]):
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
     case = create_case(data.location_id, request.user, data.external_id)
-    create_visit(case, get_object_or_404(
-        Questionnaire, pk=data.questionnaire_id))
+    create_visit(case, get_object_or_404(Questionnaire, pk=data.questionnaire_id))
 
     link = get_case_link(case)
 

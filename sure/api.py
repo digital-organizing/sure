@@ -193,6 +193,20 @@ def get_case_internal(request, pk: str):
 
     return questionnaire
 
+@router.get("/case/{pk}/phone/", response=StatusSchema)
+def get_phone_number(request, pk: str):
+    """Get the phone number associated with a case, if the user has access."""
+    visit = get_case(request, pk)
+    if not verify_access_to_location(visit.case.location, request.user):
+        raise PermissionError("User does not have access to this location")
+
+    phone_number = visit.case.connection.client.phone_number if visit.case.connection else None
+    if phone_number:
+        # TODO: Log access to phone number
+        return StatusSchema(success=True, message=phone_number)
+    else:
+        return StatusSchema(success=False, message="No phone number associated with this case")
+
 
 @router.get("/case/{pk}/visit/", response=CaseListingSchema)
 @inject_language
@@ -570,3 +584,33 @@ def list_test_result_options(request, pk: int):  # pylint: disable=unused-argume
         TestKind.objects.prefetch_related("result_options"), pk=pk
     )
     return test_kind.result_options.all()
+
+
+@router.get("/results/{pk}/internal/")
+def get_internal_results(request, pk: str):
+    """
+    Get internal results for a case. Returns detailed results.
+    
+    :param request: Beschreibung
+    :param pk: Beschreibung
+    :type pk: str
+    """
+    visit = get_case(request, pk)
+    # TODO: Return all results
+    return visit
+
+@router.get("/results/{pk}/client/", auth=None)
+def get_client_results(request, pk: str):
+    """
+    Get client results for a case. Returns summarized results.
+    
+    :param request: Beschreibung
+    :param pk: Beschreibung
+    :type pk: str
+    """
+    visit = get_case_unverified(pk)
+    if visit.status != VisitStatus.RESULTS_SENT:
+        raise HttpError(400, "Results not ready for this case yet")
+    # TODO: Either all or no results are returned
+    return visit
+

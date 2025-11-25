@@ -602,6 +602,23 @@ class TestResultOption(models.Model):
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
 
+class ResultInformation(models.Model):
+    option = models.ForeignKey(
+        TestResultOption, on_delete=models.CASCADE, related_name="result_informations"
+    )
+    information_text = models.TextField(
+        max_length=2000,
+        blank=True,
+        verbose_name=_("Information Text"),
+        help_text=_("Detailed information related to this result option"),
+    )
+    locations = models.ManyToManyField(
+        "tenants.Location",
+        related_name="result_informations",
+        verbose_name=_("Locations"),
+        help_text=_("Locations where this information is applicable"),
+    )
+
 
 class TestBundle(models.Model):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
@@ -654,6 +671,57 @@ class Visit(models.Model):
     client_answers: models.QuerySet[ClientAnswer]
     consultant_answers: models.QuerySet[ConsultantAnswer]
     tests: models.QuerySet["Test"]
+    
+    public_note = models.TextField(
+        max_length=2000,
+        blank=True,
+        verbose_name=_("Public Note"),
+        help_text=_("A note visible to both client and consultant"),
+    )
+    
+class VisitLog(models.Model):
+    visit = models.ForeignKey(
+        Visit, on_delete=models.CASCADE, related_name="logs"
+    )
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("Timestamp"))
+    action = models.CharField(
+        max_length=255,
+        verbose_name=_("Action"),
+        help_text=_("Description of the action taken"),
+    )
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("User"),
+        help_text=_("The user who performed the action"),
+    )
+
+    
+class VisitDocument(models.Model):
+    visit = models.ForeignKey(
+        Visit, on_delete=models.CASCADE, related_name="documents"
+    )
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_("Document Name"),
+        help_text=_("Name of the document"),
+    )
+    document = models.FileField(
+        upload_to="visit_documents/",
+        verbose_name=_("Document"),
+        help_text=_("Document related to the visit"),
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Uploaded At"))
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("User"),
+        help_text=_("The user who uploaded the document"),
+    )
 
 
 class Test(models.Model):

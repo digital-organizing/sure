@@ -74,18 +74,23 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-def _prefetch_questionnaire(internal=False):
+def _prefetch_questionnaire(internal=False, excluded_question_ids=None):
+    client_questions_qs = ClientQuestion.objects.order_by("order").prefetch_related(
+        Prefetch("options", queryset=ClientOption.objects.order_by("order"))
+    )
+
+    if excluded_question_ids:
+        client_questions_qs = client_questions_qs.exclude(
+            id__in=excluded_question_ids, optional_for_centers=True
+        )
+
     query = Questionnaire.objects.prefetch_related(
         Prefetch(
             "sections",
             queryset=Section.objects.order_by("order").prefetch_related(
                 Prefetch(
                     "client_questions",
-                    queryset=ClientQuestion.objects.order_by("order").prefetch_related(
-                        Prefetch(
-                            "options", queryset=ClientOption.objects.order_by("order")
-                        )
-                    ),
+                    queryset=client_questions_qs,
                 )
             ),
         )
@@ -128,7 +133,12 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
             "message": "Access denied to the case questionnaire",
         }
 
-    questionnaire = _prefetch_questionnaire().get(pk=visit.questionnaire.pk)
+    location = visit.case.location
+    excluded_ids = location.excluded_questions.values_list("id", flat=True)
+
+    questionnaire = _prefetch_questionnaire(excluded_question_ids=excluded_ids).get(
+        pk=visit.questionnaire.pk
+    )
 
     return questionnaire
 

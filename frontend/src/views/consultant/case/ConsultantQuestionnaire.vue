@@ -85,15 +85,16 @@ function onBack() {
           <span class="nr">{{ nrQuestions + 2 }}</span
           >Tags
         </h3>
-        <MultiSelect
-          class="question"
-          v-model="selectedTags"
-          :options="tags"
-          option-label="name"
-          option-value=""
-          placeholder="Select Tags"
-          :show-toggle-all="false"
-        />
+        <div class="tag-boxes question">
+          <div class="option-item" v-for="tag in tags" :key="tag.id!">
+          <Checkbox
+            :input-id="'tag_' + tag.id!"
+            :value="tag"
+            v-model="selectedTags"
+          />
+          <label :for="'tag_' + tag.id!">{{ tag.name }}</label>
+          </div>
+        </div>
       </div>
       <footer class="case-footer">
         <Button label="Back" severity="secondary" @click="onBack()" />

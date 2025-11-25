@@ -1,7 +1,9 @@
 """Models for tenants (organizations) using the service."""
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 
@@ -81,6 +83,29 @@ class Location(models.Model):
         help_text="JSON field to store opening hours.",
         default=default_opening_hours,
     )
+
+    excluded_questions = models.ManyToManyField(
+        "sure.ClientQuestion",
+        blank=True,
+        related_name="excluded_in_centers",
+        verbose_name=_("Excluded Questions at this center."),
+        help_text=_("These questions will not be asked for cases at this center."),
+        limit_choices_to={"optional_for_centers": True},
+    )
+
+    def clean(self) -> None:
+        """Validate that all excluded questions are optional for center."""
+        super().clean()
+        qs = self.excluded_questions.all()
+        invalid = qs.exclude(optional_for_centers=True)
+        if invalid.exists():
+            raise ValidationError(
+                {
+                    "excluded_questions": (
+                        "Only questions marked as optional for centers can be excluded."
+                    )
+                }
+            )
 
     def __str__(self) -> str:
         return f"{self.name} ({self.tenant.name}, {self.pk})"

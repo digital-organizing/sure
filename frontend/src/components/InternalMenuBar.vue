@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { tenantsApiGetTenant, type TenantSchema } from '@/client'
 import { useAccount } from '@/composables/useAccount'
+import { useTexts } from '@/composables/useTexts'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -8,6 +9,8 @@ const { account } = useAccount()
 const router = useRouter()
 
 const tenant = ref<TenantSchema | null>(null)
+
+const { getText: t } = useTexts()
 
 onMounted(() => {
   tenantsApiGetTenant().then((response) => {
@@ -28,7 +31,7 @@ onMounted(() => {
       />
       <img
         src="/logo.png"
-        alt="Logo"
+        :alt="t('Logo').value"
         class="logo"
         @click="router.push({ name: 'consultant-dashboard' })"
       />
@@ -37,7 +40,7 @@ onMounted(() => {
       <Button asChild v-slot="slotProps" severity="secondary">
         <RouterLink :to="{ name: 'consultant-dashboard' }" :class="slotProps.class">
           <i class="pi pi-home" />
-          Dashboard
+          {{ t('dashboard') }}
         </RouterLink>
       </Button>
       <Button
@@ -45,20 +48,20 @@ onMounted(() => {
         :href="'/admin/'"
         v-if="account.is_staff"
         icon="pi pi-cog"
-        label="Administration"
+        :label="t('administration').value"
         severity="secondary"
       />
 
       <Button asChild v-slot="slotProps">
         <RouterLink :to="{ name: 'consultant-new-case' }" :class="slotProps.class">
           <i class="pi pi-plus" />
-          New&nbsp;Case
+          {{ t('new-case') }}
         </RouterLink>
       </Button>
       <div class="account">
         <span class="user">{{ account.full_name || account.username }}</span>
         <RouterLink to="/logout" class="signout"
-          >Logout
+          >{{ t('logout') }}
           <i class="pi pi-sign-out"> </i>
         </RouterLink>
       </div>

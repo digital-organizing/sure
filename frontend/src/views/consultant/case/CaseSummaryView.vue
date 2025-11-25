@@ -119,7 +119,6 @@ function onNext() {
         <div v-for="answer in mapAnswersForConsultantQuestion(question.id!)" :key="answer.id">
           {{ answer.text }}
         </div>
-        <section></section>
       </div>
       <h3>Tags</h3>
       <div class="tags">
@@ -174,20 +173,25 @@ function onNext() {
 .section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.3rem;
 }
 
 header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 0;
+}
+h3 {
+  margin-bottom: 0.3rem;
+  margin-top: 0.9rem;
 }
 .tags {
   display: flex;
   gap: 0.5rem;
 }
 section {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 .selected-test {
   margin-bottom: 0.5rem;

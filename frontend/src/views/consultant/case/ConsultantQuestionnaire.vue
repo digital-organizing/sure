@@ -87,12 +87,8 @@ function onBack() {
         </h3>
         <div class="tag-boxes question">
           <div class="option-item" v-for="tag in tags" :key="tag.id!">
-          <Checkbox
-            :input-id="'tag_' + tag.id!"
-            :value="tag"
-            v-model="selectedTags"
-          />
-          <label :for="'tag_' + tag.id!">{{ tag.name }}</label>
+            <Checkbox :input-id="'tag_' + tag.id!" :value="tag" v-model="selectedTags" />
+            <label :for="'tag_' + tag.id!">{{ tag.name }}</label>
           </div>
         </div>
       </div>

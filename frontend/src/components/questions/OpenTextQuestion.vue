@@ -41,7 +41,14 @@ defineExpose({
       type="text"
       :placeholder="question.question_text"
       class="text-input"
-      v-if="question.format == 'open text field'"
+      v-if="question.format == 'open text field' && !question.validation"
+    />
+    <InputMask
+      v-model="textInput"
+      type="text"
+      class="text-input"
+      :mask="question.validation"
+      v-if="question.format == 'open text field' && question.validation"
     />
     <Textarea
       v-model="textInput"

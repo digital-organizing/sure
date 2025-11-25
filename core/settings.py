@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "unfold.contrib.constance",
     "constance",
     "sure.apps.SureConfig",
+    "texts",
     "guard",
     "sms",
     "colorfield",

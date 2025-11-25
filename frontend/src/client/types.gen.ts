@@ -1050,6 +1050,26 @@ export type BannerSchema = {
     severity?: string;
 };
 
+/**
+ * TextsSchema
+ */
+export type TextsSchema = {
+    /**
+     * Texts
+     */
+    texts: {
+        [key: string]: string;
+    };
+    /**
+     * Right To Left
+     */
+    right_to_left: boolean;
+    /**
+     * Language
+     */
+    language?: string | null;
+};
+
 export type CoreApiLoginViewData = {
     /**
      * FormParams
@@ -2254,6 +2274,47 @@ export type TenantsApiGetBannersResponses = {
 };
 
 export type TenantsApiGetBannersResponse = TenantsApiGetBannersResponses[keyof TenantsApiGetBannersResponses];
+
+export type TextsApiListTextsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/texts/texts/';
+};
+
+export type TextsApiListTextsResponses = {
+    /**
+     * OK
+     */
+    200: TextsSchema;
+};
+
+export type TextsApiListTextsResponse = TextsApiListTextsResponses[keyof TextsApiListTextsResponses];
+
+export type TextsApiListLanguagesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/texts/languages/';
+};
+
+export type TextsApiListLanguagesResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<[
+        string,
+        string
+    ]>;
+};
+
+export type TextsApiListLanguagesResponse = TextsApiListLanguagesResponses[keyof TextsApiListLanguagesResponses];
 
 export type ClientOptions = {
     baseUrl: string;

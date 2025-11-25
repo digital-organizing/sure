@@ -50,6 +50,7 @@ declare module 'vue' {
     InputGroup: typeof import('primevue/inputgroup')['default']
     InputGroupAddon: typeof import('primevue/inputgroupaddon')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
+    InputMask: typeof import('primevue/inputmask')['default']
     InputText: typeof import('primevue/inputtext')['default']
     InternalMenuBar: typeof import('./src/components/InternalMenuBar.vue')['default']
     Message: typeof import('primevue/message')['default']

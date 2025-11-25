@@ -302,7 +302,7 @@ CRISPY_TEMPLATE_PACK = "unfold_crispy"
 CRISPY_ALLOWED_TEMPLATE_PACKS = ["unfold_crispy"]
 
 
-SESAME_MAX_AGE = 60 * 60 * 24  # 1 day in seconds
+SESAME_MAX_AGE = env.int("SESAME_MAX_AGE", default=60 * 60 * 24)  # 1 day in seconds
 
 
 AUTHENTICATION_BACKENDS = [

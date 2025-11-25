@@ -11,7 +11,7 @@ class Auth2FaOrTrusted(APIKeyCookie):
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
         return request.user.is_authenticated and (
-            request.user.is_verified() or request.agent.is_trusted # type: ignore
+            request.user.is_verified() or request.agent.is_trusted  # type: ignore
         )
 
 
@@ -22,7 +22,7 @@ class Auth2FA(APIKeyCookie):
     "Reusing Django session authentication"
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
-        if request.user.is_authenticated and request.user.is_verified(): # type: ignore
+        if request.user.is_authenticated and request.user.is_verified():  # type: ignore
             return request.user
 
         return None

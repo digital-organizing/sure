@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from .models import BlockedEndpointHit, BlockedIdentifier, ProtectedEndpoint
+from .tasks import send_block_notification_email
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,9 @@ def block_identifier(identifier: str, endpoint: ProtectedEndpoint):
         reason=endpoint,
         disabled_at=block_until,
     )
+
+    if endpoint.notification_email:
+        send_block_notification_email.delay(endpoint.pk)
 
 
 def get_identifier(request) -> str:

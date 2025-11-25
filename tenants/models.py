@@ -82,6 +82,15 @@ class Location(models.Model):
         default=default_opening_hours,
     )
 
+    excluded_questions = models.ManyToManyField(
+        "sure.ClientQuestion",
+        blank=True,
+        related_name="excluded_in_centers",
+        verbose_name=_("Excluded Questions at this center."),
+        help_text=_("These questions will not be asked for cases at this center."),
+    
+    )
+
     def __str__(self) -> str:
         return f"{self.name} ({self.tenant.name}, {self.pk})"
 

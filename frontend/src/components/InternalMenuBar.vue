@@ -10,7 +10,7 @@ const router = useRouter()
 
 const tenant = ref<TenantSchema | null>(null)
 
-const { getText: t} = useTexts()
+const { getText: t } = useTexts()
 
 onMounted(() => {
   tenantsApiGetTenant().then((response) => {
@@ -40,7 +40,7 @@ onMounted(() => {
       <Button asChild v-slot="slotProps" severity="secondary">
         <RouterLink :to="{ name: 'consultant-dashboard' }" :class="slotProps.class">
           <i class="pi pi-home" />
-          {{t('dashboard')}}
+          {{ t('dashboard') }}
         </RouterLink>
       </Button>
       <Button
@@ -55,7 +55,7 @@ onMounted(() => {
       <Button asChild v-slot="slotProps">
         <RouterLink :to="{ name: 'consultant-new-case' }" :class="slotProps.class">
           <i class="pi pi-plus" />
-            {{ t('new-case') }}
+          {{ t('new-case') }}
         </RouterLink>
       </Button>
       <div class="account">

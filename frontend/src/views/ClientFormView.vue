@@ -8,6 +8,7 @@ import { userAnswersStore } from '@/stores/answers'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ClientRecap from '@/components/ClientRecap.vue'
+import { useTexts } from '@/composables/useTexts'
 
 const formStructure = ref<QuestionnaireSchema | null>(null)
 const answersStore = userAnswersStore()
@@ -15,12 +16,13 @@ const formIndex = ref<number>(0)
 const totalSections = computed(() => formStructure.value?.sections.length ?? 0)
 const isRecapStep = computed(() => formIndex.value === totalSections.value)
 const error = ref<string | null>(null)
+const { getText: t } = useTexts()
 const currentSectionTitle = computed(() => {
   if (!formStructure.value) {
     return ''
   }
   if (isRecapStep.value) {
-    return 'Summary'
+    return t('client-form-summary-title').value
   }
   return formStructure.value.sections[formIndex.value]?.title ?? ''
 })
@@ -98,7 +100,7 @@ function onSubmit() {
       router.push(`/client/${props.caseId}/phone`)
     })
     .catch(() => {
-      alert('Error submitting form. Please try again.')
+      alert(t('client-form-submit-error-alert').value)
     })
 }
 </script>
@@ -106,7 +108,7 @@ function onSubmit() {
 <template>
   <div class="client-form-view">
     <Message class="form-error" severity="error" v-if="error"
-      ><strong>Error:</strong> {{ error }}</Message
+      ><strong>{{ t('client-form-error-label') }}</strong> {{ error }}</Message
     >
     <div v-if="formStructure">
       <div id="navi-top" class="client-section-element">

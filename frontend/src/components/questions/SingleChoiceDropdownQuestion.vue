@@ -9,6 +9,7 @@ import {
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 import type { ComputedRef } from 'vue'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
@@ -17,6 +18,7 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
+const { getText: t } = useTexts()
 const selectedChoice = computed<string | null>({
   get() {
     return answer.value.choices[0]?.code || null
@@ -107,7 +109,7 @@ defineExpose({
         @change="triggerDropdownUpdate"
         filter
         :options="option.choices"
-        :placeholder="'Select an option'"
+        :placeholder="t('client-question-select-option-placeholder')"
         class="dropdown-select"
       />
     </div>

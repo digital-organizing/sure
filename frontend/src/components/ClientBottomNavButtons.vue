@@ -50,20 +50,30 @@ function onSubmit() {
       variant="outlined"
       icon="IconLeftArrowSmall"
       rounded
+      :aria-label="t('client-form-previous-button').value"
     >
       <IconLeftArrowSmall /> {{ t('client-form-previous-button') }}
     </Button>
-    <Button id="next" v-if="props.hasNext" label="Next" @click="onNext" severity="primary" rounded>
+    <Button
+      id="next"
+      label="Next"
+      v-if="props.hasNext"
+      @click="onNext"
+      severity="primary"
+      rounded
+      :aria-label="t('client-form-next-button').value"
+    >
       {{ t('client-form-next-button') }} <IconRightArrow />
     </Button>
     <Button
       id="submit"
       v-if="!props.hasNext"
-      type="submit"
       label="Submit"
+      type="submit"
       @click="onSubmit"
       severity="primary"
       rounded
+      :aria-label="t('client-form-submit-button').value"
     >
       {{ t('client-form-submit-button') }}
     </Button>

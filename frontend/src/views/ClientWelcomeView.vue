@@ -32,7 +32,18 @@ function onStart() {
                 <p class="client-body">
                     {{ t('client-welcome-text') }}
                 </p>
-                <Button class="button-extra-large" severity="primary" size="large" icon="pi pi-right-arrow" label="Start" rounded @click="onStart">{{ t('client-welcome-start-button') }} <IconRightArrow/></Button>
+                <Button
+                    class="button-extra-large"
+                    label="Start"
+                    severity="primary"
+                    size="large"
+                    icon="pi pi-right-arrow"
+                    :aria-label="t('client-welcome-start-button').value"
+                    rounded
+                    @click="onStart"
+                >
+                    {{ t('client-welcome-start-button') }} <IconRightArrow/>
+                </Button>
             </div>
         </div>
         <div id="client-welcome-time-wrapper">

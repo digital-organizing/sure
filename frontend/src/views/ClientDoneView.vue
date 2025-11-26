@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue';
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   caseId: string
 }>()
+
+const { getText: t } = useTexts()
 </script>
 
 <template>
@@ -13,13 +16,13 @@ const props = defineProps<{
     </div>
     <div class="client-section-element" id="client-done-flex">
       <h1 class="client-h1" style="margin: 0;">
-          Thank You
+          {{ t('client-done-title') }}
       </h1>
       <p class="client-body" style="margin: 0;">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate fugiat facere ipsum modi ipsam repudiandae, quam quia officia est! Dignissimos eaque quaerat excepturi optio harum porro veritatis autem id corrupti.
+        {{ t('client-done-description') }}
       </p>
       <p class="client-body" style="margin: 0;">
-        Bitte notieren sie sich ihre ID-Nummer:
+        {{ t('client-done-note') }}
       </p>
       <p id="client-done-caseid" style="margin: 0;">
         {{ props.caseId }}

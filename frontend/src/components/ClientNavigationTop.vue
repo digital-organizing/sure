@@ -4,6 +4,7 @@ import Menu from 'primevue/menu'
 import Button from 'primevue/button'
 import IconMenu from './icons/IconMenu.vue'
 import type { SectionSchema } from '@/client'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   sectionTitle: string
@@ -16,6 +17,8 @@ const emit = defineEmits<{
 }>()
 
 const menu = ref()
+const { getText: t } = useTexts()
+const sectionsLabel = t('client-navigation-sections-label')
 
 // TODO get Languages and also put a language selector in the menuItems
 const menuItems = computed(() => {
@@ -25,7 +28,7 @@ const menuItems = computed(() => {
 
   return [
     {
-      label: 'Sections',
+      label: sectionsLabel.value,
       items: props.sections.map((section, index) => ({
         label: section.title,
         command: () => emit('select-section', index),

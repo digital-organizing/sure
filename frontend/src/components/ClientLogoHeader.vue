@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { tenantsApiGetTenant, type TenantSchema } from '@/client';
+import { tenantsApiGetTenantById, type TenantSchema } from '@/client';
 import { onMounted, ref } from 'vue';
 
+
+const props = defineProps<{
+    caseId: string
+}>()
 
 const tenant = ref<TenantSchema | null>(null)
 
 onMounted(() => {
-    tenantsApiGetTenant().then((response) => {
+    tenantsApiGetTenantById({path:{case_id: props.caseId}}).then((response) => {
         if (response.data) tenant.value=response.data
     })
 })

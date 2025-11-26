@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue';
 
-defineProps<{
+const props = defineProps<{
   caseId: string
 }>()
 </script>
@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <div class="client-form-view">
     <div>
-      <ClientLogoHeader/>
+      <ClientLogoHeader :case-id="props.caseId"/>
     </div>
     <div class="client-section-element" id="client-done-flex">
       <h1 class="client-h1" style="margin: 0;">
@@ -22,7 +22,7 @@ defineProps<{
         Bitte notieren sie sich ihre ID-Nummer:
       </p>
       <p id="client-done-caseid" style="margin: 0;">
-        {{ caseId }}
+        {{ props.caseId }}
       </p>
 
     </div>

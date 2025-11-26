@@ -19,7 +19,7 @@ function onStart() {
 <template>
     <div class="client-form-view">
         <div id="client-logo-header">
-            <ClientLogoHeader />
+            <ClientLogoHeader :case-id="props.caseId"/>
         </div>
         <div class="client-section-element">
             <div id="client-welcome-flex">

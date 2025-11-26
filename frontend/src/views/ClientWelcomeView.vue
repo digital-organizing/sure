@@ -3,11 +3,14 @@ import IconRightArrow from '@/components/icons/IconRightArrow.vue'
 import IconClock from '@/components/icons/IconClock.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue';
 import router from '@/router';
+import { useTexts } from '@/composables/useTexts';
 
 
 const props = defineProps<{
     caseId: string
 }>()
+
+const { getText: t} = useTexts()
 
 
 function onStart() {
@@ -24,12 +27,12 @@ function onStart() {
         <div class="client-section-element">
             <div id="client-welcome-flex">
                 <h1 class="client-h1">
-                    Guten Tag,
+                    {{ t('client-welcome-greeting') }}
                 </h1>
                 <p class="client-body">
-                    Lorem ipsum dolor sit, amet consectetur adipisicing elit. Atque molestiae minus vitae eos eveniet quas consectetur non vel, qui molestias corrupti inventore eaque necessitatibus debitis exercitationem odio minima iste. Possimus.
+                    {{ t('client-welcome-text') }}
                 </p>
-                <Button class="button-extra-large" severity="primary" size="large" icon="pi pi-right-arrow" label="Start" rounded @click="onStart">Start <IconRightArrow/></Button>
+                <Button class="button-extra-large" severity="primary" size="large" icon="pi pi-right-arrow" label="Start" rounded @click="onStart">{{ t('client-welcome-start-button') }} <IconRightArrow/></Button>
             </div>
         </div>
         <div id="client-welcome-time-wrapper">
@@ -37,7 +40,7 @@ function onStart() {
                 <IconClock id="clock-icon"/>
                 <div>
                     <p id="client-welcome-time-body">
-                        Das Ausfüllen des Fragebogens nimmt ca. 15min in Anspruch.
+                        {{ t('client-welcome-time') }}
                     </p>
                 </div>
             </div>

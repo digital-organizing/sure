@@ -8,10 +8,13 @@ import { RadioButton, InputText } from 'primevue'
 import { sureApiConnectCase, sureApiSendToken, sureApiSetCaseKey } from '@/client'
 import { useRouter } from 'vue-router'
 import { useCountdown } from '@vueuse/core'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   caseId: string
 }>()
+
+const { getText: t, formatText: f} = useTexts()
 
 const router = useRouter()
 
@@ -134,7 +137,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   <div class="client-form-view">
     <div class="client-section-element" id="navi-top">
       <ClientNavigationTop
-        :section-title="'Privacy'"
+        :section-title="t('client-phone-section-title')"
         :sections="[]"
         :language-selector-only="true"
       />
@@ -142,41 +145,31 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     <div class="client-section-element" id="phone-flex">
       <div class="client-phone-body">
         <p>
-          We process your personal data solely to provide you with our consultation. Your personal
-          data is stored only for the duration of the consultation and for no longer than three
-          months.
+          {{ t('client-phone-lead-text') }}
         </p>
       </div>
       <div class="client-phone-icon">
         <IconPhone />
       </div>
-      <div class="client-phone-subtitle">Mobile phone number & key</div>
+      <div class="client-phone-subtitle">{{ t('client-phone-sms-header') }}</div>
       <div class="client-phone-body">
-        You will receive a text message to access your test results. In your next consultation, your
-        consultant will be able to access your previous information. You will also receive a test
-        reminder via text message when it is appropriate. More information about our data use.
+        {{ t('client-phone-sms-text') }}
       </div>
       <div class="client-phone-icon">
         <IconPen />
       </div>
-      <div class="client-phone-subtitle">Identification number (ID)</div>
+      <div class="client-phone-subtitle">{{ t('client-phone-id-header') }}</div>
       <div class="client-phone-body">
-        You will receive a random ID. To receive your test results, you must contact us by telephone
-        and provide this number or login on our platform. If you lose this number, we will not be
-        able to provide your results. In your next consultation, you will receive a new ID and no
-        follow-up will be possible.
+        {{ t('client-phone-id-text') }}
       </div>
       <div class="client-phone-body">
-        In both cases you need to provide a secure key to access your data. Please choose a key that
-        you can easily remember but is difficult for others to guess (e.g. a combination of letters,
-        numbers, and special characters). You can also use the password manager of your browser or
-        smartphone to generate and store a secure key.
+        {{ t('client-phone-password-text') }}
       </div>
     </div>
     <div class="client-section-element client-phone-body">
       <div v-if="verified">
         <Message severity="info"
-          >Your phone number ({{ phonenumberSent }}) has been verified successfully.</Message
+          > {{ f('client-phone-verification-success', [{'key':'phone', 'value':phonenumberSent}]) }}</Message
         >
       </div>
       <Form

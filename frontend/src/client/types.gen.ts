@@ -2237,6 +2237,27 @@ export type TenantsApiGetTenantResponses = {
 
 export type TenantsApiGetTenantResponse = TenantsApiGetTenantResponses[keyof TenantsApiGetTenantResponses];
 
+export type TenantsApiGetTenantByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: never;
+    url: '/api/tenants/tenant/{case_id}';
+};
+
+export type TenantsApiGetTenantByIdResponses = {
+    /**
+     * OK
+     */
+    200: TenantSchema;
+};
+
+export type TenantsApiGetTenantByIdResponse = TenantsApiGetTenantByIdResponses[keyof TenantsApiGetTenantByIdResponses];
+
 export type TenantsApiGetConsultantData = {
     body?: never;
     path: {

@@ -1,24 +1,53 @@
 <script setup lang="ts">
-defineProps<{
+import ClientLogoHeader from '@/components/ClientLogoHeader.vue';
+
+const props = defineProps<{
   caseId: string
 }>()
 </script>
+
 <template>
-  <main>
-    <h3>Thank you! Your information has been submitted successfully.</h3>
-    <p>
-      Your case ID is {{ caseId }}, please save it for your records, together with the secret
-      password you created earlier.
-    </p>
-    <p>You can close this window now.</p>
-    <p>The test results will be available under this link:</p>
-  </main>
+  <div class="client-form-view">
+    <div>
+      <ClientLogoHeader :case-id="props.caseId"/>
+    </div>
+    <div class="client-section-element" id="client-done-flex">
+      <h1 class="client-h1" style="margin: 0;">
+          Thank You
+      </h1>
+      <p class="client-body" style="margin: 0;">
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate fugiat facere ipsum modi ipsam repudiandae, quam quia officia est! Dignissimos eaque quaerat excepturi optio harum porro veritatis autem id corrupti.
+      </p>
+      <p class="client-body" style="margin: 0;">
+        Bitte notieren sie sich ihre ID-Nummer:
+      </p>
+      <p id="client-done-caseid" style="margin: 0;">
+        {{ props.caseId }}
+      </p>
+
+    </div>
+
+  </div>
 </template>
 
 <style scoped>
-main {
-  max-width: 600px;
-  margin: auto;
-  padding: 2rem;
+#client-done-flex {
+    display: flex;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 75px;
 }
+
+#client-done-caseid {
+text-align: center;
+font-size: 28px;
+font-style: normal;
+font-weight: 700;
+line-height: 24.5px;
+}
+
 </style>

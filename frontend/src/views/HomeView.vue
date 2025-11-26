@@ -11,7 +11,7 @@ const loading = ref(true)
 
 onMounted(async () => {
   if (params.case) {
-    router.replace({ name: 'client-form', params: { caseId: params.case } })
+    router.replace({ name: 'client-start', params: { caseId: params.case } })
     return
   }
 

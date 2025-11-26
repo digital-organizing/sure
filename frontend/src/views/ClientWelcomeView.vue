@@ -11,7 +11,7 @@ const props = defineProps<{
 
 
 function onStart() {
-    router.push(`/client/${props.caseId}/form`)
+    router.push({'name':'client-form', params: {'caseId': props.caseId}})
 }
 
 </script>

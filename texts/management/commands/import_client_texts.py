@@ -10,7 +10,7 @@ from texts.models import Text
 class Command(BaseCommand):
     help = "Import client text slugs from a CSV file into the Text model."
 
-    default_csv = Path("frontend") / "client_text_slugs.csv"
+    default_csv = Path("texts") / "tests" / "data" / "client_text_slugs.csv"
     required_columns = {"slug", "page", "note", "English Text"}
 
     def add_arguments(self, parser):
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             default=None,
             help=(
                 "Path to the CSV file containing client text slugs. "
-                "Defaults to frontend/client_text_slugs.csv relative to BASE_DIR."
+                "Defaults to texts/tests/data/client_text_slugs.csv relative to BASE_DIR."
             ),
         )
         parser.add_argument(

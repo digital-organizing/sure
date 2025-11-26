@@ -23,10 +23,10 @@ function onStart() {
         </div>
         <div class="client-section-element">
             <div id="client-welcome-flex">
-                <h1 class="client-welcome-h1">
+                <h1 class="client-h1">
                     Guten Tag,
                 </h1>
-                <p class="client-welcome-body">
+                <p class="client-body">
                     Lorem ipsum dolor sit, amet consectetur adipisicing elit. Atque molestiae minus vitae eos eveniet quas consectetur non vel, qui molestias corrupti inventore eaque necessitatibus debitis exercitationem odio minima iste. Possimus.
                 </p>
                 <Button class="button-extra-large" severity="primary" size="large" icon="pi pi-right-arrow" label="Start" rounded @click="onStart">Start <IconRightArrow/></Button>

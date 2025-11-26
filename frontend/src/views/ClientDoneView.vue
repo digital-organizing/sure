@@ -12,13 +12,13 @@ defineProps<{
       <ClientLogoHeader/>
     </div>
     <div class="client-section-element" id="client-done-flex">
-      <h1 class="client-welcome-h1" style="margin: 0;">
+      <h1 class="client-h1" style="margin: 0;">
           Thank You
       </h1>
-      <p class="client-welcome-body" style="margin: 0;">
+      <p class="client-body" style="margin: 0;">
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate fugiat facere ipsum modi ipsam repudiandae, quam quia officia est! Dignissimos eaque quaerat excepturi optio harum porro veritatis autem id corrupti.
       </p>
-      <p class="client-welcome-body" style="margin: 0;">
+      <p class="client-body" style="margin: 0;">
         Bitte notieren sie sich ihre ID-Nummer:
       </p>
       <p id="client-done-caseid" style="margin: 0;">

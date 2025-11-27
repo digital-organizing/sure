@@ -8,6 +8,7 @@ import {
   type ConsultantQuestionSchema,
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
@@ -16,6 +17,10 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
+const { formatText: f } = useTexts()
+function additionalTextPlaceholder(optionText: string) {
+  return f('client-question-additional-text-placeholder', [{ key: 'option', value: optionText }])
+}
 const selectedChoices = computed<string[]>({
   get() {
     return [...answer.value.choices.map((choice) => choice.code)]
@@ -106,7 +111,7 @@ defineExpose({
         v-model="textInputs[option.code!]"
         type="text"
         @input="triggerTextUpdate()"
-        :placeholder="'Additional text for ' + option.text"
+        :placeholder="additionalTextPlaceholder(option.text || '').value"
         class="text-input"
       />
     </div>

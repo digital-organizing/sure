@@ -2,6 +2,7 @@
 import { defineProps, computed } from 'vue'
 import { type ClientQuestionSchema } from '@/client'
 import { userAnswersStore } from '@/stores/answers'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   question: ClientQuestionSchema
@@ -9,6 +10,7 @@ const props = defineProps<{
 }>()
 
 const answersStore = userAnswersStore()
+const { getText: t } = useTexts()
 
 const answer = computed(() => {
   const id = props.question.id
@@ -29,7 +31,7 @@ const selectedChoiceText = computed(() => {
     </div>
     <div></div>
     <div class="client-recap-question-answer">
-      {{ selectedChoiceText || 'No answer' }}
+      {{ selectedChoiceText || t('client-recap-no-answer') }}
     </div>
   </div>
 </template>

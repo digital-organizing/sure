@@ -1,32 +1,25 @@
 <script setup lang="ts">
-import { tenantsApiGetTenantById, type TenantSchema } from '@/client';
-import { onMounted, ref } from 'vue';
-
+import { tenantsApiGetTenantById, type TenantSchema } from '@/client'
+import { onMounted, ref } from 'vue'
 
 const props = defineProps<{
-    caseId: string
+  caseId: string
 }>()
 
 const tenant = ref<TenantSchema | null>(null)
 
 onMounted(() => {
-    tenantsApiGetTenantById({path:{case_id: props.caseId}}).then((response) => {
-        if (response.data) tenant.value=response.data
-    })
+  tenantsApiGetTenantById({ path: { case_id: props.caseId } }).then((response) => {
+    if (response.data) tenant.value = response.data
+  })
 })
-
 </script>
 
 <template>
-    <div id="client-welcome-logo-header">
-        <img 
-            v-if="tenant?.logo"
-            :src="tenant.logo"
-            :alt="tenant.name"
-            class="logo"
-        />
-        <img src="/logo.png" class="logo"/>
-    </div>
+  <div id="client-welcome-logo-header">
+    <img v-if="tenant?.logo" :src="tenant.logo" :alt="tenant.name" class="logo" />
+    <img src="/logo.png" class="logo" />
+  </div>
 </template>
 
 <style scoped>
@@ -40,6 +33,6 @@ onMounted(() => {
 }
 
 .logo {
-    height: 60px;
+  height: 60px;
 }
 </style>

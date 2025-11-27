@@ -106,7 +106,7 @@ header.case h2 {
 .client-h1 {
   color: var(--color-ahs-black);
   text-align: center;
-  font-family: "Circular Std";
+  font-family: 'Circular Std';
   font-size: 45px;
   font-style: normal;
   font-weight: 700;
@@ -116,9 +116,13 @@ header.case h2 {
 .client-body {
   color: var(--color-ahs-black);
   text-align: center;
-  font-family: "Circular Std";
+  font-family: 'Circular Std';
   font-size: 18px;
   font-style: normal;
   font-weight: 450;
   line-height: 24.5px;
+}
+
+.p-checkbox-box {
+  border-width: 1px !important;
 }

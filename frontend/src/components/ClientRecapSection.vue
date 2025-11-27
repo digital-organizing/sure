@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import ClientRecapQuestion from './ClientRecapQuestion.vue'
 import ClientQuestion from './ClientQuestion.vue'
 import { userAnswersStore } from '@/stores/answers'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   section: SectionSchema
@@ -13,6 +14,8 @@ const props = defineProps<{
 const emits = defineEmits<{
   (e: 'edit-section', index: number): void
 }>()
+
+const { getText: t } = useTexts()
 
 const answersStore = userAnswersStore()
 const questions = ref<(typeof ClientQuestion)[]>([])
@@ -43,7 +46,7 @@ const visibleQuestions = computed(() => {
         rounded
         @click="emits('edit-section', props.sectionIndex)"
       >
-        Edit
+        {{ t('client-recap-edit-button') }}
       </Button>
     </div>
     <ClientRecapQuestion

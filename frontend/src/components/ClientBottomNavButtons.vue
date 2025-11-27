@@ -22,7 +22,7 @@ const emits = defineEmits<{
   (e: 'submit'): void
 }>()
 
-const { getText: t} = useTexts()
+const { getText: t } = useTexts()
 
 function onNext() {
   const answers = questions.value.map((q) => q.getClientAnswer())

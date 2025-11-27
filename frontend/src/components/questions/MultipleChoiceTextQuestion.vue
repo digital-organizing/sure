@@ -19,9 +19,7 @@ const props = defineProps<{
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
 const { formatText: f } = useTexts()
 function additionalTextPlaceholder(optionText: string) {
-  return f('client-question-additional-text-placeholder', [
-    { key: 'option', value: optionText },
-  ])
+  return f('client-question-additional-text-placeholder', [{ key: 'option', value: optionText }])
 }
 const selectedChoices = computed<string[]>({
   get() {

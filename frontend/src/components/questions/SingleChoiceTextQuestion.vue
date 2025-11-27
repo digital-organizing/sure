@@ -49,9 +49,7 @@ const text = computed<string>({
 })
 
 function additionalTextPlaceholder(optionText: string) {
-  return f('client-question-additional-text-placeholder', [
-    { key: 'option', value: optionText },
-  ])
+  return f('client-question-additional-text-placeholder', [{ key: 'option', value: optionText }])
 }
 
 function getAnswer() {

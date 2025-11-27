@@ -34,9 +34,7 @@ class Command(BaseCommand):
         dry_run = options["dry_run"]
 
         path = (
-            Path(csv_path)
-            if csv_path
-            else Path(settings.BASE_DIR) / self.default_csv
+            Path(csv_path) if csv_path else Path(settings.BASE_DIR) / self.default_csv
         ).resolve()
 
         if not path.exists():
@@ -59,7 +57,9 @@ class Command(BaseCommand):
                 if not slug:
                     skipped += 1
                     self.stdout.write(
-                        self.style.WARNING(f"Line {line_number}: missing slug, skipping.")
+                        self.style.WARNING(
+                            f"Line {line_number}: missing slug, skipping."
+                        )
                     )
                     continue
 
@@ -68,7 +68,9 @@ class Command(BaseCommand):
                 english_text = (row.get("English Text") or "").strip()
 
                 context_parts = [part for part in (page, note) if part]
-                context = " - ".join(context_parts)[: Text._meta.get_field("context").max_length]
+                context = " - ".join(context_parts)[
+                    : Text._meta.get_field("context").max_length
+                ]
 
                 defaults = {
                     "context": context,

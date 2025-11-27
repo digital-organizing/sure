@@ -126,8 +126,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   const key = e.values.key as string
   const response = await sureApiSetCaseKey({ path: { pk: props.caseId }, body: { key } })
   if (response.error && !response.error?.success) {
-    errorKey.value =
-      ensureString(response.error?.message) || translate('client-phone-error-key')
+    errorKey.value = ensureString(response.error?.message) || translate('client-phone-error-key')
     return
   }
   router.push({ name: 'client-done', params: { caseId: props.caseId } })
@@ -169,8 +168,10 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     </div>
     <div class="client-section-element client-phone-body">
       <div v-if="verified">
-        <Message severity="info"
-          > {{ f('client-phone-verification-success', [{'key':'phone', 'value':phonenumberSent}]) }}</Message
+        <Message severity="info">
+          {{
+            f('client-phone-verification-success', [{ key: 'phone', value: phonenumberSent }])
+          }}</Message
         >
       </div>
       <Form
@@ -238,13 +239,11 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
               }}</Message>
             </div>
             <div v-if="showVerify" class="client-phone-input">
-              <label for="verification-code"
-                >{{
-                  f('client-phone-verification-code-label', [
-                    { key: 'phone', value: phonenumberSent },
-                  ])
-                }}</label
-              >
+              <label for="verification-code">{{
+                f('client-phone-verification-code-label', [
+                  { key: 'phone', value: phonenumberSent },
+                ])
+              }}</label>
               <InputGroup>
                 <InputText
                   id="verification-code"

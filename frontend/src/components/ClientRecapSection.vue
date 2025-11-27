@@ -15,7 +15,7 @@ const emits = defineEmits<{
   (e: 'edit-section', index: number): void
 }>()
 
-const { getText: t} = useTexts()
+const { getText: t } = useTexts()
 
 const answersStore = userAnswersStore()
 const questions = ref<(typeof ClientQuestion)[]>([])

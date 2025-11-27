@@ -17,24 +17,52 @@ const emit = defineEmits<{
 }>()
 
 const menu = ref()
-const { getText: t } = useTexts()
+const {
+  getText: t,
+  getAvailableLanguages,
+  setLanguage,
+  language: selectedLanguage,
+} = useTexts()
 const sectionsLabel = t('client-navigation-sections-label')
+const languagesLabel = t('client-navigation-languages-label')
+const availableLanguages = ref<[string, string][]>([])
+const currentLanguage = computed(() => selectedLanguage.value)
 
-// TODO get Languages and also put a language selector in the menuItems
+getAvailableLanguages().then((languages) => {
+  if (!languages) return
+  availableLanguages.value = languages
+})
+
+async function selectLanguage(lang: string) {
+  if (currentLanguage.value === lang) return
+  await setLanguage(lang)
+}
+
 const menuItems = computed(() => {
-  if (props.languageSelectorOnly || !props.sections?.length) {
-    return []
-  }
+  const items = []
 
-  return [
-    {
+  if (!props.languageSelectorOnly && props.sections?.length) {
+    items.push({
       label: sectionsLabel.value,
       items: props.sections.map((section, index) => ({
         label: section.title,
         command: () => emit('select-section', index),
       })),
-    },
-  ]
+    })
+  }
+
+  if (availableLanguages.value.length) {
+    items.push({
+      label: languagesLabel.value,
+      items: availableLanguages.value.map(([code, name]) => ({
+        label: name,
+        ...(currentLanguage.value === code ? { icon: 'pi pi-check' } : {}),
+        command: () => selectLanguage(code),
+      })),
+    })
+  }
+
+  return items
 })
 
 function toggle(event: Event) {

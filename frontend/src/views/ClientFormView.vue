@@ -16,7 +16,7 @@ const formIndex = ref<number>(0)
 const totalSections = computed(() => formStructure.value?.sections.length ?? 0)
 const isRecapStep = computed(() => formIndex.value === totalSections.value)
 const error = ref<string | null>(null)
-const { getText: t } = useTexts()
+const { getText: t, language: selectedLanguage } = useTexts()
 const currentSectionTitle = computed(() => {
   if (!formStructure.value) {
     return ''
@@ -41,29 +41,64 @@ const props = defineProps<{
 
 const { scrollToTop } = useScroll()
 const router = useRouter()
+let latestQuestionnaireRequest = 0
 
-onMounted(async () => {
-  const response = await sureApiGetCaseQuestionnaire({ path: { pk: props.caseId } })
+async function loadQuestionnaire(lang: string) {
+  const requestId = ++latestQuestionnaireRequest
+  error.value = null
+  const response = await sureApiGetCaseQuestionnaire({
+    path: { pk: props.caseId },
+    query: { lang },
+  })
+
   if (response.response.status === 302) {
     router.push(`/client/${props.caseId}/phone`)
     return
   }
+
+  if (requestId !== latestQuestionnaireRequest) {
+    return
+  }
+
   if (response.error && response.error.message) {
     error.value = Array.isArray(response.error.message)
       ? response.error.message.join(', ')
       : response.error.message
     return
   }
-  formStructure.value = response.data!
+
+  if (!response.data) {
+    return
+  }
+
+  formStructure.value = response.data
   answersStore.setSchema(formStructure.value)
 
-  const savedIndex = localStorage.getItem('clientFormIndex')
+  const sectionsCount = formStructure.value.sections.length
+  if (formIndex.value > sectionsCount) {
+    formIndex.value = sectionsCount
+  }
+}
+
+watch(
+  selectedLanguage,
+  (lang) => {
+    if (!lang) return
+    loadQuestionnaire(lang)
+  },
+  { immediate: true },
+)
+
+onMounted(() => {
   const savedId = localStorage.getItem('clientFormCaseId')
   if (savedId !== props.caseId) {
     localStorage.setItem('clientFormCaseId', props.caseId)
     localStorage.setItem('clientFormIndex', '0')
     formIndex.value = 0
-  } else if (savedIndex) {
+    return
+  }
+  const savedIndex = localStorage.getItem('clientFormIndex')
+  if (savedIndex) {
     formIndex.value = parseInt(savedIndex, 10)
   }
 })

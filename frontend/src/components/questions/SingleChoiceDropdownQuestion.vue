@@ -109,7 +109,7 @@ defineExpose({
         @change="triggerDropdownUpdate"
         filter
         :options="option.choices"
-        :placeholder="t('client-question-select-option-placeholder')"
+        :placeholder="t('client-question-select-option-placeholder').value"
         class="dropdown-select"
       />
     </div>

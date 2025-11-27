@@ -160,7 +160,7 @@ defineExpose({
               v-model="textInputs[option.code!][index]"
               @input="triggerTextUpdate()"
               type="text"
-              :placeholder="additionalTextPlaceholder(option.text || '')"
+              :placeholder="additionalTextPlaceholder(option.text || '').value"
             />
             <InputGroupAddon v-if="index != 0">
               <Button

@@ -111,7 +111,7 @@ defineExpose({
         v-model="textInputs[option.code!]"
         type="text"
         @input="triggerTextUpdate()"
-        :placeholder="additionalTextPlaceholder(option.text || '')"
+        :placeholder="additionalTextPlaceholder(option.text || '').value"
         class="text-input"
       />
     </div>

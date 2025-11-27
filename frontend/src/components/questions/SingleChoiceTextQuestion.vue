@@ -84,13 +84,13 @@ defineExpose({
           v-model="text"
           autoResize
           :rows="4"
-          :placeholder="additionalTextPlaceholder(option.text || '')"
+          :placeholder="additionalTextPlaceholder(option.text || '').value"
           class="text-input consult-wish-textarea"
         />
         <InputText
           v-else
           type="text"
-          :placeholder="additionalTextPlaceholder(option.text || '')"
+          :placeholder="additionalTextPlaceholder(option.text || '').value"
           class="text-input"
         />
       </template>

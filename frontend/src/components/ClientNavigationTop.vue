@@ -17,12 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const menu = ref()
-const {
-  getText: t,
-  getAvailableLanguages,
-  setLanguage,
-  language: selectedLanguage,
-} = useTexts()
+const { getText: t, getAvailableLanguages, setLanguage, language: selectedLanguage } = useTexts()
 const sectionsLabel = t('client-navigation-sections-label')
 const languagesLabel = t('client-navigation-languages-label')
 const availableLanguages = ref<[string, string][]>([])

@@ -94,7 +94,7 @@ defineExpose({
   font-size: 18px;
   font-style: normal;
   font-weight: 700;
-  line-height: 20px; /* 111.111% */
+  line-height: 22px; /* 111.111% */
   margin-bottom: 10px;
   margin-top: 12.5px;
 }

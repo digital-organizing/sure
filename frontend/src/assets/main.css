@@ -122,3 +122,7 @@ header.case h2 {
   font-weight: 450;
   line-height: 24.5px;
 }
+
+.p-checkbox-box {
+  border-width: 1px !important;
+}

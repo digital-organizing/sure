@@ -148,8 +148,7 @@ function onBack() {
     :class="{ error: showError }"
   >
     <h3>
-      <span class="nr">{{ category.category.number }}</span
-      >{{ category.category.name }}
+      {{ category.category.name }}
     </h3>
     <div
       v-for="test in category.tests"
@@ -189,7 +188,7 @@ function onBack() {
     </div>
   </div>
   <div class="text-category" v-if="freeFormTests.length > 0" :class="{ error: showError }">
-    <h3><span class="nr">0</span>Free-form Tests</h3>
+    <h3>Free-form Tests</h3>
     <div v-for="test in freeFormTests" :key="test.id!" class="test-category">
       <div class="test" :class="freeFormResults[test.id!] ? 'done' : 'missing'">
         <h4>{{ test.name }}</h4>
@@ -199,7 +198,7 @@ function onBack() {
       </div>
     </div>
   </div>
-  <div>
+  <div class="missing-warning" v-if="missingResults.length > 0">
     <Message v-if="missingResults.length > 0" severity="warn" icon="pi pi-exclamation-triangle">
       {{ missingResults.length }} test results are missing. Please provide results for all selected
       tests before proceeding.
@@ -231,6 +230,9 @@ function onBack() {
   gap: 1rem;
   height: 45px;
 }
+.missing-warning {
+  margin-top: 1rem;
+}
 
 .input {
   display: flex;
@@ -260,7 +262,7 @@ function onBack() {
 }
 
 .test-category {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0rem;
 }
 
 .error .missing {

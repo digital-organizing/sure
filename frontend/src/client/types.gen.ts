@@ -628,6 +628,11 @@ export type TestResultOptionSchema = {
      * Color associated with this result option (hex code)
      */
     color?: string | null;
+    /**
+     * Information Text
+     * Information text to be sent to the client
+     */
+    information_text?: string | null;
 };
 
 /**
@@ -761,6 +766,7 @@ export type TestResultInputSchema = {
  * DocumentSchema
  */
 export type DocumentSchema = {
+    user: UserSchema;
     /**
      * ID
      */
@@ -771,10 +777,41 @@ export type DocumentSchema = {
      */
     name: string;
     /**
+     * Uploaded At
+     */
+    uploaded_at: string;
+    /**
      * Hidden
      * Whether this document is hidden from clients
      */
     hidden?: boolean;
+};
+
+/**
+ * UserSchema
+ */
+export type UserSchema = {
+    /**
+     * Tenant
+     */
+    tenant: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Username
+     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     */
+    username: string;
+    /**
+     * First Name
+     */
+    first_name?: string | null;
+    /**
+     * Last Name
+     */
+    last_name?: string | null;
 };
 
 /**
@@ -791,6 +828,7 @@ export type DocumentAccessSchema = {
  * NoteSchema
  */
 export type NoteSchema = {
+    user: UserSchema;
     /**
      * ID
      */
@@ -805,6 +843,10 @@ export type NoteSchema = {
      * Whether this note is hidden from clients
      */
     hidden?: boolean;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -1025,6 +1067,17 @@ export type LocationSchema = {
      * Name
      */
     name: string;
+    /**
+     * Phone Number
+     */
+    phone_number?: string | null;
+    /**
+     * Opening Hours
+     * JSON field to store opening hours.
+     */
+    opening_hours?: {
+        [key: string]: unknown;
+    } | null;
 };
 
 /**
@@ -1061,29 +1114,6 @@ export type TagSchema = {
      * Note
      */
     note?: string | null;
-};
-
-/**
- * UserSchema
- */
-export type UserSchema = {
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Username
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
-     */
-    username: string;
-    /**
-     * First Name
-     */
-    first_name?: string | null;
-    /**
-     * Last Name
-     */
-    last_name?: string | null;
 };
 
 /**
@@ -1977,6 +2007,10 @@ export type SureApiListDocumentsData = {
     };
     query?: {
         /**
+         * As Staff
+         */
+        as_staff?: boolean;
+        /**
          * Lang
          */
         lang?: string | null;
@@ -2141,6 +2175,10 @@ export type SureApiListCaseNotesData = {
     };
     query?: {
         /**
+         * As Staff
+         */
+        as_staff?: boolean;
+        /**
          * Lang
          */
         lang?: string | null;
@@ -2228,33 +2266,6 @@ export type SureApiSetCaseKeyResponses = {
 };
 
 export type SureApiSetCaseKeyResponse = SureApiSetCaseKeyResponses[keyof SureApiSetCaseKeyResponses];
-
-export type SureApiViewCaseCommunicationData = {
-    /**
-     * FormParams
-     */
-    body: {
-        /**
-         * Key
-         */
-        key: string;
-    };
-    path: {
-        /**
-         * Pk
-         */
-        pk: string;
-    };
-    query?: never;
-    url: '/api/sure/case/{pk}/communication/';
-};
-
-export type SureApiViewCaseCommunicationResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
 
 export type SureApiCreateCaseViewData = {
     body: CreateCaseSchema;
@@ -2507,7 +2518,7 @@ export type SureApiListTestResultOptionsResponses = {
 
 export type SureApiListTestResultOptionsResponse = SureApiListTestResultOptionsResponses[keyof SureApiListTestResultOptionsResponses];
 
-export type SureApiGetClientResultsData = {
+export type SureApiGetCaseStatusData = {
     /**
      * FormParams
      */
@@ -2524,6 +2535,62 @@ export type SureApiGetClientResultsData = {
         pk: string;
     };
     query?: never;
+    url: '/api/sure/results/{pk}/status/';
+};
+
+export type SureApiGetCaseStatusResponses = {
+    /**
+     * OK
+     */
+    200: OptionSchema;
+};
+
+export type SureApiGetCaseStatusResponse = SureApiGetCaseStatusResponses[keyof SureApiGetCaseStatusResponses];
+
+export type SureApiGetNonSmsResultsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/results/{pk}/non-sms/';
+};
+
+export type SureApiGetNonSmsResultsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TestSchema>;
+};
+
+export type SureApiGetNonSmsResultsResponse = SureApiGetNonSmsResultsResponses[keyof SureApiGetNonSmsResultsResponses];
+
+export type SureApiGetClientResultsData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * As Client
+         */
+        as_client?: boolean;
+    };
     url: '/api/sure/results/{pk}/client/';
 };
 
@@ -2566,6 +2633,32 @@ export type SureApiGetResultInfoResponses = {
 };
 
 export type SureApiGetResultInfoResponse = SureApiGetResultInfoResponses[keyof SureApiGetResultInfoResponses];
+
+export type SureApiPublishCaseResultsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/publish/';
+};
+
+export type SureApiPublishCaseResultsResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiPublishCaseResultsResponse = SureApiPublishCaseResultsResponses[keyof SureApiPublishCaseResultsResponses];
 
 export type TenantsApiListLocationsData = {
     body?: never;
@@ -2617,7 +2710,7 @@ export type TenantsApiGetTenantResponses = {
 
 export type TenantsApiGetTenantResponse = TenantsApiGetTenantResponses[keyof TenantsApiGetTenantResponses];
 
-export type TenantsApiGetTenantByIdData = {
+export type TenantsApiGetLocationByIdData = {
     body?: never;
     path: {
         /**
@@ -2629,14 +2722,14 @@ export type TenantsApiGetTenantByIdData = {
     url: '/api/tenants/tenant/{case_id}';
 };
 
-export type TenantsApiGetTenantByIdResponses = {
+export type TenantsApiGetLocationByIdResponses = {
     /**
      * OK
      */
-    200: TenantSchema;
+    200: LocationSchema;
 };
 
-export type TenantsApiGetTenantByIdResponse = TenantsApiGetTenantByIdResponses[keyof TenantsApiGetTenantByIdResponses];
+export type TenantsApiGetLocationByIdResponse = TenantsApiGetLocationByIdResponses[keyof TenantsApiGetLocationByIdResponses];
 
 export type TenantsApiGetConsultantData = {
     body?: never;

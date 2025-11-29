@@ -255,6 +255,8 @@ aside {
 
 .case-main {
   grid-area: main;
+  display: flex;
+  flex-direction: column;
 }
 
 nav {

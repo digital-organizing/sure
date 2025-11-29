@@ -19,7 +19,7 @@ class SMSUpStatus(Enum):
     UNKNOWN_ERROR = -99
 
 
-def send_sms(to: str, body: str):
+def send_sms(to: str, body: str, tenant=None) -> None:
     """Send an SMS message via SMS Up, uses settings from Django settings."""
     headers = {
         "Authorization": f"Bearer {settings.SMSUP_API_TOKEN}",
@@ -61,4 +61,5 @@ def send_sms(to: str, body: str):
     SMSMessage.objects.create(
         to=to,
         response=data,
+        tenant=tenant,
     )

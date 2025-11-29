@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { sureApiGetDocumentLink } from '@/client';
 import { useCase } from '@/composables/useCase';
+import { formatDate } from '@vueuse/core';
 import { ref } from 'vue';
 
 
@@ -39,7 +40,13 @@ async function downloadDocument(id) {
 <template>
         <Panel :header="documents.length ? `Documents (${documents.length})` : 'Documents'" toggleable collapsed>
             <div v-for="document in documents" :key="document.id!" class="document">
-                {{ document.name }}
+                <div class="info">
+                    <span class="link" @click="downloadDocument(document.id!)">
+                        {{ document.name }}
+                    </span>
+                    <span class="small">{{ formatDate(new Date(document.uploaded_at), 'YYYY-MM-DD HH:mm') }} - {{ document.user.first_name }} {{ document.user.last_name }} ({{ document.user.tenant }})</span>
+
+                </div>
                 <div class="actions">
                     <label :for="'toggle_' + document.id!">{{ document.hidden ? 'Hidden' : 'Visible' }}</label>
                 <ToggleSwitch
@@ -48,7 +55,6 @@ async function downloadDocument(id) {
                     :model-value="!document.hidden"
                     @update:model-value="(value: boolean) => setDocumentHidden(document.id!,!value)"
                 />
-                <Button label="Download" @click="downloadDocument(document.id!)" size="small" variant="outlined" />
                 </div>
             </div>
         
@@ -69,6 +75,9 @@ async function downloadDocument(id) {
     
         <Button label="Upload" @click="triggerUpload" :disabled="fileName.length==0 || !hasFile" />
         </div>
+        <Message severity="info" variant="simple" size="small">
+            Here you can upload documents related to the tests. These documents will be visible to the client unless marked as hidden. You cannot delete documents once uploaded.
+        </Message>
 
         </Panel>
 </template>
@@ -78,6 +87,8 @@ async function downloadDocument(id) {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 .upload-row {
     display: flex;
@@ -85,6 +96,7 @@ async function downloadDocument(id) {
     gap: 0.5rem;
     margin-top: 1rem;
     justify-content: space-between;
+    margin-bottom: 0.3rem;
 }
 .input-row {
     display: flex;
@@ -96,6 +108,24 @@ async function downloadDocument(id) {
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.5rem;
+}
+
+.link {
+    text-decoration: underline;
+    font-weight: bold;
+    color: var(--text-color);
+    cursor: pointer;
+    margin-bottom: 0.3rem;
+}
+
+.small {
+    font-size: 0.8rem;
+    color: var(--color-ahs-dark-gray);
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
 }
     
 </style>

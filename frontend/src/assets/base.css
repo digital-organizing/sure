@@ -141,3 +141,8 @@ a.p-button {
 .status.p-tag {
   background-color: var(--status-color);
 }
+
+.p-panel p {
+  margin-top: 0;
+  margin-bottom: 0;
+}

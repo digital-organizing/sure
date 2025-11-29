@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { tenantsApiGetTenantById, type TenantSchema } from '@/client'
+import { tenantsApiGetLocationById, type TenantSchema } from '@/client'
 import { onMounted, ref } from 'vue'
 
 const props = defineProps<{
@@ -9,8 +9,8 @@ const props = defineProps<{
 const tenant = ref<TenantSchema | null>(null)
 
 onMounted(() => {
-  tenantsApiGetTenantById({ path: { case_id: props.caseId } }).then((response) => {
-    if (response.data) tenant.value = response.data
+  tenantsApiGetLocationById({ path: { case_id: props.caseId } }).then((response) => {
+    if (response.data) tenant.value = response.data.tenant
   })
 })
 </script>

@@ -99,6 +99,17 @@ def send_case_link(case: Case, phone_number: str):
 
     send_sms(contact.phone_number, msg)
 
+def send_results_link(case: Case):
+    connection = Connection.objects.filter(case=case).first()
+    if not connection:
+        return
+    contact = connection.client.contact
+    link = settings.SITE_URL + "/results?case=" + case.human_id
+    
+    msg = "Your test results are now available. Go to " + link
+    
+    send_sms(contact.phone_number, msg, case.location.tenant)
+    
 
 def send_token(phone_number: str, case: Case):
     """Send a verification token to the given phone number"""

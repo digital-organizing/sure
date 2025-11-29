@@ -22,8 +22,8 @@ from core.auth import auth_2fa, auth_2fa_or_trusted
 api = NinjaAPI(
     auth=auth_2fa_or_trusted,
     throttle=[
-        AnonRateThrottle("5/s"),
-        AuthRateThrottle("50/s"),
+        AnonRateThrottle("50/s"),
+        AuthRateThrottle("200/s"),
     ],
 )
 

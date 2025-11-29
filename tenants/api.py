@@ -38,10 +38,10 @@ def get_tenant(request):
     return consultant.tenant
 
 
-@router.get("/tenant/{case_id}", response=TenantSchema, auth=None)
-def get_tenant_by_id(request, case_id):
+@router.get("/tenant/{case_id}", response=LocationSchema, auth=None)
+def get_location_by_id(request, case_id):
     case = get_object_or_404(Case.objects.all(), pk=strip_id(case_id))
-    return case.location.tenant
+    return case.location
 
 
 @router.get("/consultants/{pk}/", response=UserSchema)

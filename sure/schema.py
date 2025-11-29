@@ -31,6 +31,7 @@ from sure.models import (
     VisitDocument,
     VisitNote,
 )
+from tenants.schema import UserSchema
 
 
 class StatusSchema(Schema):
@@ -481,6 +482,7 @@ class TestResultOptionSchema(ModelSchema):
             "test_kind",
             "label",
             "color",
+            "information_text",
         ]
 
 
@@ -605,8 +607,10 @@ class DocumentSchema(ModelSchema):
         fields = [
             "id",
             "name",
+            "uploaded_at",
             "hidden",
         ]
+    user: UserSchema
 
 
 class DocumentAccessSchema(Schema):
@@ -619,7 +623,12 @@ class NoteSchema(ModelSchema):
             "id",
             "note",
             "hidden",
+            "created_at",
+            "user",
         ]
+
+    user: UserSchema
+
 
 class ResultInformationSchema(ModelSchema):
     class Meta:

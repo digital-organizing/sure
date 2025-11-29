@@ -31,6 +31,8 @@ import {
   sureApiListCaseNotes,
   sureApiAddCaseNote,
   sureApiSetCaseNoteHidden,
+  sureApiPublishCaseResults,
+  sureApiUpdateCaseStatus,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -557,6 +559,20 @@ export const useCase = createGlobalState(() => {
         await Promise.all([fetchVisitDetails(), fetchSelectedTests()])
       })
   }
+  
+  async function publishResults() {
+    await sureApiPublishCaseResults({path: {pk: visit.value!.case}}).then(() => {
+      // Successfully published results
+    }).catch((error) => {
+      error.value = 'Failed to publish case results: ' + error.message
+    })
+    await fetchVisitDetails()
+  }
+  
+  async function setCaseStatus(status: string) {
+    await sureApiUpdateCaseStatus({path: {pk: visit.value!.case}, query: {status}});
+    await fetchVisitDetails()
+  }
 
   return {
     visit,
@@ -596,5 +612,7 @@ export const useCase = createGlobalState(() => {
     freeFormTests,
     history,
     historyItems,
+    setCaseStatus,
+    publishResults,
   }
 })

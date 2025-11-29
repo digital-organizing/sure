@@ -14,8 +14,9 @@ from ninja.errors import HttpError
 from ninja.pagination import PageNumberPagination, paginate
 
 from core.auth import auth_2fa_or_trusted
+from sms.service import send_sms
 from sure.cases import annotate_last_modified
-from sure.client_service import can_connect_case
+from sure.client_service import can_connect_case, send_results_link
 from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
     create_case,
@@ -77,6 +78,7 @@ from sure.schema import (
     TestSchema,
 )
 from tenants.models import Consultant
+from tenants.schema import LocationSchema
 
 logger = logging.getLogger(__name__)
 
@@ -119,8 +121,8 @@ def _prefetch_questionnaire(internal=False, excluded_question_ids=None):
         )
     return query
 
-def get_case_tests_with_latest_results(visit: Visit) -> QuerySet[Test]:
-    test_latest_result_ids = TestResult.objects.filter(
+def get_test_results(visit):
+    return TestResult.objects.filter(
         test__visit=visit
     ).annotate(
         is_latest=Subquery(
@@ -128,7 +130,21 @@ def get_case_tests_with_latest_results(visit: Visit) -> QuerySet[Test]:
                 test_id=OuterRef('test_id')
             ).order_by('-created_at').values('id')[:1]
         )
-    ).filter(id=F('is_latest')).values_list('id', flat=True)
+    ).filter(id=F('is_latest'))
+    
+
+def get_case_tests_with_latest_results(visit: Visit, filter_client=None) -> QuerySet[Test]:
+    test_latest_result_ids = get_test_results(visit)
+    
+    if filter_client is True: # Clients are only allowed to see results if all results are information_by_sms=True
+        if test_latest_result_ids.filter(
+            result_option__information_by_sms=False
+        ).exists():
+            return Test.objects.none()
+    if filter_client is False: # Return only results that are not information_by_sms
+        test_latest_result_ids = test_latest_result_ids.filter(result_option__information_by_sms=False)
+    
+    test_latest_result_ids = test_latest_result_ids.values_list('id', flat=True)
 
     visit_with_latest = Visit.objects.filter(pk=visit.pk).prefetch_related(
         Prefetch(
@@ -177,7 +193,6 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     )
 
     return questionnaire
-
 
 @router.post(
     "/case/{pk}/send-token/", auth=None, response={200: StatusSchema, 400: StatusSchema}
@@ -248,7 +263,10 @@ def get_phone_number(request, pk: str):
     if not verify_access_to_location(visit.case.location, request.user):
         raise PermissionError("User does not have access to this location")
 
-    phone_number = visit.case.connection.client.phone_number if visit.case.connection else None
+    try:
+        phone_number = visit.case.connection.client.contact.phone_number if visit.case.connection else None
+    except Case.connection.RelatedObjectDoesNotExist:
+        phone_number = None
     if phone_number:
         # TODO: Log access to phone number
         return StatusSchema(success=True, message=phone_number)
@@ -468,12 +486,13 @@ def upload_document(request, pk: str, file: File[UploadedFile], name: Form[str])
 
 @router.post("/case/{pk}/documents/", response=list[DocumentSchema], auth=None)
 @inject_language
-def list_documents(request, pk: str, key: Form[str] = ''):
+def list_documents(request, pk: str, key: Form[str] = '', as_staff=False):
     """List documents for a case. All if authenticted, else only non-hidden."""
     authenticted = auth_2fa_or_trusted(request)
     visit = get_case(
         request, pk) if authenticted else get_case_unverified(pk, key)
-    if not authenticted:
+    as_client = not authenticted or not as_staff
+    if as_client:
         return visit.documents.filter(hidden=False)
     return visit.documents.all()
 
@@ -523,12 +542,13 @@ def add_case_note(request, pk: str, content: Form[str]):
 
 @router.post("/case/{pk}/notes/", response=list[NoteSchema], auth=None)
 @inject_language
-def list_case_notes(request, pk: str, key: Form[str] = ''):
+def list_case_notes(request, pk: str, key: Form[str] = '', as_staff=False):
     visit = get_case(request, pk) if auth_2fa_or_trusted(
         request) else get_case_unverified(pk, key)
-    if auth_2fa_or_trusted(request):
-        return visit.notes.all()
-    return visit.notes.filter(hidden=False)
+    as_client = not auth_2fa_or_trusted(request) or not as_staff
+    if as_client:
+        return visit.notes.filter(hidden=False)
+    return visit.notes.all()
 
 
 @router.post("/case/{pk}/notes/{note_pk}/set-hidden/", response=StatusSchema)
@@ -560,20 +580,6 @@ def set_case_key(request, pk: str, key: Form["str"]):
         return 400, {"success": False, "message": e.messages}
     return {"success": True}
 
-
-@router.post("/case/{pk}/communication/", auth=None)
-def view_case_communication(request, pk: str, key: Form["str"]):
-    """View or log communication related to a case."""
-    visit = get_case_unverified(pk)
-
-    if not visit.case.check_key(key):
-        raise HttpError(403, "Invalid access key for the case")
-
-    if visit.status != VisitStatus.RESULTS_SENT:
-        raise HttpError(400, "Results not ready for this case yet")
-
-    # Log communication and return information
-    return "ok"
 
 
 @router.post("/case/create/", response=CreateCaseResponse)
@@ -708,9 +714,32 @@ def list_test_result_options(request, pk: int):  # pylint: disable=unused-argume
     )
     return test_kind.result_options.all()
 
+@router.post("/results/{pk}/status/", auth=None, response=OptionSchema)
+def get_case_status(request, pk: str, key: Form[str] = ''):
+    visit = get_case(request, pk) if auth_2fa_or_trusted(
+        request) else get_case_unverified(pk, key)
+    
+    test_results = get_test_results(visit)
+    
+    if test_results.filter(
+        result_option__information_by_sms=False
+    ).exists():
+        return {"label": "Results not available", "value": "not_available"}
+    
+    return {"label": visit.get_status_display(), "value": visit.status}
+
+
+@router.get("/results/{pk}/non-sms/", response=list[TestSchema])
+def get_non_sms_results(request, pk: str):
+    visit = get_case(request, pk)
+    
+    return get_case_tests_with_latest_results(visit, filter_client=False)
+    
+    
+    
 
 @router.post("/results/{pk}/client/", auth=None, response=list[TestSchema])
-def get_client_results(request, pk: str, key: Form[str] = ''):
+def get_client_results(request, pk: str, key: Form[str] = '', as_client=False):
     """
     Get client results for a case. Returns summarized results.
 
@@ -723,12 +752,13 @@ def get_client_results(request, pk: str, key: Form[str] = ''):
     if not auth_2fa_or_trusted(request) and visit.status != VisitStatus.RESULTS_SENT:
         raise HttpError(400, "Results not ready for this case yet")
 
-   
+    if as_client and visit.status != VisitStatus.RESULTS_SENT:
+        raise HttpError(400, "Results not ready for this case yet")
 
-    return get_case_tests_with_latest_results(visit)
+    return get_case_tests_with_latest_results(visit, filter_client=True)
 
 
-@router.get("/results/{pk}/info/", auth=None, response=list[ResultInformationSchema])
+@router.post("/results/{pk}/info/", auth=None, response=list[ResultInformationSchema])
 def get_result_info(request, pk: str,  key: Form[str] = ''):
     visit = get_case(request, pk) if auth_2fa_or_trusted(request) else get_case_unverified(pk, key)
 
@@ -738,3 +768,26 @@ def get_result_info(request, pk: str,  key: Form[str] = ''):
         locations=location,
     ).select_related("option")
 
+@router.post("/case/{pk}/publish/", response=StatusSchema)
+@inject_language
+def publish_case_results(request, pk: str):
+    """Publish case results to the client."""
+    visit = get_case(request, pk)
+    if visit.status != VisitStatus.RESULTS_RECORDED:
+        raise HttpError(400, "Cannot publish results for a case that is not in RESULTS_RECORDED status")
+
+    test_results = get_test_results(visit)
+
+    if test_results.filter(
+        result_option__information_by_sms=False
+    ).exists():
+        raise HttpError(400, "Cannot publish results that are not marked as information_by_sms")
+    
+
+    with transaction.atomic():
+        visit.status = VisitStatus.RESULTS_SENT
+        visit.save(update_fields=["status"])
+
+    send_results_link(visit.case)
+
+    return {"success": True}

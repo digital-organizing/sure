@@ -258,8 +258,6 @@ class Questionnaire(models.Model):
     sections: models.QuerySet["Section"]
     consultant_questions: models.QuerySet["ConsultantQuestion"]
 
-    history = HistoricalRecords()
-
     class Meta:
         verbose_name = _("Questionnaire")
         verbose_name_plural = _("Questionnaires")
@@ -296,8 +294,6 @@ class Section(models.Model):
     )
 
     client_questions: models.QuerySet["ClientQuestion"]
-
-    history = HistoricalRecords()
 
     class Meta:
         ordering = ["order"]
@@ -434,7 +430,6 @@ class ClientQuestion(BaseQuestion):
         help_text=_("Show this question only if one of these options is selected"),
     )
 
-    history = HistoricalRecords()
     options: models.QuerySet["ClientOption"]
 
 
@@ -452,7 +447,6 @@ class ClientOption(BaseOption):
         help_text=_("Text to be shown to the consultant when this option is selected"),
     )
 
-    history = HistoricalRecords()
 
     class Meta:
         constraints = [
@@ -473,7 +467,6 @@ class ConsultantQuestion(BaseQuestion):
         Questionnaire, on_delete=models.CASCADE, related_name="consultant_questions"
     )
 
-    history = HistoricalRecords()
     options: models.QuerySet["ConsultantOption"]
 
 
@@ -484,7 +477,6 @@ class ConsultantOption(BaseOption):
         ConsultantQuestion, on_delete=models.CASCADE, related_name="options"
     )
 
-    history = HistoricalRecords()
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -585,7 +577,6 @@ class TestKind(models.Model):
     test_bundles: models.QuerySet["TestBundle"]
     result_options: models.QuerySet["TestResultOption"]
 
-    history = HistoricalRecords()
     class Meta:
         ordering = ["number"]
 
@@ -618,7 +609,6 @@ class TestResultOption(models.Model):
     )
 
 
-    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
@@ -640,7 +630,6 @@ class ResultInformation(models.Model):
         help_text=_("Locations where this information is applicable"),
     )
 
-    history = HistoricalRecords()
 
 class TestBundle(models.Model):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
@@ -660,6 +649,7 @@ class VisitStatus(models.TextChoices):
 
     RESULTS_RECORDED = "results_recorded", _("Results Recorded")
     RESULTS_SENT = "results_sent", _("Results Sent")
+    RESULTS_MISSED = "results_missed", _("Results Missed")
     CLOSED = "closed", _("Closed")
 
     CANCELED = "canceled", _("Canceled")

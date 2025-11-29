@@ -174,7 +174,13 @@ class TestKindAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name",)
     ordering = ("name",)
     inlines = [TestOptionInline]
-
+    
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet:
+        print(request.user.is_superuser)
+        queryset = super().get_queryset(request)
+        print(queryset.count())
+        return queryset
+    
 
 class TestKindInline(TabularInline, TranslationTabularInline):
     model = TestKind
@@ -202,6 +208,14 @@ class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name",)
     ordering = ("name",)
     filter_horizontal = ("test_kinds",)
+    
+
+@admin.register(
+    TestResultOption
+)
+class TestResultOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
+    list_display = ("label", "test_kind")
+    search_fields = ("label", "test_kind__name")
 
 @admin.register(
     ResultInformation)
@@ -209,6 +223,7 @@ class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("option",)
     list_filter = ("locations",)
     search_fields = ("information_text",)
+    autocomplete_fields = ("option", "locations")
 
 admin.site.unregister(PeriodicTask)
 admin.site.unregister(IntervalSchedule)

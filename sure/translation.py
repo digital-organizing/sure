@@ -1,4 +1,5 @@
 from modeltranslation.translator import TranslationOptions, translator
+import simple_history
 
 from sure.models import (
     ClientOption,
@@ -20,6 +21,7 @@ class QuestionaireTranslationOptions(TranslationOptions):
 
 
 translator.register(Questionnaire, QuestionaireTranslationOptions)
+simple_history.register(Questionnaire)
 
 
 class SectionTranslationOptions(TranslationOptions):
@@ -30,6 +32,7 @@ class SectionTranslationOptions(TranslationOptions):
 
 
 translator.register(Section, SectionTranslationOptions)
+simple_history.register(Section)
 
 
 class QuestionTranslationOptions(TranslationOptions):
@@ -38,6 +41,8 @@ class QuestionTranslationOptions(TranslationOptions):
 
 translator.register(ClientQuestion, QuestionTranslationOptions)
 translator.register(ConsultantQuestion, QuestionTranslationOptions)
+simple_history.register(ClientQuestion)
+simple_history.register(ConsultantQuestion)
 
 
 class OptionTranslationOptions(TranslationOptions):
@@ -46,6 +51,8 @@ class OptionTranslationOptions(TranslationOptions):
 
 translator.register(ClientOption, OptionTranslationOptions)
 translator.register(ConsultantOption, OptionTranslationOptions)
+simple_history.register(ClientOption)
+simple_history.register(ConsultantOption)
 
 
 class TestKindTranslationOptions(TranslationOptions):
@@ -53,6 +60,7 @@ class TestKindTranslationOptions(TranslationOptions):
 
 
 translator.register(TestKind, TestKindTranslationOptions)
+simple_history.register(TestKind)
 
 
 class TestCategoryTranslationOptions(TranslationOptions):
@@ -74,9 +82,11 @@ class TestResultOptionTranslationOptions(TranslationOptions):
 
 
 translator.register(TestResultOption, TestResultOptionTranslationOptions)
+simple_history.register(TestResultOption)
 
 
 class TestResultInformationTranslationOptions(TranslationOptions):
     fields = ("information_text",)
     
 translator.register(ResultInformation, TestResultInformationTranslationOptions)
+simple_history.register(ResultInformation)

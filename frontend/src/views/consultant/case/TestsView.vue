@@ -85,8 +85,7 @@ async function submitSelectedTests() {
   </div>
   <div v-for="category in testCategories" :key="category.id!" class="test-category">
     <h3>
-      <span class="nr">{{ category.number }}</span
-      >{{ category.name }}
+      {{ category.name }}
     </h3>
     <div v-for="test in category.test_kinds" :key="test.id!" class="test option-item">
       <Checkbox v-model="selectedTests" :value="test.id!" :input-id="'test_' + test.id" />
@@ -135,9 +134,6 @@ async function submitSelectedTests() {
 }
 .test-category {
   margin-bottom: 1.5rem;
-}
-.free-form {
-  margin-top: 2rem;
 }
 .free-form-item {
   margin-bottom: 0.5rem;

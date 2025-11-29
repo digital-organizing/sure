@@ -89,6 +89,8 @@ class Location(models.Model):
         help_text="JSON field to store opening hours.",
         default=default_opening_hours,
     )
+    
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     excluded_questions = models.ManyToManyField(
         "sure.ClientQuestion",

@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import Router
 
+from sure.client_service import strip_id
+from sure.models import Case
 from tenants.models import Tag
 from tenants.schema import (
     BannerSchema,
@@ -34,6 +36,12 @@ def list_tags(request):
 def get_tenant(request):
     consultant = request.user.consultant
     return consultant.tenant
+
+
+@router.get("/tenant/{case_id}", response=TenantSchema, auth=None)
+def get_tenant_by_id(request, case_id):
+    case = get_object_or_404(Case.objects.all(), pk=strip_id(case_id))
+    return case.location.tenant
 
 
 @router.get("/consultants/{pk}/", response=UserSchema)

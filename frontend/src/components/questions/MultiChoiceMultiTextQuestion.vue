@@ -9,6 +9,7 @@ import {
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 import type { ComputedRef } from 'vue'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   question: ClientQuestionSchema | ConsultantQuestionSchema
@@ -17,6 +18,10 @@ const props = defineProps<{
 }>()
 
 const { answer, updateAnswer } = useQuestionAnswer(props.question, props.remote, props.consultant)
+const { formatText: f } = useTexts()
+function additionalTextPlaceholder(optionText: string) {
+  return f('client-question-additional-text-placeholder', [{ key: 'option', value: optionText }])
+}
 const selectedChoices = computed<string[]>({
   get() {
     const choices: string[] = []
@@ -155,7 +160,7 @@ defineExpose({
               v-model="textInputs[option.code!][index]"
               @input="triggerTextUpdate()"
               type="text"
-              :placeholder="'Additional text for ' + option.text"
+              :placeholder="additionalTextPlaceholder(option.text || '').value"
             />
             <InputGroupAddon v-if="index != 0">
               <Button

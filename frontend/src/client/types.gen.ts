@@ -2507,25 +2507,6 @@ export type SureApiListTestResultOptionsResponses = {
 
 export type SureApiListTestResultOptionsResponse = SureApiListTestResultOptionsResponses[keyof SureApiListTestResultOptionsResponses];
 
-export type SureApiGetInternalResultsData = {
-    body?: never;
-    path: {
-        /**
-         * Pk
-         */
-        pk: string;
-    };
-    query?: never;
-    url: '/api/sure/results/{pk}/internal/';
-};
-
-export type SureApiGetInternalResultsResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
 export type SureApiGetClientResultsData = {
     /**
      * FormParams
@@ -2635,6 +2616,27 @@ export type TenantsApiGetTenantResponses = {
 };
 
 export type TenantsApiGetTenantResponse = TenantsApiGetTenantResponses[keyof TenantsApiGetTenantResponses];
+
+export type TenantsApiGetTenantByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: never;
+    url: '/api/tenants/tenant/{case_id}';
+};
+
+export type TenantsApiGetTenantByIdResponses = {
+    /**
+     * OK
+     */
+    200: TenantSchema;
+};
+
+export type TenantsApiGetTenantByIdResponse = TenantsApiGetTenantByIdResponses[keyof TenantsApiGetTenantByIdResponses];
 
 export type TenantsApiGetConsultantData = {
     body?: never;

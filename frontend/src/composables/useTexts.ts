@@ -1,6 +1,6 @@
 import { textsApiListLanguages, textsApiListTexts } from '@/client'
 import { createGlobalState } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, readonly, ref } from 'vue'
 
 export const useTexts = createGlobalState(() => {
   const texts = ref<Record<string, string>>({})
@@ -96,5 +96,6 @@ export const useTexts = createGlobalState(() => {
     getAvailableLanguages,
     isRightToLeft,
     formatText,
+    language: readonly(language),
   }
 })

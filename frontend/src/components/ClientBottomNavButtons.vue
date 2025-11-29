@@ -5,6 +5,7 @@ import { defineProps, defineEmits, ref } from 'vue'
 import type { SectionSchema } from '@/client'
 import IconLeftArrowSmall from './icons/IconLeftArrowSmall.vue'
 import IconRightArrow from './icons/IconRightArrow.vue'
+import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   section: SectionSchema
@@ -20,6 +21,8 @@ const emits = defineEmits<{
   (e: 'previous'): void
   (e: 'submit'): void
 }>()
+
+const { getText: t } = useTexts()
 
 function onNext() {
   const answers = questions.value.map((q) => q.getClientAnswer())
@@ -47,21 +50,33 @@ function onSubmit() {
       variant="outlined"
       icon="IconLeftArrowSmall"
       rounded
+      :aria-label="t('client-form-previous-button').value"
     >
-      <IconLeftArrowSmall /> Previous
+      <IconLeftArrowSmall /> {{ t('client-form-previous-button') }}
     </Button>
-    <Button id="next" v-if="props.hasNext" label="Next" @click="onNext" severity="primary" rounded>
-      Next <IconRightArrow />
+    <Button
+      id="next"
+      label="Next"
+      v-if="props.hasNext"
+      @click="onNext"
+      severity="primary"
+      rounded
+      :aria-label="t('client-form-next-button').value"
+    >
+      {{ t('client-form-next-button') }} <IconRightArrow />
     </Button>
     <Button
       id="submit"
       v-if="!props.hasNext"
-      type="submit"
       label="Submit"
+      type="submit"
       @click="onSubmit"
       severity="primary"
       rounded
-    />
+      :aria-label="t('client-form-submit-button').value"
+    >
+      {{ t('client-form-submit-button') }}
+    </Button>
   </div>
 </template>
 

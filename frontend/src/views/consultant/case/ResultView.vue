@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import CaseNoteComponent from '@/components/CaseNoteComponent.vue'
+import DocumentUploadComponent from '@/components/DocumentUploadComponent.vue'
 import { useCase } from '@/composables/useCase'
 import { useTests } from '@/composables/useTests'
 import { useConfirm } from 'primevue/useconfirm'
@@ -12,7 +14,7 @@ const confirm = useConfirm()
 
 const { onCaseId, updateCaseTestResults, selectedTests, freeFormTests } = useCase()
 
-const { testKinds, testCategories } = useTests()
+const { testCategories } = useTests()
 
 const results = ref<{ [id: string]: string | null }>({})
 const notes = ref<{ [id: string]: string }>({})
@@ -25,10 +27,11 @@ onMounted(() => {
       const latest = test.test.results
         .sort((a, b) => b.created_at.localeCompare(a.created_at))
         .at(0)
-      if (!latest) {
+      if (!latest || !test.testKind) {
         return
       }
-      results.value[test.testKind.number] = latest.label
+      const option = test.testKind.result_options.find((option) => option.id == latest.result_option)
+      results.value[test.testKind.number] = option?.label || null
       notes.value[test.testKind.number] = latest.note || ''
     })
     freeFormTests.value.forEach((test) => {
@@ -40,19 +43,25 @@ onMounted(() => {
 const selectedTestKinds = computed(() => {
   return selectedTests.value.map((test) => {
     return {
-      testKind: testKinds.value.find((tk) => tk.id === test.test_kind)!,
+      testKind: test.test_kind,
       test,
     }
-  })
+  }).filter((tk) => tk.testKind !== undefined) as {
+    testKind: typeof selectedTests.value[number]['test_kind']
+    test: typeof selectedTests.value[number]
+  }[]
 })
 
 const missingResults = computed(() => {
   return selectedTestKinds.value
     .filter((tk) => {
-      return results.value[tk.testKind.number!] == null
+      if(!tk.testKind) {
+        return false;
+      }
+      return results.value[tk.testKind.number] == null
     })
     .map((tk) => {
-      return tk.testKind.name
+      return tk.testKind?.name || 'Unknown Test'
     })
     .concat(
       freeFormTests.value
@@ -117,9 +126,7 @@ function onSaveResults() {
 }
 
 function submitResults() {
-  updateCaseTestResults(results.value, notes.value, freeFormResults.value).then(() => {
-    router.push({ name: 'consultant-communication', params: { caseId: props.caseId } })
-  })
+  updateCaseTestResults(results.value, notes.value, freeFormResults.value)
 }
 function onBack() {
   router.push({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
@@ -203,9 +210,15 @@ function onBack() {
       </ul>
     </Message>
   </div>
+  <div class="row save">
+    <Button @click="onSaveResults">Save Results</Button>
+  </div>
+  <div class="row">
+    <DocumentUploadComponent />
+  </div>
+  <CaseNoteComponent class="row" />
   <section class="case-footer">
     <Button label="Back" severity="secondary" @click="onBack()" />
-    <Button @click="onSaveResults">Save Results</Button>
   </section>
 </template>
 
@@ -228,6 +241,11 @@ function onBack() {
 
 .note-input {
   text-align: right;
+}
+
+.save {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .p-inputgroup {
@@ -276,5 +294,9 @@ h4 {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
+}
+      
+.row {
+  margin-top: 1rem;
 }
 </style>

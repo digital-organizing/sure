@@ -25,6 +25,8 @@ from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
+from simple_history.admin import SimpleHistoryAdmin
+
 
 from sure.models import (
     ClientOption,
@@ -32,6 +34,7 @@ from sure.models import (
     ConsultantOption,
     ConsultantQuestion,
     Questionnaire,
+    ResultInformation,
     Section,
     TestBundle,
     TestCategory,
@@ -110,7 +113,7 @@ class ConsultantQuestionInline(TabularInline, TranslationTabularInline):
 @admin.register(
     Questionnaire,
 )
-class QuestionaireAdmin(ModelAdmin, TabbedTranslationAdmin):
+class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
     search_fields = ("name",)
     inlines = [SectionInline, ConsultantQuestionInline]
@@ -120,7 +123,7 @@ class QuestionaireAdmin(ModelAdmin, TabbedTranslationAdmin):
 @admin.register(
     Section,
 )
-class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
+class SectionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("title", "questionnaire", "order")
     search_fields = ("title", "questionnaire__name")
     list_filter = ("questionnaire",)
@@ -131,7 +134,7 @@ class SectionAdmin(ModelAdmin, TabbedTranslationAdmin):
 @admin.register(
     ClientQuestion,
 )
-class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
+class ClientQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "label_en", "section", "order")
     search_fields = ("question_text", "section__title")
     list_filter = ("section", "section__questionnaire")
@@ -145,7 +148,7 @@ class ClientQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
 @admin.register(
     ConsultantQuestion,
 )
-class ConsultantQuestionAdmin(ModelAdmin, TabbedTranslationAdmin):
+class ConsultantQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "order")
     search_fields = ("question_text",)
     list_filter = ("questionnaire",)
@@ -161,7 +164,7 @@ class TestOptionInline(TabularInline, TranslationTabularInline):
 @admin.register(
     TestKind,
 )
-class TestKindAdmin(ModelAdmin, TabbedTranslationAdmin):
+class TestKindAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = (
         "name",
         "category",
@@ -200,6 +203,12 @@ class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
     ordering = ("name",)
     filter_horizontal = ("test_kinds",)
 
+@admin.register(
+    ResultInformation)
+class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
+    list_display = ("option",)
+    list_filter = ("locations",)
+    search_fields = ("information_text",)
 
 admin.site.unregister(PeriodicTask)
 admin.site.unregister(IntervalSchedule)
@@ -257,11 +266,10 @@ class ClockedScheduleAdmin(BaseClockedScheduleAdmin, ModelAdmin):
 admin.site.unregister(Group)
 admin.site.unregister(User)
 
-
 @admin.register(
     User,
 )
-class UserAdmin(BaseUserAdmin, ModelAdmin):
+class UserAdmin(SimpleHistoryAdmin, BaseUserAdmin, ModelAdmin):
     # Forms loaded from `unfold.forms`
     form = UserChangeForm
     add_form = UserCreationForm

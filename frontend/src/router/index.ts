@@ -51,6 +51,14 @@ const router = createRouter({
       name: 'client-done',
       component: () => import('../views/ClientDoneView.vue'),
     },
+      {
+          path: '/results',
+          name: 'results',
+          component: () => import('../views/ClientResultView.vue'),
+           meta: {
+              showInternalMenu: false,
+            }
+      },
     {
       path: '/account',
       name: 'account',

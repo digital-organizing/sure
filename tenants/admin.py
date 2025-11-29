@@ -6,6 +6,7 @@ from django.http.request import HttpRequest
 from django.urls import URLPattern, path
 from django_otp import devices_for_user
 from unfold.admin import ModelAdmin, TabularInline
+from simple_history.admin import SimpleHistoryAdmin
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant
@@ -22,7 +23,7 @@ class LocationInline(TabularInline):
 @admin.register(
     Location,
 )
-class LocationAdmin(ModelAdmin):
+class LocationAdmin(SimpleHistoryAdmin,ModelAdmin):
     """Admin for locations."""
 
     list_display = ("name", "tenant")
@@ -40,7 +41,7 @@ class LocationAdmin(ModelAdmin):
 @admin.register(
     Consultant,
 )
-class ConsultantAdmin(ModelAdmin):
+class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
     """Admin for consultants."""
 
     list_display = ("user", "tenant")
@@ -102,7 +103,7 @@ class ConsultantInline(TabularInline):
 @admin.register(
     Tenant,
 )
-class TenantAdmin(ModelAdmin):
+class TenantAdmin(SimpleHistoryAdmin, ModelAdmin):
     """Admin for tenants.
 
     Only superusers can see all tenants.

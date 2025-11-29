@@ -4,7 +4,12 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
+from simple_history.models import HistoricalRecords
+import simple_history
 
+from django.contrib.auth.models import User
+
+simple_history.register(User, app=__package__)
 # Create your models here.
 
 INVITIATION_MAIL_TEMPLATE = """Hello {{ first_name }},
@@ -46,6 +51,7 @@ class Tenant(models.Model):
 
     logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
 
+    history = HistoricalRecords()
     def __str__(self) -> str:
         return f"{self.name}"
 
@@ -93,6 +99,8 @@ class Location(models.Model):
         limit_choices_to={"optional_for_centers": True},
     )
 
+    history = HistoricalRecords()
+
     def clean(self) -> None:
         """Validate that all excluded questions are optional for center."""
         super().clean()
@@ -124,6 +132,7 @@ class Consultant(models.Model):
 
     locations = models.ManyToManyField(Location, related_name="consultants")
 
+    history = HistoricalRecords()
     def __str__(self) -> str:
         return f"{self.user.get_full_name()} ({self.tenant.name})"
 

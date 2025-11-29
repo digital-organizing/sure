@@ -6,6 +6,7 @@ from sure.models import (
     ConsultantOption,
     ConsultantQuestion,
     Questionnaire,
+    ResultInformation,
     Section,
     TestBundle,
     TestCategory,
@@ -73,3 +74,9 @@ class TestResultOptionTranslationOptions(TranslationOptions):
 
 
 translator.register(TestResultOption, TestResultOptionTranslationOptions)
+
+
+class TestResultInformationTranslationOptions(TranslationOptions):
+    fields = ("information_text",)
+    
+translator.register(ResultInformation, TestResultInformationTranslationOptions)

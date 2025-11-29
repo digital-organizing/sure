@@ -10,9 +10,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-defineProps<{
-  caseId: string
-}>()
 
 const {
   onCaseId,

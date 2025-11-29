@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { type ClientQuestionSchema, type ConsultantQuestionSchema } from '@/client'
+import { type ClientQuestionSchema, type ConsultantQuestionSchema, type TestSchema } from '@/client'
 import ConsultantSection from '@/components/ConsultantSection.vue'
 import { useCase } from '@/composables/useCase'
-import { useTests } from '@/composables/useTests'
 import { userAnswersStore } from '@/stores/answers'
 import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue'
@@ -23,7 +22,6 @@ const {
   visit,
   consultantQuestionnaire,
 } = useCase()
-const { testKinds } = useTests()
 
 const showClient = ref(false)
 const showConsultant = ref(true)
@@ -36,11 +34,23 @@ const answerStore = userAnswersStore()
 const selectedTestKinds = computed(() => {
   return selectedTests.value.map((test) => {
     return {
-      testKind: testKinds.value.find((tk) => tk.id === test.test_kind)!,
+      testKind: test.test_kind,
       test,
     }
   })
 })
+
+function optionForTest(test: TestSchema) {
+  const latest = test.results
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .at(0)
+  if (!latest) {
+    return null
+  }
+  const option = test.test_kind.result_options.find((option) => option.id == latest.result_option)
+  return option
+}
+
 
 function getLine(q: ClientQuestionSchema | ConsultantQuestionSchema, kind = 'client'): string {
   const label = q.label || q.question_text
@@ -135,13 +145,11 @@ function onNext() {
           class="test-result"
           :style="
             '--test-color: ' +
-            (test.testKind.result_options.find((r) => r.label === test.test.results[0]?.label)
-              ?.color || '#aaa')
+            (optionForTest(test.test)?.color || '#aaa')
           "
         >
           {{
-            test.test.results.sort((a, b) => -a.created_at.localeCompare(b.created_at)).at(0)
-              ?.label || 'no result'
+            optionForTest(test.test)?.label || 'no result'
           }}
         </span>
       </div>

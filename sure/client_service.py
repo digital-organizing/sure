@@ -281,9 +281,17 @@ def get_case(request, pk):
     return visit
 
 
-def get_case_unverified(pk):
+def get_case_unverified(pk, key: str = ''):
     pk = strip_id(pk)
 
     visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
+    
+    if not visit.case.has_key():
+        return visit
+    
+    if not key:
+        raise ValueError("Key is required for accessing a case that is not in CREATED status")
+    
+    visit.case.check_key(key)
 
     return visit

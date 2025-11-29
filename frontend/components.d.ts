@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
+    CaseNoteComponent: typeof import('./src/components/CaseNoteComponent.vue')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     CheckboxGroup: typeof import('primevue/checkboxgroup')['default']
     ClientBottomNavButtons: typeof import('./src/components/ClientBottomNavButtons.vue')['default']
@@ -32,6 +33,8 @@ declare module 'vue' {
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
+    DocumentUploadComponent: typeof import('./src/components/DocumentUploadComponent.vue')['default']
+    FileUpload: typeof import('primevue/fileupload')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
     Form: typeof import('@primevue/forms/form')['default']
     HistoryComponent: typeof import('./src/components/HistoryComponent.vue')['default']
@@ -74,6 +77,7 @@ declare module 'vue' {
     StatusTag: typeof import('./src/components/StatusTag.vue')['default']
     Tag: typeof import('primevue/tag')['default']
     Textarea: typeof import('primevue/textarea')['default']
+    TextArea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }

@@ -19,6 +19,8 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from simple_history.models import HistoricalRecords
+
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
 
@@ -64,6 +66,9 @@ class Case(models.Model):
         verbose_name=_("Access Key"),
         help_text=_("An optional access key for the case data"),
     )
+    
+    
+    history = HistoricalRecords()
 
     def set_key(self, key: str):
         """Set the access key for the case."""
@@ -85,6 +90,10 @@ class Case(models.Model):
 
     def check_key(self, key: str) -> bool:
         return check_password(key, self.key) and self.key != ""
+    
+    def has_key(self) -> bool:
+        """Check if the case has an access key set."""
+        return self.key != ""
 
     @property
     def human_id(self):
@@ -98,7 +107,6 @@ class Case(models.Model):
     class Meta:
         verbose_name = _("Case")
         verbose_name_plural = _("Cases")
-
 
 class ConsentChoice(models.TextChoices):
     """Choices for consent to store data."""
@@ -250,6 +258,8 @@ class Questionnaire(models.Model):
     sections: models.QuerySet["Section"]
     consultant_questions: models.QuerySet["ConsultantQuestion"]
 
+    history = HistoricalRecords()
+
     class Meta:
         verbose_name = _("Questionnaire")
         verbose_name_plural = _("Questionnaires")
@@ -286,6 +296,8 @@ class Section(models.Model):
     )
 
     client_questions: models.QuerySet["ClientQuestion"]
+
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["order"]
@@ -422,6 +434,7 @@ class ClientQuestion(BaseQuestion):
         help_text=_("Show this question only if one of these options is selected"),
     )
 
+    history = HistoricalRecords()
     options: models.QuerySet["ClientOption"]
 
 
@@ -438,6 +451,8 @@ class ClientOption(BaseOption):
         verbose_name=_("Text for Consultant"),
         help_text=_("Text to be shown to the consultant when this option is selected"),
     )
+
+    history = HistoricalRecords()
 
     class Meta:
         constraints = [
@@ -458,6 +473,7 @@ class ConsultantQuestion(BaseQuestion):
         Questionnaire, on_delete=models.CASCADE, related_name="consultant_questions"
     )
 
+    history = HistoricalRecords()
     options: models.QuerySet["ConsultantOption"]
 
 
@@ -468,6 +484,7 @@ class ConsultantOption(BaseOption):
         ConsultantQuestion, on_delete=models.CASCADE, related_name="options"
     )
 
+    history = HistoricalRecords()
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -568,6 +585,7 @@ class TestKind(models.Model):
     test_bundles: models.QuerySet["TestBundle"]
     result_options: models.QuerySet["TestResultOption"]
 
+    history = HistoricalRecords()
     class Meta:
         ordering = ["number"]
 
@@ -599,6 +617,9 @@ class TestResultOption(models.Model):
         help_text=_("Color associated with this result option (hex code)"),
     )
 
+
+    history = HistoricalRecords()
+
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
 
@@ -619,6 +640,7 @@ class ResultInformation(models.Model):
         help_text=_("Locations where this information is applicable"),
     )
 
+    history = HistoricalRecords()
 
 class TestBundle(models.Model):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
@@ -671,13 +693,42 @@ class Visit(models.Model):
     client_answers: models.QuerySet[ClientAnswer]
     consultant_answers: models.QuerySet[ConsultantAnswer]
     tests: models.QuerySet["Test"]
+    documents: models.QuerySet["VisitDocument"]
+    notes: models.QuerySet["VisitNote"]
+    free_form_tests: models.QuerySet["FreeFormTest"]
+
+    history = HistoricalRecords()
     
-    public_note = models.TextField(
-        max_length=2000,
-        blank=True,
-        verbose_name=_("Public Note"),
-        help_text=_("A note visible to both client and consultant"),
+class VisitNote(models.Model):
+    visit = models.ForeignKey(
+        Visit, on_delete=models.CASCADE, related_name="notes"
     )
+    note = models.TextField(
+        max_length=2000,
+        verbose_name=_("Note"),
+        help_text=_("Note content"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("User"),
+        help_text=_("The user who created the note"),
+    )
+    hidden = models.BooleanField(
+        default=False,
+        verbose_name=_("Hidden"),
+        help_text=_("Whether this note is hidden from clients"),
+    )
+
+    history = HistoricalRecords()
+    
+    class Meta:
+        verbose_name = _("Visit Note")
+        verbose_name_plural = _("Visit Notes")
+        ordering = ["created_at"]
     
 class VisitLog(models.Model):
     visit = models.ForeignKey(
@@ -723,6 +774,18 @@ class VisitDocument(models.Model):
         help_text=_("The user who uploaded the document"),
     )
 
+    hidden = models.BooleanField(
+        default=False,
+        verbose_name=_("Hidden"),
+        help_text=_("Whether this document is hidden from clients"),
+    )
+
+    history = HistoricalRecords()
+    
+    class Meta:
+        verbose_name = _("Visit Document")
+        verbose_name_plural = _("Visit Documents")
+        ordering = ["uploaded_at"]
 
 class Test(models.Model):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
@@ -788,6 +851,7 @@ class FreeFormTest(models.Model):
         help_text=_("Timestamp when the result was recorded"),
     )
 
+    history = HistoricalRecords()
 
 class TestResult(models.Model):
     result_option = models.ForeignKey(

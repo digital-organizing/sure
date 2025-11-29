@@ -19,6 +19,7 @@ from sure.models import (
     ConsultantQuestion,
     FreeFormTest,
     Questionnaire,
+    ResultInformation,
     Section,
     Test,
     TestBundle,
@@ -27,6 +28,8 @@ from sure.models import (
     TestResult,
     TestResultOption,
     Visit,
+    VisitDocument,
+    VisitNote,
 )
 
 
@@ -534,7 +537,10 @@ class TestResultSchema(ModelSchema):
             "created_at",
         ]
 
-    label: str = Field(..., alias="result_option.label")
+    # label: str = Field(..., alias="result_option.label")
+    # information_text : str | None = Field(None, alias="result_option.information_text")
+    # color: str | None = Field(None, alias="result_option.color")
+    # information_by_sms : bool = Field(False, alias="result_option.information_by_sms")
 
 
 class TestSchema(ModelSchema):
@@ -549,6 +555,7 @@ class TestSchema(ModelSchema):
         ]
 
     results: list[TestResultSchema]
+    test_kind: TestKindSchema
 
 
 class PhoneNumberSchema(Schema):
@@ -590,3 +597,34 @@ class FreeFormTestSchema(ModelSchema):
 class SubmitTestsSchema(Schema):
     test_kind_ids: list[int]
     free_form_tests: list[str]
+
+
+class DocumentSchema(ModelSchema):
+    class Meta:
+        model = VisitDocument
+        fields = [
+            "id",
+            "name",
+            "hidden",
+        ]
+
+
+class DocumentAccessSchema(Schema):
+    link: str
+    
+class NoteSchema(ModelSchema):
+    class Meta:
+        model = VisitNote
+        fields = [
+            "id",
+            "note",
+            "hidden",
+        ]
+
+class ResultInformationSchema(ModelSchema):
+    class Meta:
+        model = ResultInformation
+        fields = [
+            "option",
+            "information_text",
+        ]

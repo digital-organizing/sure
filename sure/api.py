@@ -1,15 +1,19 @@
 import logging
 
+from django.db.models import OuterRef, Subquery
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Func, Prefetch
+from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from ninja import Form, Router
+from ninja import File, Form, Router
+from ninja.files import UploadedFile
 from ninja.errors import HttpError
 from ninja.pagination import PageNumberPagination, paginate
 
+from core.auth import auth_2fa_or_trusted
 from sure.cases import annotate_last_modified
 from sure.client_service import can_connect_case
 from sure.client_service import connect_case as connect_case_service
@@ -34,10 +38,12 @@ from sure.models import (
     ConsultantQuestion,
     FreeFormTest,
     Questionnaire,
+    ResultInformation,
     Section,
     Test,
     TestCategory,
     TestKind,
+    TestResult,
     Visit,
     VisitStatus,
 )
@@ -50,13 +56,17 @@ from sure.schema import (
     ConsultantAnswerSchema,
     CreateCaseResponse,
     CreateCaseSchema,
+    DocumentAccessSchema,
+    DocumentSchema,
     FreeFormTestSchema,
     InternalQuestionnaireSchema,
+    NoteSchema,
     OptionSchema,
     PhoneNumberSchema,
     QuestionnaireListingSchema,
     QuestionnaireSchema,
     RelatedCaseSchema,
+    ResultInformationSchema,
     StatusSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
@@ -108,6 +118,32 @@ def _prefetch_questionnaire(internal=False, excluded_question_ids=None):
             )
         )
     return query
+
+def get_case_tests_with_latest_results(visit: Visit) -> QuerySet[Test]:
+    test_latest_result_ids = TestResult.objects.filter(
+        test__visit=visit
+    ).annotate(
+        is_latest=Subquery(
+            TestResult.objects.filter(
+                test_id=OuterRef('test_id')
+            ).order_by('-created_at').values('id')[:1]
+        )
+    ).filter(id=F('is_latest')).values_list('id', flat=True)
+
+    visit_with_latest = Visit.objects.filter(pk=visit.pk).prefetch_related(
+        Prefetch(
+            'tests',
+            queryset=Test.objects.prefetch_related(
+                Prefetch(
+                    'results',
+                    queryset=TestResult.objects.filter(id__in=list(test_latest_result_ids)).prefetch_related('result_option')
+                )
+            )
+        )
+    ).get()
+    
+    return visit_with_latest.tests
+ 
 
 
 @router.get(
@@ -172,7 +208,8 @@ def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
         raise HttpError(400, "Case cannot be connected")
 
     if "phone_number" not in request.session:
-        raise HttpError(400, "Phone number not provided. Please request a token first.")
+        raise HttpError(
+            400, "Phone number not provided. Please request a token first.")
 
     if request.session["phone_number"] != data.phone_number:
         raise HttpError(
@@ -202,6 +239,7 @@ def get_case_internal(request, pk: str):
     )
 
     return questionnaire
+
 
 @router.get("/case/{pk}/phone/", response=StatusSchema)
 def get_phone_number(request, pk: str):
@@ -260,8 +298,8 @@ def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
     client_answers = visit.client_answers.all().order_by("-created_at")
     consultant_answers = visit.consultant_answers.all().order_by("-created_at")
     return {
-        "client_answers": client_answers[offset : offset + limit],
-        "consultant_answers": consultant_answers[offset : offset + limit],
+        "client_answers": client_answers[offset: offset + limit],
+        "consultant_answers": consultant_answers[offset: offset + limit],
     }
 
 
@@ -332,12 +370,7 @@ def update_case_tests(request, pk: str, data: SubmitTestsSchema):
 @router.get("/case/{pk}/tests/", response=list[TestSchema])
 def get_case_tests(request, pk: str):
     visit = get_case(request, pk)
-    tests = (
-        visit.tests.select_related("test_kind")
-        .prefetch_related("results", "results__result_option")
-        .all()
-    )
-    return tests
+    return get_case_tests_with_latest_results(visit)
 
 
 @router.get("/case/{pk}/free-form-tests/", response=list[FreeFormTestSchema])
@@ -419,6 +452,55 @@ def update_case_test_results(request, pk: str, test_results: SubmitTestResultsSc
     return {"success": True, "warnings": warnings}
 
 
+@router.post("/case/{pk}/documents/create", response=StatusSchema)
+@inject_language
+def upload_document(request, pk: str, file: File[UploadedFile], name: Form[str]):
+    """Update documents for a case."""
+    visit = get_case(request, pk)
+    visit.documents.create(
+        document=file,
+        name=name,
+        user=request.user,
+        hidden=False,
+    )
+    return {"success": True}
+
+
+@router.post("/case/{pk}/documents/", response=list[DocumentSchema], auth=None)
+@inject_language
+def list_documents(request, pk: str, key: Form[str] = ''):
+    """List documents for a case. All if authenticted, else only non-hidden."""
+    authenticted = auth_2fa_or_trusted(request)
+    visit = get_case(
+        request, pk) if authenticted else get_case_unverified(pk, key)
+    if not authenticted:
+        return visit.documents.filter(hidden=False)
+    return visit.documents.all()
+
+
+@router.post("/case/{pk}/documents/{doc_pk}/set-hidden/", response=StatusSchema)
+def set_document_hidden(request, pk: str, doc_pk: int, hidden: Form[bool]):
+    """Set document hidden status for a case."""
+    visit = get_case(request, pk)
+    document = get_object_or_404(visit.documents, pk=doc_pk)
+    document.hidden = hidden
+    document.save(update_fields=["hidden"])
+    return {"success": True}
+
+
+@router.post("/case/{pk}/documents/{doc_pk}/link/", response=DocumentAccessSchema, auth=None)
+def get_document_link(request, pk: str, doc_pk: int, key: Form[str] = ''):
+    """Get a download link for a document."""
+    authenticted = auth_2fa_or_trusted(request)
+    visit = get_case(
+        request, pk) if authenticted else get_case_unverified(pk, key)
+    document = get_object_or_404(visit.documents, pk=doc_pk)
+    if not authenticted and document.hidden:
+        raise HttpError(403, "Access denied to this document")
+    link = document.document.url
+    return {"link": link}
+
+
 @router.post("/case/{pk}/tags/", response=SubmitCaseResponse)
 @inject_language
 def update_case_tags(request, pk: str, tags: list[str]):
@@ -430,6 +512,35 @@ def update_case_tags(request, pk: str, tags: list[str]):
     return {"success": True}
 
 
+@router.post("/case/{pk}/notes/create", response=StatusSchema)
+@inject_language
+def add_case_note(request, pk: str, content: Form[str]):
+    """Add a note to a case."""
+    visit = get_case(request, pk)
+    visit.notes.create(note=content, user=request.user)
+    return {"success": True}
+
+
+@router.post("/case/{pk}/notes/", response=list[NoteSchema], auth=None)
+@inject_language
+def list_case_notes(request, pk: str, key: Form[str] = ''):
+    visit = get_case(request, pk) if auth_2fa_or_trusted(
+        request) else get_case_unverified(pk, key)
+    if auth_2fa_or_trusted(request):
+        return visit.notes.all()
+    return visit.notes.filter(hidden=False)
+
+
+@router.post("/case/{pk}/notes/{note_pk}/set-hidden/", response=StatusSchema)
+def set_case_note_hidden(request, pk: str, note_pk: int, hidden: Form[bool]):
+    """Set note hidden status for a case."""
+    visit = get_case(request, pk)
+    note = get_object_or_404(visit.notes, pk=note_pk)
+    note.hidden = hidden
+    note.save(update_fields=["hidden"])
+    return {"success": True}
+
+
 @router.post(
     "/case/{pk}/set-key/", response={200: StatusSchema, 400: StatusSchema}, auth=None
 )
@@ -437,7 +548,8 @@ def set_case_key(request, pk: str, key: Form["str"]):
     visit = get_case_unverified(pk)
 
     if visit.status != VisitStatus.CLIENT_SUBMITTED:
-        raise HttpError(400, "Cannot set key for a case that is not in CREATED status")
+        raise HttpError(
+            400, "Cannot set key for a case that is not in CREATED status")
 
     try:
         visit.case.set_key(key)
@@ -469,7 +581,8 @@ def view_case_communication(request, pk: str, key: Form["str"]):
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
     case = create_case(data.location_id, request.user, data.external_id)
-    create_visit(case, get_object_or_404(Questionnaire, pk=data.questionnaire_id))
+    create_visit(case, get_object_or_404(
+        Questionnaire, pk=data.questionnaire_id))
 
     link = get_case_link(case)
 
@@ -596,31 +709,32 @@ def list_test_result_options(request, pk: int):  # pylint: disable=unused-argume
     return test_kind.result_options.all()
 
 
-@router.get("/results/{pk}/internal/")
-def get_internal_results(request, pk: str):
-    """
-    Get internal results for a case. Returns detailed results.
-    
-    :param request: Beschreibung
-    :param pk: Beschreibung
-    :type pk: str
-    """
-    visit = get_case(request, pk)
-    # TODO: Return all results
-    return visit
-
-@router.get("/results/{pk}/client/", auth=None)
-def get_client_results(request, pk: str):
+@router.post("/results/{pk}/client/", auth=None, response=list[TestSchema])
+def get_client_results(request, pk: str, key: Form[str] = ''):
     """
     Get client results for a case. Returns summarized results.
-    
+
     :param request: Beschreibung
     :param pk: Beschreibung
     :type pk: str
     """
-    visit = get_case_unverified(pk)
-    if visit.status != VisitStatus.RESULTS_SENT:
+    visit = get_case(request, pk) if auth_2fa_or_trusted(
+        request) else get_case_unverified(pk, key)
+    if not auth_2fa_or_trusted(request) and visit.status != VisitStatus.RESULTS_SENT:
         raise HttpError(400, "Results not ready for this case yet")
-    # TODO: Either all or no results are returned
-    return visit
+
+   
+
+    return get_case_tests_with_latest_results(visit)
+
+
+@router.get("/results/{pk}/info/", auth=None, response=list[ResultInformationSchema])
+def get_result_info(request, pk: str,  key: Form[str] = ''):
+    visit = get_case(request, pk) if auth_2fa_or_trusted(request) else get_case_unverified(pk, key)
+
+    location = visit.case.location
+
+    return ResultInformation.objects.filter(
+        locations=location,
+    ).select_related("option")
 

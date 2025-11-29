@@ -27,6 +27,7 @@ dependencies = [
   "django-ninja>=1.4.3",
   "django-otp>=1.6.3",
   "django-sesame>=3.2.3",
+  "django-simple-history>=3.10.1",
   "django-storages>=1.14.6",
   "django-unfold>=0.67.0",
   "django-vite>=3.1.0",

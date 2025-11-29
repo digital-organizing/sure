@@ -23,6 +23,14 @@ import {
   sureApiGetCaseTests,
   sureApiGetCaseFreeFormTests,
   type FreeFormTestSchema,
+  type DocumentSchema,
+  sureApiListDocuments,
+  sureApiUploadDocument,
+  sureApiSetDocumentHidden,
+  type NoteSchema,
+  sureApiListCaseNotes,
+  sureApiAddCaseNote,
+  sureApiSetCaseNoteHidden,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -35,6 +43,8 @@ export const useCase = createGlobalState(() => {
   const consultantAnswers = ref<ConsultantAnswerSchema[] | null>(null)
   const selectedTests = ref<TestSchema[]>([])
   const freeFormTests = ref<FreeFormTestSchema[]>([])
+  const documents = ref<DocumentSchema[]>([])
+  const notes = ref<NoteSchema[]>([])
 
   const store = userAnswersStore()
   const consultantStore = consultantAnswersStore()
@@ -75,6 +85,8 @@ export const useCase = createGlobalState(() => {
       fetchConsultantSchema(),
       fetchCaseHistory(),
       fetchSelectedTests(),
+      fetchDocuments(),
+      fetchCaseNotes(),
     ])
 
     if (visitId) {
@@ -204,6 +216,93 @@ export const useCase = createGlobalState(() => {
       .finally(() => {
         loading.value = false
       })
+  }
+  async function fetchCaseNotes() {
+    if (!visit.value) {
+      notes.value = []
+      return
+    }
+    
+    await sureApiListCaseNotes({ path: { pk: visit.value!.case }, body: {key : ''} })
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          notes.value = response.data
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch case notes:', error)
+        error.value = 'Failed to fetch case notes: ' + error.message
+      })
+  }
+  
+  async function createCaseNote(content: string) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    await sureApiAddCaseNote({path: {pk: visit.value.case}, body: {content}}).catch((error) => {
+      console.error('Failed to create case note:', error)
+      error.value = 'Failed to create case note: ' + error.message
+    }).then(async () => {
+      await fetchCaseNotes()
+    })
+  }
+  
+  async function setCaseNoteHidden(id: number, hidden: boolean) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    await sureApiSetCaseNoteHidden({path: {pk: visit.value.case, note_pk: id}, body: {hidden}}).catch((error) => {
+      console.error('Failed to set case note hidden:', error)
+      error.value = 'Failed to set case note hidden: ' + error.message
+    }).then(async () => {
+      await fetchCaseNotes()
+    }) 
+  }
+  
+  async function fetchDocuments() {
+    if (!visit.value) {
+      documents.value = []
+      return
+    }
+    
+    await sureApiListDocuments({ path: { pk: visit.value!.case }, body: {key : ''} })
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          documents.value = response.data
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch case documents:', error)
+        error.value = 'Failed to fetch case documents: ' + error.message
+      })
+  }
+  
+  async function uploadDocument(file: File, name: string) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    await sureApiUploadDocument({path: {pk: visit.value.case}, body: {file, name}}).catch((error) => {
+      console.error('Failed to upload document:', error)
+      error.value = 'Failed to upload document: ' + error.message
+    }).then(async () => {
+      await fetchDocuments()
+    })
+  }
+  
+  async function setDocumentHidden(documentId: number, hidden: boolean) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    await sureApiSetDocumentHidden({path: {pk: visit.value.case, doc_pk: documentId}, body: {hidden}}).catch((error) => {
+      console.error('Failed to set document hidden:', error)
+      error.value = 'Failed to set document hidden: ' + error.message
+    }).then(async () => {
+      await fetchDocuments()
+    })
   }
 
   async function fetchRelatedCases() {
@@ -484,6 +583,14 @@ export const useCase = createGlobalState(() => {
     updateCaseTests,
     updateCaseTestResults,
     fetchCaseHistory,
+    fetchDocuments,
+    uploadDocument,
+    setDocumentHidden,
+    setCaseNoteHidden,
+    fetchCaseNotes,
+    createCaseNote,
+    notes,
+    documents,
     relatedCases,
     selectedTests,
     freeFormTests,

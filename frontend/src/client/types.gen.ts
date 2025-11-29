@@ -558,13 +558,82 @@ export type SubmitTestsSchema = {
 };
 
 /**
- * TestResultSchema
+ * TestBundleSchema
  */
-export type TestResultSchema = {
+export type TestBundleSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TestKindSchema
+ */
+export type TestKindSchema = {
+    /**
+     * Test Bundles
+     */
+    test_bundles: Array<TestBundleSchema>;
+    /**
+     * Result Options
+     */
+    result_options: Array<TestResultOptionSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Number
+     */
+    number: number;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Note
+     * Additional notes about the test
+     */
+    note?: string | null;
+    /**
+     * Interpretation Needed
+     * Does this test kind need interpretation?
+     */
+    interpretation_needed?: boolean;
+};
+
+/**
+ * TestResultOptionSchema
+ */
+export type TestResultOptionSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Test Kind
+     */
+    test_kind: number;
     /**
      * Label
      */
     label: string;
+    /**
+     * Color
+     * Color associated with this result option (hex code)
+     */
+    color?: string | null;
+};
+
+/**
+ * TestResultSchema
+ */
+export type TestResultSchema = {
     /**
      * Result Option
      */
@@ -593,14 +662,11 @@ export type TestSchema = {
      * Results
      */
     results: Array<TestResultSchema>;
+    test_kind: TestKindSchema;
     /**
      * ID
      */
     id?: number | null;
-    /**
-     * Test Kind
-     */
-    test_kind: number;
     /**
      * Note
      * Additional notes about the test result
@@ -689,6 +755,56 @@ export type TestResultInputSchema = {
      * Note
      */
     note: string;
+};
+
+/**
+ * DocumentSchema
+ */
+export type DocumentSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Document Name
+     * Name of the document
+     */
+    name: string;
+    /**
+     * Hidden
+     * Whether this document is hidden from clients
+     */
+    hidden?: boolean;
+};
+
+/**
+ * DocumentAccessSchema
+ */
+export type DocumentAccessSchema = {
+    /**
+     * Link
+     */
+    link: string;
+};
+
+/**
+ * NoteSchema
+ */
+export type NoteSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Note
+     * Note content
+     */
+    note: string;
+    /**
+     * Hidden
+     * Whether this note is hidden from clients
+     */
+    hidden?: boolean;
 };
 
 /**
@@ -860,20 +976,6 @@ export type QuestionnaireListingSchema = {
 };
 
 /**
- * TestBundleSchema
- */
-export type TestBundleSchema = {
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Name
-     */
-    name: string;
-};
-
-/**
  * TestCategorySchema
  */
 export type TestCategorySchema = {
@@ -896,62 +998,18 @@ export type TestCategorySchema = {
 };
 
 /**
- * TestKindSchema
+ * ResultInformationSchema
  */
-export type TestKindSchema = {
+export type ResultInformationSchema = {
     /**
-     * Test Bundles
+     * Option
      */
-    test_bundles: Array<TestBundleSchema>;
+    option: number;
     /**
-     * Result Options
+     * Information Text
+     * Detailed information related to this result option
      */
-    result_options: Array<TestResultOptionSchema>;
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Number
-     */
-    number: number;
-    /**
-     * Name
-     */
-    name: string;
-    /**
-     * Note
-     * Additional notes about the test
-     */
-    note?: string | null;
-    /**
-     * Interpretation Needed
-     * Does this test kind need interpretation?
-     */
-    interpretation_needed?: boolean;
-};
-
-/**
- * TestResultOptionSchema
- */
-export type TestResultOptionSchema = {
-    /**
-     * ID
-     */
-    id?: number | null;
-    /**
-     * Test Kind
-     */
-    test_kind: number;
-    /**
-     * Label
-     */
-    label: string;
-    /**
-     * Color
-     * Color associated with this result option (hex code)
-     */
-    color?: string | null;
+    information_text?: string | null;
 };
 
 /**
@@ -1550,6 +1608,27 @@ export type SureApiGetCaseInternalResponses = {
 
 export type SureApiGetCaseInternalResponse = SureApiGetCaseInternalResponses[keyof SureApiGetCaseInternalResponses];
 
+export type SureApiGetPhoneNumberData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/phone/';
+};
+
+export type SureApiGetPhoneNumberResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiGetPhoneNumberResponse = SureApiGetPhoneNumberResponses[keyof SureApiGetPhoneNumberResponses];
+
 export type SureApiGetVisitData = {
     body?: never;
     path: {
@@ -1842,6 +1921,145 @@ export type SureApiUpdateCaseTestResultsResponses = {
 
 export type SureApiUpdateCaseTestResultsResponse = SureApiUpdateCaseTestResultsResponses[keyof SureApiUpdateCaseTestResultsResponses];
 
+export type SureApiUploadDocumentData = {
+    /**
+     * MultiPartBodyParams
+     */
+    body: {
+        /**
+         * File
+         */
+        file: Blob | File;
+        /**
+         * Name
+         */
+        name: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/documents/create';
+};
+
+export type SureApiUploadDocumentResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiUploadDocumentResponse = SureApiUploadDocumentResponses[keyof SureApiUploadDocumentResponses];
+
+export type SureApiListDocumentsData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/documents/';
+};
+
+export type SureApiListDocumentsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<DocumentSchema>;
+};
+
+export type SureApiListDocumentsResponse = SureApiListDocumentsResponses[keyof SureApiListDocumentsResponses];
+
+export type SureApiSetDocumentHiddenData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Hidden
+         */
+        hidden: boolean;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+        /**
+         * Doc Pk
+         */
+        doc_pk: number;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/documents/{doc_pk}/set-hidden/';
+};
+
+export type SureApiSetDocumentHiddenResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiSetDocumentHiddenResponse = SureApiSetDocumentHiddenResponses[keyof SureApiSetDocumentHiddenResponses];
+
+export type SureApiGetDocumentLinkData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+        /**
+         * Doc Pk
+         */
+        doc_pk: number;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/documents/{doc_pk}/link/';
+};
+
+export type SureApiGetDocumentLinkResponses = {
+    /**
+     * OK
+     */
+    200: DocumentAccessSchema;
+};
+
+export type SureApiGetDocumentLinkResponse = SureApiGetDocumentLinkResponses[keyof SureApiGetDocumentLinkResponses];
+
 export type SureApiUpdateCaseTagsData = {
     /**
      * Tags
@@ -1870,6 +2088,108 @@ export type SureApiUpdateCaseTagsResponses = {
 };
 
 export type SureApiUpdateCaseTagsResponse = SureApiUpdateCaseTagsResponses[keyof SureApiUpdateCaseTagsResponses];
+
+export type SureApiAddCaseNoteData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Content
+         */
+        content: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/notes/create';
+};
+
+export type SureApiAddCaseNoteResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiAddCaseNoteResponse = SureApiAddCaseNoteResponses[keyof SureApiAddCaseNoteResponses];
+
+export type SureApiListCaseNotesData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/notes/';
+};
+
+export type SureApiListCaseNotesResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<NoteSchema>;
+};
+
+export type SureApiListCaseNotesResponse = SureApiListCaseNotesResponses[keyof SureApiListCaseNotesResponses];
+
+export type SureApiSetCaseNoteHiddenData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Hidden
+         */
+        hidden: boolean;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+        /**
+         * Note Pk
+         */
+        note_pk: number;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/notes/{note_pk}/set-hidden/';
+};
+
+export type SureApiSetCaseNoteHiddenResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiSetCaseNoteHiddenResponse = SureApiSetCaseNoteHiddenResponses[keyof SureApiSetCaseNoteHiddenResponses];
 
 export type SureApiSetCaseKeyData = {
     /**
@@ -2186,6 +2506,85 @@ export type SureApiListTestResultOptionsResponses = {
 };
 
 export type SureApiListTestResultOptionsResponse = SureApiListTestResultOptionsResponses[keyof SureApiListTestResultOptionsResponses];
+
+export type SureApiGetInternalResultsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/results/{pk}/internal/';
+};
+
+export type SureApiGetInternalResultsResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type SureApiGetClientResultsData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/results/{pk}/client/';
+};
+
+export type SureApiGetClientResultsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<TestSchema>;
+};
+
+export type SureApiGetClientResultsResponse = SureApiGetClientResultsResponses[keyof SureApiGetClientResultsResponses];
+
+export type SureApiGetResultInfoData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/results/{pk}/info/';
+};
+
+export type SureApiGetResultInfoResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<ResultInformationSchema>;
+};
+
+export type SureApiGetResultInfoResponse = SureApiGetResultInfoResponses[keyof SureApiGetResultInfoResponses];
 
 export type TenantsApiListLocationsData = {
     body?: never;

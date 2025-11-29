@@ -5,9 +5,6 @@ import { userAnswersStore } from '@/stores/answers'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-defineProps<{
-  caseId: string
-}>()
 
 const router = useRouter()
 const { onCaseId, loading, fetchClientSchema, fetchClientAnswers, clientAnswers, visit } = useCase()

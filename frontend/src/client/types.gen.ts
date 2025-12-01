@@ -2994,6 +2994,28 @@ export type TextsApiListLanguagesResponses = {
 
 export type TextsApiListLanguagesResponse = TextsApiListLanguagesResponses[keyof TextsApiListLanguagesResponses];
 
+export type TextsApiReportMissingTextData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Slug
+         */
+        slug: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/texts/missing/';
+};
+
+export type TextsApiReportMissingTextResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type ClientOptions = {
     baseUrl: string;
 };

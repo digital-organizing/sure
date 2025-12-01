@@ -1,4 +1,4 @@
-import { textsApiListLanguages, textsApiListTexts } from '@/client'
+import { textsApiListLanguages, textsApiListTexts, textsApiReportMissingText } from '@/client'
 import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
 
@@ -23,13 +23,22 @@ export const useTexts = createGlobalState(() => {
   }
 
   loadAvailableLanguages().then(() => {
+    const storedLang = localStorage.getItem('preferredLanguage')
+    if (storedLang) {
+      console.log('Using stored preferred language:', storedLang)
+      setLanguage(storedLang)
+      return
+    }
     const preferredLang = languages.value.find((lang) =>
       availableLanguages.value.find(([code, _]) => code === lang),
     )
     setLanguage(preferredLang || 'en')
   })
 
-  async function setLanguage(lang: string) {
+  async function setLanguage(lang?: string) {
+    if (!lang) {
+      lang = localStorage.getItem('preferredLanguage') || 'en'
+    }
     if (language.value === lang) return
     if (loadingAvailableLanguagesPromise.value) {
       await loadingAvailableLanguagesPromise.value
@@ -42,6 +51,7 @@ export const useTexts = createGlobalState(() => {
       console.warn(`Language ${lang} is not available.`)
       return
     }
+    localStorage.setItem('preferredLanguage', lang)
     loadingPromise.value = textsApiListTexts({ query: { lang } }).then((response) => {
       if (!response.data) return
       texts.value = response.data.texts
@@ -59,7 +69,7 @@ export const useTexts = createGlobalState(() => {
 
   function getText(slug: string) {
     if (language.value === null) {
-      setLanguage('en')
+      setLanguage()
     }
     return computed(() => {
       return texts.value[slug] || slug
@@ -68,7 +78,7 @@ export const useTexts = createGlobalState(() => {
 
   function formatText(slug: string, args: Record<string, string>[]) {
     if (language.value === null) {
-      setLanguage('en')
+      setLanguage()
     }
     return computed(() => {
       if (!texts.value[slug]) return slug

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.utils import translation
-from ninja import ModelSchema, Schema
+from ninja import Form, ModelSchema, Schema
 from ninja.router import Router
 
 from sure.lang import inject_language
@@ -39,3 +39,9 @@ def list_texts(request):
 @router.get("languages/", response=list[tuple[str, str]], auth=None)
 def list_languages(request):
     return settings.LANGUAGES
+
+
+@router.post("missing/")
+def report_missing_text(request, slug: Form[str]):
+    Text.objects.get_or_create(slug=slug, defaults={"content": slug})
+    return {"success": True}

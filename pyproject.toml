@@ -10,6 +10,7 @@ dependencies = [
   "botocore<1.36",
   "celery[redis]>=5.5.3",
   "dataclasses-json>=0.6.7",
+  "deepl>=1.25.0",
   "django>=5.2.6",
   "django-agent-trust>=1.1.0",
   "django-celery-beat>=2.8.1",

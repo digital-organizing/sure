@@ -375,3 +375,5 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 
 MAX_KEY_LENGTH = env.int("MAX_KEY_LENGTH", default=512)
+
+DEEPL_API_KEY = env.str("DEEPL_API_KEY", default="")

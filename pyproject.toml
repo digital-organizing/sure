@@ -42,6 +42,7 @@ dependencies = [
   "sentry-sdk[django]>=2.43.0",
   "twilio>=9.8.2",
   "whitenoise>=6.10.0",
+  "xlsxwriter>=3.2.9",
 ]
 
 [dependency-groups]

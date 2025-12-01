@@ -35,7 +35,6 @@ from sure.models import (
     Case,
     ClientOption,
     ClientQuestion,
-    Connection,
     ConsultantOption,
     ConsultantQuestion,
     FreeFormTest,

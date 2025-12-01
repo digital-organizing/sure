@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import type {
-  FreeFormTestSchema,
-} from '@/client'
+import type { FreeFormTestSchema } from '@/client'
 import MarkdownIt from 'markdown-it'
 import { computed } from 'vue'
 

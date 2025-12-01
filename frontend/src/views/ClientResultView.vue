@@ -12,7 +12,7 @@ const { getText: t } = useTexts()
 const key = ref('')
 const caseId = ref('SUF-')
 
-const { caseFetched,  fetchCase, error } = useResults()
+const { caseFetched, fetchCase, error } = useResults()
 
 onMounted(() => {
   const query = route.query['case']

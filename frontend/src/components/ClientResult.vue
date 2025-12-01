@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-import {
-  sureApiGetDocumentLink,
-  type TestSchema,
-} from '@/client'
+import { sureApiGetDocumentLink, type TestSchema } from '@/client'
 import TestResultItem from './TestResultItem.vue'
 import { useResults } from '@/composables/useResults'
 import { computed } from 'vue'
@@ -14,15 +11,7 @@ const props = defineProps<{
   caseId: string
   caseKey: string
 }>()
-const {
-  tests,
-  notes,
-  documents,
-  infos,
-  caseStatus,
-  location,
-  freeFormTests,
-} = useResults()
+const { tests, notes, documents, infos, caseStatus, location, freeFormTests } = useResults()
 
 async function downloadDocument(id: number) {
   const link = await sureApiGetDocumentLink({

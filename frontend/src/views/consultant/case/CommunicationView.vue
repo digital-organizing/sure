@@ -1,9 +1,5 @@
 <script lang="ts" setup>
-import {
-  sureApiGetNonSmsResults,
-  sureApiGetPhoneNumber,
-  type TestSchema,
-} from '@/client'
+import { sureApiGetNonSmsResults, sureApiGetPhoneNumber, type TestSchema } from '@/client'
 import ClientResult from '@/components/ClientResult.vue'
 import DocumentUploadComponent from '@/components/DocumentUploadComponent.vue'
 import { useCase } from '@/composables/useCase'

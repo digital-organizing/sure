@@ -34,11 +34,11 @@ async function downloadDocument(id: number) {
 }
 
 function onSelect(event: unknown) {
-    hasFile.value = true
-    if(fileName.value.length === 0) {
-      const file = (event as { files: File[] }).files[0]
-      fileName.value = file.name
-    }
+  hasFile.value = true
+  if (fileName.value.length === 0) {
+    const file = (event as { files: File[] }).files[0]
+    fileName.value = file.name
+  }
 }
 </script>
 

@@ -49,7 +49,7 @@ export const useCase = createGlobalState(() => {
   const documents = ref<DocumentSchema[]>([])
   const notes = ref<NoteSchema[]>([])
 
-  const { language,  onLanguageChange } = useTexts()
+  const { language, onLanguageChange } = useTexts()
 
   const store = userAnswersStore()
   const consultantStore = consultantAnswersStore()

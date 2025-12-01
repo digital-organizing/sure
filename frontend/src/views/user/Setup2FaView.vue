@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { type OtpDeviceResponse } from '@/client'
 import { useAccount } from '@/composables/useAccount'
+import { useTexts } from '@/composables/useTexts'
 import { useClipboard } from '@vueuse/core'
-import { t } from '@vueuse/integrations/index-C1eGK6nC.js'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { useToast } from 'primevue/usetoast'
 import { computed, ref } from 'vue'
@@ -13,6 +13,8 @@ const router = useRouter()
 
 const { copy, isSupported } = useClipboard()
 const toast = useToast()
+
+const { getText: t } = useTexts()
 
 const name = ref('SURE 2FA')
 const device = ref<OtpDeviceResponse | null>(null)

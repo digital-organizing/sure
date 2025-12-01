@@ -47,7 +47,7 @@ function onSubmit() {
       @click="onPrevious"
       severity="secondary"
       variant="outlined"
-      icon="IconLeftArrowSmall"
+      :label="t('client-form-previous-button').value"
       rounded
       :aria-label="t('client-form-previous-button').value"
     >

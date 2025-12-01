@@ -35,7 +35,7 @@ onMounted(async () => {
   fetchCase(props.caseId, '', false)
   sureApiGetNonSmsResults({ path: { pk: props.caseId } }).then((response) => {
     if (Array.isArray(response.data)) {
-      nonSmsResults.value = response.data
+      nonSmsResults.value = response.data.filter((test) => test.results.length > 0)
     }
   })
   onCaseRefresh(async () => {

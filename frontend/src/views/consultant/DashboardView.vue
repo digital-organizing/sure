@@ -9,6 +9,7 @@ import { type PagedCaseListingSchema } from '@/client'
 import { onMounted, ref, watch } from 'vue'
 import StatusTag from '@/components/StatusTag.vue'
 import { useStatus } from '@/composables/useStatus'
+import { useTexts } from '@/composables/useTexts'
 import { useDateFormat } from '@vueuse/core'
 import { useLocations } from '@/composables/useLocations'
 import { useRouter } from 'vue-router'
@@ -16,6 +17,7 @@ import { useDebounceFn } from '@vueuse/core'
 import { useFilterStore } from '@/stores/filters'
 
 const router = useRouter()
+const { getText: t } = useTexts()
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -114,13 +116,18 @@ async function selectCase(event: { data: { case: string } }) {
           </InputIcon>
           <InputText
             v-model="(filterStore.filters['search'] as unknown as FilterData).value as string"
-            placeholder="Search by Case or Client ID"
+            :placeholder="t('search-case-client').value"
             @input="onFilterChange"
           />
         </IconField>
       </div>
     </template>
-    <Column field="case" header="Case" :show-filter-match-modes="false" :show-apply-button="false">
+    <Column
+      field="case"
+      :header="t('case').value"
+      :show-filter-match-modes="false"
+      :show-apply-button="false"
+    >
       <template #body="{ data }">
         {{ data.case }}
       </template>
@@ -129,13 +136,13 @@ async function selectCase(event: { data: { case: string } }) {
           @input="filterCallback()"
           v-model="filterModel.value"
           type="text"
-          placeholder="Search by case id"
+          :placeholder="t('search-case-id').value"
         />
       </template>
     </Column>
     <Column
       field="external_id"
-      header="Internal ID"
+      :header="t('internal-id-column').value"
       :show-filter-match-modes="false"
       :show-apply-button="false"
     >
@@ -147,13 +154,13 @@ async function selectCase(event: { data: { case: string } }) {
           @input="filterCallback()"
           v-model="filterModel.value"
           type="text"
-          placeholder="Search by internal id"
+          :placeholder="t('search-internal-id').value"
         />
       </template>
     </Column>
     <Column
       field="client_id"
-      header="Client"
+      :header="t('client').value"
       :show-filter-match-modes="false"
       :show-apply-button="false"
     >
@@ -165,11 +172,16 @@ async function selectCase(event: { data: { case: string } }) {
           @input="filterCallback()"
           v-model="filterModel.value"
           type="text"
-          placeholder="Search by client id"
+          :placeholder="t('search-client-id').value"
         />
       </template>
     </Column>
-    <Column field="tags" header="Tags" :show-filter-match-modes="false" :show-apply-button="false">
+    <Column
+      field="tags"
+      :header="t('tags').value"
+      :show-filter-match-modes="false"
+      :show-apply-button="false"
+    >
       <template #body="{ data }">
         <Tag
           v-for="tag in data.tags"
@@ -195,7 +207,12 @@ async function selectCase(event: { data: { case: string } }) {
         </Select>
       </template>
     </Column>
-    <Column field="last_modified_at" header="Last Modified" data-type="date" v-if="false">
+    <Column
+      field="last_modified_at"
+      :header="t('last-modified').value"
+      data-type="date"
+      v-if="false"
+    >
       <template #body="{ data }">
         {{ formatDate(data.last_modified_at) }}
       </template>
@@ -208,7 +225,7 @@ async function selectCase(event: { data: { case: string } }) {
         />
       </template>
     </Column>
-    <Column field="created_at" header="Created At" data-type="date">
+    <Column field="created_at" :header="t('created-at').value" data-type="date">
       <template #body="{ data }">
         {{ formatDate(data.created_at) }}
       </template>
@@ -216,12 +233,12 @@ async function selectCase(event: { data: { case: string } }) {
         <DatePicker
           v-model="filterModel.value"
           :show-icon="true"
-          placeholder="Select date"
+          :placeholder="t('select-date').value"
           date-format="yy-mm-dd"
         />
       </template>
     </Column>
-    <Column field="location" header="Location" :show-filter-match-modes="false">
+    <Column field="location" :header="t('location').value" :show-filter-match-modes="false">
       <template #body="{ data }">
         {{ data.location }}
       </template>
@@ -233,11 +250,16 @@ async function selectCase(event: { data: { case: string } }) {
           option-label="name"
           option-value="id"
           type="text"
-          placeholder="Search by location"
+          :placeholder="t('search-location').value"
         />
       </template>
     </Column>
-    <Column field="status" header="Status" :show-filter-match-modes="false" class="status">
+    <Column
+      field="status"
+      :header="t('status').value"
+      :show-filter-match-modes="false"
+      class="status"
+    >
       <template #body="{ data }">
         <StatusTag :value="data.status + ''" />
       </template>

@@ -18,7 +18,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
 from simple_history.models import HistoricalRecords
 
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
@@ -66,8 +65,7 @@ class Case(models.Model):
         verbose_name=_("Access Key"),
         help_text=_("An optional access key for the case data"),
     )
-    
-    
+
     history = HistoricalRecords()
 
     def set_key(self, key: str):
@@ -90,7 +88,7 @@ class Case(models.Model):
 
     def check_key(self, key: str) -> bool:
         return check_password(key, self.key) and self.key != ""
-    
+
     def has_key(self) -> bool:
         """Check if the case has an access key set."""
         return self.key != ""
@@ -107,6 +105,7 @@ class Case(models.Model):
     class Meta:
         verbose_name = _("Case")
         verbose_name_plural = _("Cases")
+
 
 class ConsentChoice(models.TextChoices):
     """Choices for consent to store data."""
@@ -447,7 +446,6 @@ class ClientOption(BaseOption):
         help_text=_("Text to be shown to the consultant when this option is selected"),
     )
 
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -608,10 +606,9 @@ class TestResultOption(models.Model):
         help_text=_("Color associated with this result option (hex code)"),
     )
 
-
-
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
+
 
 class ResultInformation(models.Model):
     option = models.ForeignKey(
@@ -663,6 +660,10 @@ class Visit(models.Model):
         Questionnaire, on_delete=models.CASCADE, related_name="visits"
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+
+    published_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Published At")
+    )
     consultant = models.ForeignKey(
         "tenants.Consultant",
         on_delete=models.SET_NULL,
@@ -678,6 +679,22 @@ class Visit(models.Model):
         verbose_name=_("Status"),
     )
 
+    def save(self, *args, **kwargs):
+        if self.status == VisitStatus.RESULTS_SENT and self.published_at is None:
+            self.published_at = timezone.now()
+            if "update_fields" in kwargs:
+                kwargs["update_fields"].append("published_at")
+
+        if self.published_at is not None and self.status not in [
+            VisitStatus.RESULTS_SENT,
+            VisitStatus.CLOSED,
+        ]:
+            self.published_at = None
+            if "update_fields" in kwargs:
+                kwargs["update_fields"].append("published_at")
+
+        return super().save(*args, **kwargs)
+
     tags = ArrayField(models.CharField(max_length=50), blank=True, default=list)
 
     client_answers: models.QuerySet[ClientAnswer]
@@ -686,13 +703,13 @@ class Visit(models.Model):
     documents: models.QuerySet["VisitDocument"]
     notes: models.QuerySet["VisitNote"]
     free_form_tests: models.QuerySet["FreeFormTest"]
+    logs: models.QuerySet["VisitLog"]
 
     history = HistoricalRecords()
-    
+
+
 class VisitNote(models.Model):
-    visit = models.ForeignKey(
-        Visit, on_delete=models.CASCADE, related_name="notes"
-    )
+    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="notes")
     note = models.TextField(
         max_length=2000,
         verbose_name=_("Note"),
@@ -714,16 +731,15 @@ class VisitNote(models.Model):
     )
 
     history = HistoricalRecords()
-    
+
     class Meta:
         verbose_name = _("Visit Note")
         verbose_name_plural = _("Visit Notes")
         ordering = ["created_at"]
-    
+
+
 class VisitLog(models.Model):
-    visit = models.ForeignKey(
-        Visit, on_delete=models.CASCADE, related_name="logs"
-    )
+    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="logs")
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("Timestamp"))
     action = models.CharField(
         max_length=255,
@@ -739,11 +755,9 @@ class VisitLog(models.Model):
         help_text=_("The user who performed the action"),
     )
 
-    
+
 class VisitDocument(models.Model):
-    visit = models.ForeignKey(
-        Visit, on_delete=models.CASCADE, related_name="documents"
-    )
+    visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="documents")
     name = models.CharField(
         max_length=255,
         verbose_name=_("Document Name"),
@@ -771,11 +785,12 @@ class VisitDocument(models.Model):
     )
 
     history = HistoricalRecords()
-    
+
     class Meta:
         verbose_name = _("Visit Document")
         verbose_name_plural = _("Visit Documents")
         ordering = ["uploaded_at"]
+
 
 class Test(models.Model):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
@@ -842,6 +857,7 @@ class FreeFormTest(models.Model):
     )
 
     history = HistoricalRecords()
+
 
 class TestResult(models.Model):
     result_option = models.ForeignKey(

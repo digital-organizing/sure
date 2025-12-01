@@ -37,6 +37,7 @@ import {
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
 import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
+import { useTexts } from './useTexts'
 
 export const useCase = createGlobalState(() => {
   const visit = ref<CaseListingSchema | null>(null)
@@ -48,6 +49,8 @@ export const useCase = createGlobalState(() => {
   const documents = ref<DocumentSchema[]>([])
   const notes = ref<NoteSchema[]>([])
 
+  const { language,  onLanguageChange } = useTexts()
+
   const store = userAnswersStore()
   const consultantStore = consultantAnswersStore()
 
@@ -57,8 +60,14 @@ export const useCase = createGlobalState(() => {
   const selectedVisitId = ref<string | null>(null)
   const loading = ref(false)
   const callbacks = ref<((caseId: string | null) => void)[]>([])
+  const refreshCallbacks = ref<((caseId: string) => void)[]>([])
   const historyOffset = computed(() => {
-    return Math.max(history.value.client_answers.length, history.value.consultant_answers.length)
+    return Math.max(
+      history.value.client_answers.length,
+      history.value.consultant_answers.length,
+      history.value.tests.length,
+      history.value.test_results.length,
+    )
   })
 
   const error = ref<string | null>(null)
@@ -66,15 +75,22 @@ export const useCase = createGlobalState(() => {
   const history = ref<CaseHistory>({
     client_answers: [],
     consultant_answers: [],
+    tests: [],
+    test_results: [],
+    log: [],
   })
 
   async function setCaseId(visitId: string | null) {
     selectedVisitId.value = visitId
     consultantStore.setCaseId(visitId)
+    refreshCallbacks.value = []
 
     history.value = {
       client_answers: [],
       consultant_answers: [],
+      tests: [],
+      test_results: [],
+      log: [],
     }
     relatedCases.value = []
     selectedTests.value = []
@@ -102,16 +118,34 @@ export const useCase = createGlobalState(() => {
     // Merge and sort client and consultant answers by created_at
     const combined = [
       ...history.value.client_answers.map((answer) => ({
-        ...answer,
+        entry: answer,
+        id: `client-${answer.id}`,
         type: 'client' as const,
       })),
       ...history.value.consultant_answers.map((answer) => ({
-        ...answer,
+        entry: answer,
         id: `consultant-${answer.id}`,
         type: 'consultant' as const,
       })),
+      ...history.value.tests.map((test) => ({
+        entry: test,
+        type: 'test' as const,
+        id: `test-${test.id}`,
+      })),
+      ...history.value.test_results.map((result) => ({
+        entry: result,
+        type: 'result' as const,
+        id: `result-${result.id}`,
+      })),
+      ...history.value.log.map((log) => ({
+        entry: log,
+        type: 'log' as const,
+        id: `log-${log.id}`,
+      })),
     ]
-    combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    combined.sort(
+      (a, b) => new Date(b.entry.created_at).getTime() - new Date(a.entry.created_at).getTime(),
+    )
     return combined
   })
   async function fetchCaseHistory(limit: number = 20, more = false) {
@@ -129,6 +163,9 @@ export const useCase = createGlobalState(() => {
             history.value = {
               client_answers: [],
               consultant_answers: [],
+              tests: [],
+              test_results: [],
+              log: [],
             }
           }
           history.value.client_answers = history.value.client_answers.concat(
@@ -137,6 +174,9 @@ export const useCase = createGlobalState(() => {
           history.value.consultant_answers = history.value.consultant_answers.concat(
             response.data.consultant_answers,
           )
+          history.value.tests = history.value.tests.concat(response.data.tests)
+          history.value.test_results = history.value.test_results.concat(response.data.test_results)
+          history.value.log = history.value.log.concat(response.data.log)
         } else {
           error.value = 'No history data in response.'
         }
@@ -155,6 +195,10 @@ export const useCase = createGlobalState(() => {
     callbacks.value.push(callback)
   }
 
+  function onCaseRefresh(callback: (caseId: string) => void) {
+    refreshCallbacks.value.push(callback)
+  }
+
   async function fetchVisitDetails() {
     if (!selectedVisitId.value) {
       visit.value = null
@@ -165,6 +209,7 @@ export const useCase = createGlobalState(() => {
       .then((response) => {
         if (response.data) {
           visit.value = response.data!
+          refreshCallbacks.value.forEach((callback) => callback(visit.value!.case!))
         }
       })
       .catch((error) => {
@@ -183,7 +228,10 @@ export const useCase = createGlobalState(() => {
 
     loading.value = true
 
-    await sureApiGetCaseQuestionnaire({ path: { pk: selectedVisitId.value } })
+    await sureApiGetCaseQuestionnaire({
+      path: { pk: selectedVisitId.value },
+      query: { lang: language.value },
+    })
       .then((response) => {
         if (response.data) {
           clientQuestionnaire.value = response.data!
@@ -205,7 +253,10 @@ export const useCase = createGlobalState(() => {
       return
     }
     loading.value = true
-    await sureApiGetCaseInternal({ path: { pk: selectedVisitId.value } })
+    await sureApiGetCaseInternal({
+      path: { pk: selectedVisitId.value },
+      query: { lang: language.value },
+    })
       .then((response) => {
         if (response.data) {
           consultantQuestionnaire.value = response.data!
@@ -224,8 +275,13 @@ export const useCase = createGlobalState(() => {
       notes.value = []
       return
     }
-    
-    await sureApiListCaseNotes({ path: { pk: visit.value!.case }, body: {key : ''} })
+
+    fetchVisitDetails()
+    await sureApiListCaseNotes({
+      path: { pk: visit.value!.case },
+      body: { key: '' },
+      query: { as_staff: true },
+    })
       .then((response) => {
         if (Array.isArray(response.data)) {
           notes.value = response.data
@@ -236,40 +292,52 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to fetch case notes: ' + error.message
       })
   }
-  
+
   async function createCaseNote(content: string) {
     if (!visit.value) {
       error.value = 'No visit selected.'
       return
     }
-    await sureApiAddCaseNote({path: {pk: visit.value.case}, body: {content}}).catch((error) => {
-      console.error('Failed to create case note:', error)
-      error.value = 'Failed to create case note: ' + error.message
-    }).then(async () => {
-      await fetchCaseNotes()
-    })
+    await sureApiAddCaseNote({ path: { pk: visit.value.case }, body: { content } })
+      .catch((error) => {
+        console.error('Failed to create case note:', error)
+        error.value = 'Failed to create case note: ' + error.message
+      })
+      .then(async () => {
+        await fetchCaseNotes()
+      })
   }
-  
+
   async function setCaseNoteHidden(id: number, hidden: boolean) {
     if (!visit.value) {
       error.value = 'No visit selected.'
       return
     }
-    await sureApiSetCaseNoteHidden({path: {pk: visit.value.case, note_pk: id}, body: {hidden}}).catch((error) => {
-      console.error('Failed to set case note hidden:', error)
-      error.value = 'Failed to set case note hidden: ' + error.message
-    }).then(async () => {
-      await fetchCaseNotes()
-    }) 
+    await sureApiSetCaseNoteHidden({
+      path: { pk: visit.value.case, note_pk: id },
+      body: { hidden },
+    })
+      .catch((error) => {
+        console.error('Failed to set case note hidden:', error)
+        error.value = 'Failed to set case note hidden: ' + error.message
+      })
+      .then(async () => {
+        await fetchCaseNotes()
+      })
   }
-  
+
   async function fetchDocuments() {
     if (!visit.value) {
       documents.value = []
       return
     }
-    
-    await sureApiListDocuments({ path: { pk: visit.value!.case }, body: {key : ''} })
+    fetchVisitDetails()
+
+    await sureApiListDocuments({
+      path: { pk: visit.value!.case },
+      body: { key: '' },
+      query: { as_staff: true },
+    })
       .then((response) => {
         if (Array.isArray(response.data)) {
           documents.value = response.data
@@ -280,31 +348,38 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to fetch case documents: ' + error.message
       })
   }
-  
+
   async function uploadDocument(file: File, name: string) {
     if (!visit.value) {
       error.value = 'No visit selected.'
       return
     }
-    await sureApiUploadDocument({path: {pk: visit.value.case}, body: {file, name}}).catch((error) => {
-      console.error('Failed to upload document:', error)
-      error.value = 'Failed to upload document: ' + error.message
-    }).then(async () => {
-      await fetchDocuments()
-    })
+    await sureApiUploadDocument({ path: { pk: visit.value.case }, body: { file, name } })
+      .catch((error) => {
+        console.error('Failed to upload document:', error)
+        error.value = 'Failed to upload document: ' + error.message
+      })
+      .then(async () => {
+        await fetchDocuments()
+      })
   }
-  
+
   async function setDocumentHidden(documentId: number, hidden: boolean) {
     if (!visit.value) {
       error.value = 'No visit selected.'
       return
     }
-    await sureApiSetDocumentHidden({path: {pk: visit.value.case, doc_pk: documentId}, body: {hidden}}).catch((error) => {
-      console.error('Failed to set document hidden:', error)
-      error.value = 'Failed to set document hidden: ' + error.message
-    }).then(async () => {
-      await fetchDocuments()
+    await sureApiSetDocumentHidden({
+      path: { pk: visit.value.case, doc_pk: documentId },
+      body: { hidden },
     })
+      .catch((error) => {
+        console.error('Failed to set document hidden:', error)
+        error.value = 'Failed to set document hidden: ' + error.message
+      })
+      .then(async () => {
+        await fetchDocuments()
+      })
   }
 
   async function fetchRelatedCases() {
@@ -482,7 +557,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to submit client answer: ' + error.message
       })
       .then(async () => {
-        await Promise.all([fetchClientAnswers(), fetchCaseHistory()])
+        await Promise.all([fetchVisitDetails(), fetchClientAnswers(), fetchCaseHistory()])
       })
   }
 
@@ -496,7 +571,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to submit consultant answers: ' + error.message
       })
       .then(async () => {
-        await Promise.all([fetchConsultantAnswers(), fetchCaseHistory()])
+        await Promise.all([fetchVisitDetails(), fetchConsultantAnswers(), fetchCaseHistory()])
       })
   }
 
@@ -521,7 +596,7 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to update case tests: ' + error.message
       })
       .then(async () => {
-        await Promise.all([fetchVisitDetails(), fetchSelectedTests()])
+        await Promise.all([fetchVisitDetails(), fetchSelectedTests(), fetchCaseHistory()])
       })
   }
 
@@ -556,23 +631,32 @@ export const useCase = createGlobalState(() => {
         error.value = 'Failed to update case test results: ' + error.message
       })
       .then(async () => {
-        await Promise.all([fetchVisitDetails(), fetchSelectedTests()])
+        await Promise.all([fetchVisitDetails(), fetchSelectedTests(), fetchCaseHistory()])
       })
   }
-  
+
   async function publishResults() {
-    await sureApiPublishCaseResults({path: {pk: visit.value!.case}}).then(() => {
-      // Successfully published results
-    }).catch((error) => {
-      error.value = 'Failed to publish case results: ' + error.message
-    })
-    await fetchVisitDetails()
+    await sureApiPublishCaseResults({ path: { pk: visit.value!.case } })
+      .then(() => {
+        // Successfully published results
+      })
+      .catch((error) => {
+        error.value = 'Failed to publish case results: ' + error.message
+      })
+    await Promise.all([fetchVisitDetails(), fetchCaseHistory()])
   }
-  
+
   async function setCaseStatus(status: string) {
-    await sureApiUpdateCaseStatus({path: {pk: visit.value!.case}, query: {status}});
-    await fetchVisitDetails()
+    await sureApiUpdateCaseStatus({ path: { pk: visit.value!.case }, query: { status } })
+    await Promise.all([fetchVisitDetails(), fetchCaseHistory()])
   }
+
+  onLanguageChange(async () => {
+    if (selectedVisitId.value) {
+      await fetchClientSchema()
+      await fetchConsultantSchema()
+    }
+  })
 
   return {
     visit,
@@ -614,5 +698,6 @@ export const useCase = createGlobalState(() => {
     historyItems,
     setCaseStatus,
     publishResults,
+    onCaseRefresh,
   }
 })

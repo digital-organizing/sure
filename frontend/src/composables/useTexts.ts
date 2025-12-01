@@ -1,5 +1,5 @@
 import { textsApiListLanguages, textsApiListTexts } from '@/client'
-import { createGlobalState } from '@vueuse/core'
+import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
 
 export const useTexts = createGlobalState(() => {
@@ -12,6 +12,8 @@ export const useTexts = createGlobalState(() => {
   const language = ref<string | null>(null)
   const rightToLeft = ref<boolean>(false)
 
+  const languages = usePreferredLanguages()
+
   async function loadAvailableLanguages() {
     loadingAvailableLanguagesPromise.value = textsApiListLanguages().then((response) => {
       if (!response.data) return
@@ -20,7 +22,12 @@ export const useTexts = createGlobalState(() => {
     await loadingAvailableLanguagesPromise.value
   }
 
-  loadAvailableLanguages()
+  loadAvailableLanguages().then(() => {
+    const preferredLang = languages.value.find((lang) =>
+      availableLanguages.value.find(([code, _]) => code === lang),
+    )
+    setLanguage(preferredLang || 'en')
+  })
 
   async function setLanguage(lang: string) {
     if (language.value === lang) return
@@ -43,6 +50,7 @@ export const useTexts = createGlobalState(() => {
     })
 
     await loadingPromise.value
+    callbacks.forEach((callback) => callback(language.value))
   }
 
   async function getLanguage() {
@@ -88,6 +96,12 @@ export const useTexts = createGlobalState(() => {
     return rightToLeft.value
   }
 
+  const callbacks: ((lang: string | null) => void)[] = []
+
+  function onLanguageChange(callback: (lang: string | null) => void) {
+    callbacks.push(callback)
+  }
+
   return {
     texts,
     setLanguage,
@@ -97,5 +111,6 @@ export const useTexts = createGlobalState(() => {
     isRightToLeft,
     formatText,
     language: readonly(language),
+    onLanguageChange,
   }
 })

@@ -3,6 +3,7 @@ import CaseNoteComponent from '@/components/CaseNoteComponent.vue'
 import DocumentUploadComponent from '@/components/DocumentUploadComponent.vue'
 import { useCase } from '@/composables/useCase'
 import { useTests } from '@/composables/useTests'
+import { useTexts } from '@/composables/useTexts'
 import { useConfirm } from 'primevue/useconfirm'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -11,6 +12,7 @@ const props = defineProps<{ caseId: string }>()
 
 const router = useRouter()
 const confirm = useConfirm()
+const { getText: t, formatText: f } = useTexts()
 
 const { onCaseId, updateCaseTestResults, selectedTests, freeFormTests } = useCase()
 
@@ -30,7 +32,9 @@ onMounted(() => {
       if (!latest || !test.testKind) {
         return
       }
-      const option = test.testKind.result_options.find((option) => option.id == latest.result_option)
+      const option = test.testKind.result_options.find(
+        (option) => option.id == latest.result_option,
+      )
       results.value[test.testKind.number] = option?.label || null
       notes.value[test.testKind.number] = latest.note || ''
     })
@@ -41,22 +45,24 @@ onMounted(() => {
 })
 
 const selectedTestKinds = computed(() => {
-  return selectedTests.value.map((test) => {
-    return {
-      testKind: test.test_kind,
-      test,
-    }
-  }).filter((tk) => tk.testKind !== undefined) as {
-    testKind: typeof selectedTests.value[number]['test_kind']
-    test: typeof selectedTests.value[number]
+  return selectedTests.value
+    .map((test) => {
+      return {
+        testKind: test.test_kind,
+        test,
+      }
+    })
+    .filter((tk) => tk.testKind !== undefined) as {
+    testKind: (typeof selectedTests.value)[number]['test_kind']
+    test: (typeof selectedTests.value)[number]
   }[]
 })
 
 const missingResults = computed(() => {
   return selectedTestKinds.value
     .filter((tk) => {
-      if(!tk.testKind) {
-        return false;
+      if (!tk.testKind) {
+        return false
       }
       return results.value[tk.testKind.number] == null
     })
@@ -126,7 +132,9 @@ function onSaveResults() {
 }
 
 function submitResults() {
-  updateCaseTestResults(results.value, notes.value, freeFormResults.value)
+  updateCaseTestResults(results.value, notes.value, freeFormResults.value).then(() => {
+    router.push({ name: 'consultant-communication', params: { caseId: props.caseId } })
+  })
 }
 function onBack() {
   router.push({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
@@ -135,11 +143,10 @@ function onBack() {
 
 <template>
   <header class="case">
-    <h2>Test Results</h2>
+    <h2>{{ t('test-results') }}</h2>
   </header>
   <Message v-if="categoryIterator.length == 0" severity="info">
-    No tests have been selected for this case. Please go back to the test selection and choose tests
-    to be performed.
+    {{ t('no-tests-selected') }}
   </Message>
   <div
     v-for="category in categoryIterator"
@@ -188,20 +195,19 @@ function onBack() {
     </div>
   </div>
   <div class="text-category" v-if="freeFormTests.length > 0" :class="{ error: showError }">
-    <h3>Free-form Tests</h3>
+    <h3>{{ t('free-form-tests') }}</h3>
     <div v-for="test in freeFormTests" :key="test.id!" class="test-category">
       <div class="test" :class="freeFormResults[test.id!] ? 'done' : 'missing'">
         <h4>{{ test.name }}</h4>
         <div class="input">
-          <InputText v-model="freeFormResults[test.id!]" placeholder="Enter result" />
+          <InputText v-model="freeFormResults[test.id!]" :placeholder="t('enter-result').value" />
         </div>
       </div>
     </div>
   </div>
   <div class="missing-warning" v-if="missingResults.length > 0">
     <Message v-if="missingResults.length > 0" severity="warn" icon="pi pi-exclamation-triangle">
-      {{ missingResults.length }} test results are missing. Please provide results for all selected
-      tests before proceeding.
+      {{ f('missing-results-info', [{ key: 'total', value: '' + missingResults.length }]) }}
       <ul>
         <li v-for="test in missingResults" :key="test!">
           {{ test }}
@@ -209,15 +215,15 @@ function onBack() {
       </ul>
     </Message>
   </div>
-  <div class="row save">
-    <Button @click="onSaveResults">Save Results</Button>
-  </div>
+  <div class="row save"></div>
   <div class="row">
     <DocumentUploadComponent />
   </div>
   <CaseNoteComponent class="row" />
   <section class="case-footer">
-    <Button label="Back" severity="secondary" @click="onBack()" />
+    <Button :label="t('back').value" severity="secondary" @click="onBack()" />
+
+    <Button @click="onSaveResults">{{ t('save-results') }}</Button>
   </section>
 </template>
 
@@ -297,7 +303,7 @@ h4 {
     gap: 0.5rem;
   }
 }
-      
+
 .row {
   margin-top: 1rem;
 }

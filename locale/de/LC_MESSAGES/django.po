@@ -1,0 +1,509 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-01 16:29+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: sure/models.py:50
+msgid "Case ID"
+msgstr ""
+
+#: sure/models.py:55
+msgid "External ID"
+msgstr "Interne ID"
+
+#: sure/models.py:56
+msgid "An optional external ID for the case"
+msgstr ""
+
+#: sure/models.py:62
+msgid "Location"
+msgstr "Ort"
+
+#: sure/models.py:64 sure/models.py:203 sure/models.py:225 sure/models.py:241
+#: sure/models.py:498 sure/models.py:667 sure/models.py:719 sure/models.py:809
+#: sure/models.py:854 sure/models.py:883
+msgid "Created At"
+msgstr "Erstellt am"
+
+#: sure/models.py:68
+msgid "Access Key"
+msgstr ""
+
+#: sure/models.py:69
+msgid "An optional access key for the case data"
+msgstr ""
+
+#: sure/models.py:110
+msgid "Case"
+msgstr ""
+
+#: sure/models.py:111
+msgid "Cases"
+msgstr ""
+
+#: sure/models.py:116
+msgid "Allowed"
+msgstr ""
+
+#: sure/models.py:117
+msgid "Denied"
+msgstr ""
+
+#: sure/models.py:144
+msgid "Contact"
+msgstr ""
+
+#: sure/models.py:145
+msgid "Contacts"
+msgstr ""
+
+#: sure/models.py:198
+msgid "Client ID"
+msgstr ""
+
+#: sure/models.py:223
+msgid "Consent"
+msgstr ""
+
+#: sure/models.py:238
+msgid "Token"
+msgstr ""
+
+#: sure/models.py:242
+msgid "Used At"
+msgstr ""
+
+#: sure/models.py:246
+msgid "Disabled"
+msgstr ""
+
+#: sure/models.py:247
+msgid "Whether this token is disabled and cannot be used"
+msgstr ""
+
+#: sure/models.py:257 sure/models.py:541 sure/models.py:560 sure/models.py:637
+msgid "Name"
+msgstr ""
+
+#: sure/models.py:257
+msgid "Name of the questionnaire"
+msgstr ""
+
+#: sure/models.py:264
+msgid "Questionnaire"
+msgstr "Fragebogen"
+
+#: sure/models.py:265
+msgid "Questionnaires"
+msgstr "Fragebögen"
+
+#: sure/models.py:280 sure/models.py:357 sure/models.py:394
+msgid "Order"
+msgstr "Reihenfolge"
+
+#: sure/models.py:281
+msgid "Order of the section in the questionnaire"
+msgstr ""
+
+#: sure/models.py:284
+msgid "Title"
+msgstr ""
+
+#: sure/models.py:284
+msgid "Title of the section"
+msgstr ""
+
+#: sure/models.py:289 sure/models.py:347 sure/models.py:593
+msgid "Label"
+msgstr ""
+
+#: sure/models.py:290
+msgid "Short label for the section"
+msgstr ""
+
+#: sure/models.py:294 sure/models.py:544
+msgid "Description"
+msgstr ""
+
+#: sure/models.py:295
+msgid "Description of the section"
+msgstr ""
+
+#: sure/models.py:310
+msgid "Single Choice"
+msgstr ""
+
+#: sure/models.py:311
+msgid "Multiple Choice"
+msgstr ""
+
+#: sure/models.py:314
+msgid "Multiple Choice with Open Text Field"
+msgstr ""
+
+#: sure/models.py:316
+msgid "Open Text"
+msgstr ""
+
+#: sure/models.py:317
+msgid "Long Text Field"
+msgstr ""
+
+#: sure/models.py:320
+msgid "Multi Choice Multi Text"
+msgstr ""
+
+#: sure/models.py:324
+msgid "Single Choice with Text"
+msgstr ""
+
+#: sure/models.py:331
+msgid "Question Text"
+msgstr ""
+
+#: sure/models.py:334 sure/models.py:384
+msgid "Code"
+msgstr ""
+
+#: sure/models.py:335
+msgid "Unique code for the question"
+msgstr ""
+
+#: sure/models.py:341
+msgid "Format"
+msgstr ""
+
+#: sure/models.py:348
+msgid "Short label for the question"
+msgstr ""
+
+#: sure/models.py:352
+msgid "Copy Paste"
+msgstr ""
+
+#: sure/models.py:353
+msgid "Allow copy paste for this question"
+msgstr ""
+
+#: sure/models.py:358
+msgid "Order of the question in the questionnaire"
+msgstr ""
+
+#: sure/models.py:364
+msgid "Validation"
+msgstr ""
+
+#: sure/models.py:365
+msgid "Regex validation for open text questions"
+msgstr ""
+
+#: sure/models.py:381
+msgid "Option Text"
+msgstr ""
+
+#: sure/models.py:385
+msgid "Unique code for the option"
+msgstr ""
+
+#: sure/models.py:389
+msgid "Allow Text"
+msgstr ""
+
+#: sure/models.py:390
+msgid "Allow text input for this option"
+msgstr ""
+
+#: sure/models.py:395
+msgid "Order of the option in the question"
+msgstr ""
+
+#: sure/models.py:417
+msgid "Do Not Show Directly"
+msgstr ""
+
+#: sure/models.py:418
+msgid "Do not show this question directly to the client"
+msgstr ""
+
+#: sure/models.py:423
+msgid "Optional for Centers"
+msgstr ""
+
+#: sure/models.py:424
+msgid "Whether this question is optional for centers"
+msgstr ""
+
+#: sure/models.py:431
+msgid "Show For Options"
+msgstr ""
+
+#: sure/models.py:432
+msgid "Show this question only if one of these options is selected"
+msgstr ""
+
+#: sure/models.py:448
+msgid "Text for Consultant"
+msgstr ""
+
+#: sure/models.py:449
+msgid "Text to be shown to the consultant when this option is selected"
+msgstr ""
+
+#: sure/models.py:504 sure/models.py:725 sure/models.py:756 sure/models.py:781
+#: sure/models.py:816 sure/models.py:850 sure/models.py:880
+msgid "User"
+msgstr ""
+
+#: sure/models.py:505
+msgid "The user who recorded the answer (consultant)"
+msgstr ""
+
+#: sure/models.py:540 sure/models.py:559
+msgid "Number"
+msgstr ""
+
+#: sure/models.py:545
+msgid "Description of the test category"
+msgstr ""
+
+#: sure/models.py:563
+msgid "Interpretation Needed"
+msgstr ""
+
+#: sure/models.py:564
+msgid "Does this test kind need interpretation?"
+msgstr ""
+
+#: sure/models.py:568
+msgid "Rapid"
+msgstr ""
+
+#: sure/models.py:569
+msgid "Is this a rapid test?"
+msgstr ""
+
+#: sure/models.py:575 sure/models.py:716 sure/models.py:806 sure/models.py:872
+msgid "Note"
+msgstr ""
+
+#: sure/models.py:576
+msgid "Additional notes about the test"
+msgstr ""
+
+#: sure/models.py:596
+msgid "Information by SMS"
+msgstr ""
+
+#: sure/models.py:597
+msgid "Can this result option be sent by SMS?"
+msgstr ""
+
+#: sure/models.py:602 sure/models.py:625
+msgid "Information Text"
+msgstr ""
+
+#: sure/models.py:603
+msgid "Information text to be sent to the client"
+msgstr ""
+
+#: sure/models.py:609
+msgid "Color"
+msgstr ""
+
+#: sure/models.py:610
+msgid "Color associated with this result option (hex code)"
+msgstr ""
+
+#: sure/models.py:626
+msgid "Detailed information related to this result option"
+msgstr ""
+
+#: sure/models.py:631
+msgid "Locations"
+msgstr ""
+
+#: sure/models.py:632
+msgid "Locations where this information is applicable"
+msgstr ""
+
+#: sure/models.py:647
+msgid "Created"
+msgstr ""
+
+#: sure/models.py:648
+msgid "Client Submitted"
+msgstr ""
+
+#: sure/models.py:649
+msgid "Consultant Submitted"
+msgstr ""
+
+#: sure/models.py:650
+msgid "Tests Recorded"
+msgstr ""
+
+#: sure/models.py:652
+msgid "Results Recorded"
+msgstr ""
+
+#: sure/models.py:653
+msgid "Results Sent"
+msgstr ""
+
+#: sure/models.py:654
+msgid "Results Missed"
+msgstr ""
+
+#: sure/models.py:655
+msgid "Closed"
+msgstr ""
+
+#: sure/models.py:657
+msgid "Canceled"
+msgstr ""
+
+#: sure/models.py:669
+msgid "Published At"
+msgstr ""
+
+#: sure/models.py:682
+msgid "Status"
+msgstr ""
+
+#: sure/models.py:717
+msgid "Note content"
+msgstr ""
+
+#: sure/models.py:726
+msgid "The user who created the note"
+msgstr ""
+
+#: sure/models.py:730 sure/models.py:787
+msgid "Hidden"
+msgstr ""
+
+#: sure/models.py:731
+msgid "Whether this note is hidden from clients"
+msgstr ""
+
+#: sure/models.py:737
+msgid "Visit Note"
+msgstr ""
+
+#: sure/models.py:738
+msgid "Visit Notes"
+msgstr ""
+
+#: sure/models.py:745
+msgid "Timestamp"
+msgstr ""
+
+#: sure/models.py:748
+msgid "Action"
+msgstr ""
+
+#: sure/models.py:749
+msgid "Description of the action taken"
+msgstr ""
+
+#: sure/models.py:757
+msgid "The user who performed the action"
+msgstr ""
+
+#: sure/models.py:767
+msgid "Document Name"
+msgstr ""
+
+#: sure/models.py:768
+msgid "Name of the document"
+msgstr ""
+
+#: sure/models.py:772
+msgid "Document"
+msgstr ""
+
+#: sure/models.py:773
+msgid "Document related to the visit"
+msgstr ""
+
+#: sure/models.py:775
+msgid "Uploaded At"
+msgstr ""
+
+#: sure/models.py:782
+msgid "The user who uploaded the document"
+msgstr ""
+
+#: sure/models.py:788
+msgid "Whether this document is hidden from clients"
+msgstr ""
+
+#: sure/models.py:794
+msgid "Visit Document"
+msgstr ""
+
+#: sure/models.py:795
+msgid "Visit Documents"
+msgstr ""
+
+#: sure/models.py:807 sure/models.py:873
+msgid "Additional notes about the test result"
+msgstr ""
+
+#: sure/models.py:817
+msgid "The user who recorded the test"
+msgstr ""
+
+#: sure/models.py:836
+msgid "Test Name"
+msgstr ""
+
+#: sure/models.py:840
+msgid "Test Result"
+msgstr ""
+
+#: sure/models.py:841
+msgid "Result of the free form test"
+msgstr ""
+
+#: sure/models.py:851
+msgid "The user who recorded the free form test"
+msgstr ""
+
+#: sure/models.py:858
+msgid "Result Recorded At"
+msgstr ""
+
+#: sure/models.py:859
+msgid "Timestamp when the result was recorded"
+msgstr ""
+
+#: sure/models.py:881
+msgid "The user who recorded the test result (consultant)"
+msgstr ""
+
+#: tenants/forms.py:102
+msgid "Custom form"
+msgstr ""
+
+#: tenants/models.py:110
+msgid "Excluded Questions at this center."
+msgstr ""
+
+#: tenants/models.py:111
+msgid "These questions will not be asked for cases at this center."
+msgstr ""

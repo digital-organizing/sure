@@ -3,13 +3,14 @@ import type { TagSchema } from '@/client'
 import ConsultantQuestion from '@/components/ConsultantQuestion.vue'
 import { useCase } from '@/composables/useCase'
 import { useTags } from '@/composables/useTags'
+import { useTexts } from '@/composables/useTexts'
 import { consultantAnswersStore } from '@/stores/answers'
 import { Button } from 'primevue'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
+const { getText: t } = useTexts()
 
 const {
   onCaseId,
@@ -59,10 +60,10 @@ function onBack() {
 </script>
 
 <template>
-  <div v-if="loading">Loading consultant questionnaire...</div>
+  <div v-if="loading">{{ t('loading-consultant') }}</div>
   <div>
     <header class="case">
-      <h2>Consultant Questionnaire Content</h2>
+      <h2>{{ t('consultant-questionnaire') }}</h2>
     </header>
     <Form class="form-col">
       <div
@@ -79,8 +80,7 @@ function onBack() {
       </div>
       <div>
         <h3>
-          <span class="nr">{{ nrQuestions + 2 }}</span
-          >Tags
+          <span class="nr">{{ nrQuestions + 2 }}</span> {{ t('tags') }}
         </h3>
         <div class="tag-boxes question">
           <div class="option-item" v-for="tag in tags" :key="tag.id!">
@@ -90,8 +90,8 @@ function onBack() {
         </div>
       </div>
       <footer class="case-footer">
-        <Button label="Back" severity="secondary" @click="onBack()" />
-        <Button label="Submit All Answers" @click="onSubmit()" />
+        <Button :label="t('back').value" severity="secondary" @click="onBack()" />
+        <Button :label="t('submit-all-answers').value" @click="onSubmit()" />
       </footer>
     </Form>
   </div>

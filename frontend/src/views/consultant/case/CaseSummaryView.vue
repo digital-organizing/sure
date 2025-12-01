@@ -2,6 +2,7 @@
 import { type ClientQuestionSchema, type ConsultantQuestionSchema, type TestSchema } from '@/client'
 import ConsultantSection from '@/components/ConsultantSection.vue'
 import { useCase } from '@/composables/useCase'
+import { useTexts } from '@/composables/useTexts'
 import { userAnswersStore } from '@/stores/answers'
 import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue'
@@ -13,6 +14,7 @@ defineProps<{
 }>()
 
 const router = useRouter()
+const { getText: t } = useTexts()
 const {
   mapAnswersForClientQuestion,
   mapAnswersForConsultantQuestion,
@@ -41,16 +43,13 @@ const selectedTestKinds = computed(() => {
 })
 
 function optionForTest(test: TestSchema) {
-  const latest = test.results
-    .sort((a, b) => b.created_at.localeCompare(a.created_at))
-    .at(0)
+  const latest = test.results.sort((a, b) => b.created_at.localeCompare(a.created_at)).at(0)
   if (!latest) {
     return null
   }
   const option = test.test_kind.result_options.find((option) => option.id == latest.result_option)
   return option
 }
-
 
 function getLine(q: ClientQuestionSchema | ConsultantQuestionSchema, kind = 'client'): string {
   const label = q.label || q.question_text
@@ -76,8 +75,8 @@ function copyAnswersToClipboard() {
   copy(text).then(() => {
     toast.add({
       severity: 'success',
-      summary: 'Copied to clipboard',
-      detail: 'Answers copied to clipboard',
+      summary: t('copied-to-clipboard').value,
+      detail: t('answers-copied-to-clipboard').value,
       life: 3000,
     })
   })
@@ -94,13 +93,13 @@ function onNext() {
 <template>
   <section v-if="answerStore.schema && clientAnswers !== null">
     <header class="case">
-      <h2>Client Questionnaire</h2>
+      <h2>{{ t('client-questionnaire-title').value }}</h2>
       <Button
         :icon="showClient ? 'pi pi-eye-slash' : 'pi pi-eye'"
         size="small"
         severity="secondary"
         @click="showClient = !showClient"
-        title="Expand Client sections"
+        :title="t('expand-client-sections').value"
       />
     </header>
     <template v-if="showClient">
@@ -110,13 +109,13 @@ function onNext() {
     </template>
 
     <header>
-      <h2>Consultant</h2>
+      <h2>{{ t('consultant-title') }}</h2>
       <Button
         :icon="showConsultant ? 'pi pi-eye-slash' : 'pi pi-eye'"
         size="small"
         severity="secondary"
         @click="showConsultant = !showConsultant"
-        title="Expand Consultant questions"
+        :title="t('expand-consultant-questions').value"
       />
     </header>
     <section v-if="showConsultant">
@@ -130,27 +129,22 @@ function onNext() {
           {{ answer.text }}
         </div>
       </div>
-      <h3>Tags</h3>
+      <h3>{{ t('tags').value }}</h3>
       <div class="tags">
         <Tag v-for="tag in visit?.tags || []" :key="tag" :value="tag" severity="secondary" />
       </div>
     </section>
     <section>
-      <h3>Selected Tests</h3>
+      <h3>{{ t('selected-tests').value }}</h3>
       <div v-for="test in selectedTestKinds" :key="test.testKind.id!" class="selected-test">
         <span>
           {{ test.testKind.name }}
         </span>
         <span
           class="test-result"
-          :style="
-            '--test-color: ' +
-            (optionForTest(test.test)?.color || '#aaa')
-          "
+          :style="'--test-color: ' + (optionForTest(test.test)?.color || '#aaa')"
         >
-          {{
-            optionForTest(test.test)?.label || 'no result'
-          }}
+          {{ optionForTest(test.test)?.label || 'no result' }}
         </span>
       </div>
       <div v-for="test in freeFormTests" :key="test.id!" class="selected-test">
@@ -165,15 +159,15 @@ function onNext() {
     <section class="copy-summary">
       <Button
         icon="pi pi-copy"
-        label="Copy to clipboard"
+        :label="t('copy-to-clipboard').value"
         severity="primary"
         @click="copyAnswersToClipboard"
       />
     </section>
   </section>
   <footer class="case-footer">
-    <Button label="Back" severity="secondary" @click="onBack()" />
-    <Button label="Next" severity="primary" @click="onNext()" />
+    <Button :label="t('back').value" severity="secondary" @click="onBack()" />
+    <Button :label="t('next').value" severity="primary" @click="onNext()" />
   </footer>
 </template>
 

@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0029_alter_clientanswer_texts_and_more"),
         ("tenants", "0008_location_excluded_questions"),

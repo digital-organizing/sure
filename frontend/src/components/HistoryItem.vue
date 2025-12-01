@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { useCase } from '@/composables/useCase'
+import type {
+  FlatClientAnswerSchema,
+  FlatConsultantAnswerSchema,
+  FlatTestResultSchema,
+  FlatTestSchema,
+  LogEntrySchema,
+} from '@/client'
 import { useUsers } from '@/composables/useUsers'
 import { computed, onMounted, ref } from 'vue'
 
-const { clientQuestionnaire, consultantQuestionnaire } = useCase()
-
 const props = defineProps<{
-  entry: {
-    question: number
-    type: 'client' | 'consultant'
-    choices: Array<number>
-    texts: Array<string>
-  }
+  type: 'client' | 'consultant' | 'test' | 'result' | 'log'
+  item:
+    | FlatClientAnswerSchema
+    | FlatConsultantAnswerSchema
+    | FlatTestSchema
+    | FlatTestResultSchema
+    | LogEntrySchema
   date: Date
   user?: number | null
 }>()
@@ -36,30 +41,43 @@ function formatDate(date: Date): string {
   return date.toLocaleString()
 }
 
-function clientQuestionForId(id: number) {
-  return clientQuestionnaire?.value?.sections
-    .flatMap((s) => s.client_questions)
-    .find((q) => q.id === id)
-}
-
-function consultantQuestionForId(id: number) {
-  return consultantQuestionnaire?.value?.consultant_questions.find((q) => q.id === id)
-}
-const questionName = computed(() => {
-  let question
-  if (props.entry.type === 'client') {
-    question = clientQuestionForId(props.entry.question)
-  } else {
-    question = consultantQuestionForId(props.entry.question)
+const label = computed(() => {
+  switch (props.type) {
+    case 'client':
+    case 'consultant':
+      return 'Q: ' + props.item.label
+    case 'test':
+      return 'T: ' + props.item.label
+    case 'result':
+      return 'R: ' + props.item.label
+    case 'log':
+      return 'L: ' + props.item.label
+    default:
+      return 'Unknown Item'
   }
-  return question ? question.question_text : 'Unknown Question'
+})
+
+const value = computed(() => {
+  switch (props.type) {
+    case 'client':
+      return (props.item as FlatClientAnswerSchema)!.texts!.join(', ')
+    case 'consultant':
+      return (props.item as FlatConsultantAnswerSchema)!.texts!.join(', ')
+    case 'test':
+      return ''
+    case 'result':
+      return (props.item as FlatTestResultSchema).test.label
+    case 'log':
+      return ''
+  }
+  return ''
 })
 </script>
 
 <template>
   <div class="history-entry">
-    <span class="label">{{ questionName }}</span>
-    <span><i class="pi pi-pencil"></i> {{ props.entry.texts.join(', ') }}</span>
+    <span class="label">{{ label }}</span>
+    <span class="value">{{ value }}</span>
     <div class="meta">
       {{ formatDate(props.date) }} <span class="user" v-if="fullName"> - {{ fullName }}</span>
     </div>
@@ -84,6 +102,7 @@ const questionName = computed(() => {
 i {
   font-size: 0.5rem;
 }
+
 span {
   overflow: hidden;
 }

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useAccount } from '@/composables/useAccount'
+import { useTexts } from '@/composables/useTexts'
 import type { FormResolverOptions } from '@primevue/forms'
 import { useUrlSearchParams } from '@vueuse/core'
 import { ref } from 'vue'
@@ -53,20 +54,21 @@ function resolver(e: FormResolverOptions) {
     values: e.values,
   }
 }
+const { getText: t } = useTexts()
 </script>
 
 <template>
   <Form @submit="onSubmit" class="form-col" :resolver="resolver">
     <p>
-      Please set your initial password for the account associated with
+      {{ t('set-initial-password-instruction') }}
       <span class="email"> {{ email }}. </span>
     </p>
     <FloatLabel variant="in">
       <Password name="password" type="password" id="password" toggle-mask />
-      <label for="password">Password</label>
+      <label for="password">{{ t('password') }}</label>
     </FloatLabel>
 
-    <Button type="submit">Set Password</Button>
+    <Button type="submit">{{ t('submit') }}</Button>
 
     <Message severity="error" v-if="errors.length || error">
       <strong>{{ error }}</strong>

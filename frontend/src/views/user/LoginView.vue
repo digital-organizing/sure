@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { useAccount } from '@/composables/useAccount'
+import { useTexts } from '@/composables/useTexts'
 import { watch } from 'vue'
 import { InputText } from 'primevue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const { getText: t } = useTexts()
 
 const { login, account, login2fa, error, twoFaDevices, logout } = useAccount()
 
@@ -57,18 +59,18 @@ async function cancelLogin() {
 </script>
 
 <template>
-  <h2>Login</h2>
+  <h2>{{ t('login') }}</h2>
   <Form @submit="onSubmit" v-if="showLogin" class="form-col">
     <FloatLabel variant="in">
-      <label for="username">Username</label>
+      <label for="username">{{ t('username') }}</label>
       <InputText name="username" id="username" />
     </FloatLabel>
     <FloatLabel variant="in">
-      <label for="password">Password</label>
+      <label for="password">{{ t('password') }}</label>
       <InputText type="password" name="password" id="password" />
     </FloatLabel>
 
-    <Button type="submit" label="Login" />
+    <Button type="submit" :label="t('login').value" />
     <Message severity="error" v-if="error">{{ error }}</Message>
   </Form>
   <Form @submit="on2FaSubmit" v-if="showOtp" class="form-col">
@@ -81,18 +83,18 @@ async function cancelLogin() {
         name="device"
         id="device"
       ></Select>
-      <label for="device">Select 2FA Device</label>
+      <label for="device">{{ t('select-2fa-device') }}</label>
     </FloatLabel>
     <FloatLabel variant="in">
-      <label for="token">Enter Token</label>
+      <label for="token">{{ t('enter-token') }}</label>
       <InputText name="token" id="token" />
     </FloatLabel>
     <CheckboxGroup name="ingredient" class="toggle">
-      <ToggleSwitch label="Remember this device" name="remember" />
-      <label for="remember">Trust this device</label>
+      <ToggleSwitch :label="t('trust-device').value" name="remember" />
+      <label for="remember">{{ t('trust-device') }}</label>
     </CheckboxGroup>
-    <Button type="submit" label="Verify 2FA" />
-    <Button label="Cancel" class="p-button-secondary" @click="cancelLogin" />
+    <Button type="submit" :label="t('verify-2fa').value" />
+    <Button :label="t('cancel').value" class="p-button-secondary" @click="cancelLogin" />
     <Message severity="error" v-if="error">{{ error }}</Message>
   </Form>
 </template>

@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0031_alter_visitdocument_options_alter_visitnote_options_and_more"),
     ]

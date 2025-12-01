@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import HistoryItem from './HistoryItem.vue'
 import { useCase } from '@/composables/useCase'
+import { useTexts } from '@/composables/useTexts'
 
 defineProps<{ caseId: string }>()
 
 const { historyItems } = useCase()
+const { getText: t } = useTexts()
 </script>
 
 <template>
@@ -12,13 +14,14 @@ const { historyItems } = useCase()
     <HistoryItem
       v-for="item of historyItems.slice(0, 5)"
       :key="item.id!"
-      :entry="item"
-      :date="new Date(item.created_at)"
-      :user="item.user"
+      :item="item.entry"
+      :type="item.type"
+      :date="new Date(item.entry.created_at)"
+      :user="item.entry.user"
     />
     <Button
       class="mt-2"
-      label="View Full History"
+      :label="t('view-full-history').value"
       asChild
       outlined
       v-slot="slotProps"
@@ -28,7 +31,7 @@ const { historyItems } = useCase()
       <RouterLink
         :class="slotProps.class"
         :to="{ name: 'consultant-case-history', params: { caseId: caseId } }"
-        >View Full History</RouterLink
+        >{{ t('view-full-history') }}</RouterLink
       >
     </Button>
   </section>

@@ -44,7 +44,6 @@ function onSubmit() {
     <Button
       id="previous"
       v-if="props.hasPrevious"
-      label="Previous"
       @click="onPrevious"
       severity="secondary"
       variant="outlined"
@@ -56,7 +55,6 @@ function onSubmit() {
     </Button>
     <Button
       id="next"
-      label="Next"
       v-if="props.hasNext"
       @click="onNext"
       severity="primary"
@@ -68,7 +66,6 @@ function onSubmit() {
     <Button
       id="submit"
       v-if="!props.hasNext"
-      label="Submit"
       type="submit"
       @click="onSubmit"
       severity="primary"

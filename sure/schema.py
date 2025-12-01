@@ -29,6 +29,7 @@ from sure.models import (
     TestResultOption,
     Visit,
     VisitDocument,
+    VisitLog,
     VisitNote,
 )
 from tenants.schema import UserSchema
@@ -215,6 +216,19 @@ class ClientAnswerSchema(ModelSchema):
     texts: list[str]
 
 
+class FlatClientAnswerSchema(ModelSchema):
+    class Meta:
+        model = ClientAnswer
+        fields = [
+            "id",
+            "texts",
+            "created_at",
+            "user",
+        ]
+
+    label: str = Field(..., alias="question.question_text")
+
+
 class ConsultantAnswerSchema(ModelSchema):
     class Meta:
         model = ConsultantAnswer
@@ -231,9 +245,17 @@ class ConsultantAnswerSchema(ModelSchema):
     texts: list[str]
 
 
-class CaseHistory(Schema):
-    client_answers: list[ClientAnswerSchema]
-    consultant_answers: list[ConsultantAnswerSchema]
+class FlatConsultantAnswerSchema(ModelSchema):
+    class Meta:
+        model = ConsultantAnswer
+        fields = [
+            "id",
+            "texts",
+            "created_at",
+            "user",
+        ]
+
+    label: str = Field(..., alias="question.question_text")
 
 
 class SubmitCaseSchema(Schema):
@@ -539,11 +561,6 @@ class TestResultSchema(ModelSchema):
             "created_at",
         ]
 
-    # label: str = Field(..., alias="result_option.label")
-    # information_text : str | None = Field(None, alias="result_option.information_text")
-    # color: str | None = Field(None, alias="result_option.color")
-    # information_by_sms : bool = Field(False, alias="result_option.information_by_sms")
-
 
 class TestSchema(ModelSchema):
     class Meta:
@@ -558,6 +575,36 @@ class TestSchema(ModelSchema):
 
     results: list[TestResultSchema]
     test_kind: TestKindSchema
+
+
+class FlatTestSchema(ModelSchema):
+    class Meta:
+        model = Test
+        fields = [
+            "id",
+            "test_kind",
+            "note",
+            "user",
+            "created_at",
+        ]
+
+    label: str = Field(..., alias="test_kind.name")
+
+
+class FlatTestResultSchema(ModelSchema):
+    class Meta:
+        model = TestResult
+        fields = [
+            "id",
+            "result_option",
+            "test",
+            "note",
+            "user",
+            "created_at",
+        ]
+
+    label: str = Field(..., alias="result_option.label")
+    test: FlatTestSchema
 
 
 class PhoneNumberSchema(Schema):
@@ -610,12 +657,14 @@ class DocumentSchema(ModelSchema):
             "uploaded_at",
             "hidden",
         ]
+
     user: UserSchema
 
 
 class DocumentAccessSchema(Schema):
     link: str
-    
+
+
 class NoteSchema(ModelSchema):
     class Meta:
         model = VisitNote
@@ -637,3 +686,23 @@ class ResultInformationSchema(ModelSchema):
             "option",
             "information_text",
         ]
+
+
+class LogEntrySchema(ModelSchema):
+    class Meta:
+        model = VisitLog
+        fields = [
+            "id",
+            "user",
+        ]
+
+    created_at: datetime = Field(..., alias="timestamp")
+    label: str = Field(..., alias="action")
+
+
+class CaseHistory(Schema):
+    client_answers: list[FlatClientAnswerSchema]
+    consultant_answers: list[FlatConsultantAnswerSchema]
+    tests: list[FlatTestSchema]
+    test_results: list[FlatTestResultSchema]
+    log: list[LogEntrySchema]

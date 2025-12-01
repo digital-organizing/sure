@@ -2,6 +2,7 @@
 import { type OtpDeviceResponse } from '@/client'
 import { useAccount } from '@/composables/useAccount'
 import { useClipboard } from '@vueuse/core'
+import { t } from '@vueuse/integrations/index-C1eGK6nC.js'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import { useToast } from 'primevue/usetoast'
 import { computed, ref } from 'vue'
@@ -49,8 +50,8 @@ async function onVerify2FaSetup(e: { values: Record<string, string>; valid: bool
   await verifyOtp(authCode, device.value.id)
   toast.add({
     severity: 'success',
-    summary: '2FA Setup',
-    detail: 'Two-Factor Authentication setup complete!',
+    summary: t('2FA Setup').value,
+    detail: t('2fa-complete'),
     life: 3000,
   })
 }
@@ -65,8 +66,8 @@ function onCopyCode() {
   copy(device.value?.config_url || '').then(() => {
     toast.add({
       severity: 'success',
-      summary: 'Copied',
-      detail: '2FA configuration URL copied to clipboard',
+      summary: t('copied').value,
+      detail: t('2fa-copied').value,
       life: 3000,
     })
   })
@@ -76,20 +77,24 @@ function onCopyCode() {
 <template>
   <Form @submit="onCreateDevice" v-if="!device && !setupComplete" class="form-col">
     <p>
-      To enhance the security of your account, please set up Two-Factor Authentication (2FA). Start
-      by creating a new 2FA device.
+      {{ t('setup-2fa-instruction') }}
     </p>
     <FloatLabel variant="in">
-      <label for="device_name">Device Name</label>
-      <InputText label="Device Name" v-model="name" name="device_name" id="device_name" />
+      <label for="device_name">{{ t('device-name') }}</label>
+      <InputText
+        :label="t('device-name').value"
+        v-model="name"
+        name="device_name"
+        id="device_name"
+      />
     </FloatLabel>
-    <Button type="submit">Create 2FA Device</Button>
+    <Button type="submit">{{ t('create-2fa-device').value }}</Button>
   </Form>
 
   <Form v-if="configUrl && !setupComplete" @submit="onVerify2FaSetup" class="form-col">
-    <p>Scan the QR code below with your authenticator app:</p>
+    <p>{{ t('scan-qr-code') }}</p>
     <img :src="configCode" alt="2FA QR Code" class="qr-code" />
-    <span>Or use this code: </span>
+    <span>{{ t('use-2fa-code') }}</span>
     <div class="code-box">
       <span>
         <InputText :value="device?.config_url" readonly />
@@ -97,12 +102,12 @@ function onCopyCode() {
       <Button icon="pi pi-copy" text @click="onCopyCode" v-if="isSupported"></Button>
     </div>
     <FloatLabel variant="in">
-      <label for="auth_code">Enter Code </label>
+      <label for="auth_code">{{ t('enter-code') }} </label>
       <InputText name="auth_code" id="auth_code" />
     </FloatLabel>
-    <Button type="submit">Verify 2FA Setup</Button>
+    <Button type="submit">{{ t('verify-2fa-setup') }}</Button>
     <p>
-      You can Download an authenticator app like Google Authenticator or Authy to scan the QR code:
+      {{ t('authenticator-app-info') }}
     </p>
     <ul>
       <li>
@@ -118,18 +123,17 @@ function onCopyCode() {
 
   <Form v-if="setupComplete" @submit="onCreateBackupCodes" class="form-col">
     <p>
-      2FA setup is complete! Generate backup codes to ensure you can access your account if you lose
-      your 2FA device.
+      {{ t('2fa-setup-complete') }}
     </p>
-    <Button type="submit" v-if="codes.length == 0">Generate Backup Codes</Button>
+    <Button type="submit" v-if="codes.length == 0">{{ t('generate-backup-codes') }}</Button>
     <div v-if="codes.length > 0">
-      <h3>Your Backup Codes:</h3>
+      <h3>{{ t('your-backup-codes') }}</h3>
       <ul>
         <li v-for="code in codes" :key="code">{{ code }}</li>
       </ul>
-      <p>Please store these codes in a safe place.</p>
+      <p>{{ t('store-backup-codes') }}</p>
     </div>
   </Form>
 
-  <Button v-if="setupComplete" @click="router.push({ name: 'home' })">Go to Home</Button>
+  <Button v-if="setupComplete" @click="router.push({ name: 'home' })">{{ t('go-to-home') }}</Button>
 </template>

@@ -4,13 +4,13 @@ import colorfield.fields
 import django.contrib.postgres.fields
 import django.db.models.deletion
 import simple_history.models
-import sure.models
 from django.conf import settings
 from django.db import migrations, models
 
+import sure.models
+
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0030_resultinformation_visitdocument_visitlog_visitnote"),
         ("tenants", "0010_historicalconsultant_historicallocation_and_more"),

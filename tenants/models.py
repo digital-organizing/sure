@@ -1,13 +1,15 @@
 """Models for tenants (organizations) using the service."""
 
+import datetime
+
+import simple_history
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
+from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
-import simple_history
-
-from django.contrib.auth.models import User
 
 simple_history.register(User, app=__package__)
 # Create your models here.
@@ -52,6 +54,7 @@ class Tenant(models.Model):
     logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
 
     history = HistoricalRecords()
+
     def __str__(self) -> str:
         return f"{self.name}"
 
@@ -73,6 +76,17 @@ def default_opening_hours():
     }
 
 
+WEEKDAYS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+]
+
+
 class Location(models.Model):
     """A location belonging to a tenant."""
 
@@ -89,7 +103,7 @@ class Location(models.Model):
         help_text="JSON field to store opening hours.",
         default=default_opening_hours,
     )
-    
+
     phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     excluded_questions = models.ManyToManyField(
@@ -100,6 +114,40 @@ class Location(models.Model):
         help_text=_("These questions will not be asked for cases at this center."),
         limit_choices_to={"optional_for_centers": True},
     )
+
+    def get_next_opening(
+        self, from_datetime: datetime.datetime
+    ) -> datetime.datetime | None:
+        """Get the next opening datetime from a given datetime."""
+        weekday = from_datetime.weekday()  # 0 = Monday, 6 = Sunday
+        for i in range(7):
+            day = (weekday + i) % 7
+            hours = self.opening_hours.get(WEEKDAYS[day], [])
+            for start_str, end_str in hours:
+                start_time = datetime.datetime.strptime(start_str, "%H:%M").time()
+                opening_datetime = make_aware(
+                    datetime.datetime.combine(
+                        from_datetime.date() + datetime.timedelta(days=i),
+                        start_time,
+                    )
+                )
+                closing_time = datetime.datetime.strptime(end_str, "%H:%M").time()
+                closing_datetime = make_aware(
+                    datetime.datetime.combine(
+                        from_datetime.date() + datetime.timedelta(days=i),
+                        closing_time,
+                    )
+                )
+
+                if (
+                    opening_datetime <= from_datetime
+                    and from_datetime < closing_datetime
+                ):
+                    return opening_datetime
+
+                if opening_datetime > from_datetime:
+                    return opening_datetime
+        return None
 
     history = HistoricalRecords()
 
@@ -135,6 +183,7 @@ class Consultant(models.Model):
     locations = models.ManyToManyField(Location, related_name="consultants")
 
     history = HistoricalRecords()
+
     def __str__(self) -> str:
         return f"{self.user.get_full_name()} ({self.tenant.name})"
 

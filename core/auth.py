@@ -6,14 +6,13 @@ from django.http import HttpRequest
 from ninja.security.apikey import APIKeyCookie
 
 
-
 class Auth2FaOrTrusted(APIKeyCookie):
     "Reusing Django session authentication"
 
     def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
         return request.user.is_authenticated and (
-                request.user.is_verified() or request.agent.is_trusted  # type: ignore
-            )
+            request.user.is_verified() or request.agent.is_trusted  # type: ignore
+        )
 
 
 auth_2fa_or_trusted = Auth2FaOrTrusted()

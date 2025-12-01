@@ -64,14 +64,14 @@ const router = createRouter({
         showInternalMenu: false,
       },
     },
-      {
-          path: '/results',
-          name: 'results',
-          component: () => import('../views/ClientResultView.vue'),
-           meta: {
-              showInternalMenu: false,
-            }
+    {
+      path: '/results',
+      name: 'results',
+      component: () => import('../views/ClientResultView.vue'),
+      meta: {
+        showInternalMenu: false,
       },
+    },
     {
       path: '/account',
       name: 'account',

@@ -1,5 +1,6 @@
 """Functions for creating and managing clients and their cases."""
 
+import logging
 from datetime import timedelta
 
 import phonenumbers
@@ -11,6 +12,7 @@ from django.utils import timezone
 
 import tenants.models
 from sms.service import send_sms
+from sms.tasks import schedule_sms_sending
 from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
 
@@ -25,12 +27,29 @@ from .models import (
     VisitStatus,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def canonicalize_phone_number(phone_number: str) -> str:
     """Convert a phone number to E.164 format."""
     return phonenumbers.format_number(
         phonenumbers.parse(phone_number, settings.DEFAULT_REGION),
         phonenumbers.PhoneNumberFormat.E164,
+    )
+
+
+def human_format_phone_number(phone_number: str) -> str:
+    """Convert a phone number to a human-readable format."""
+    parsed = phonenumbers.parse(phone_number, settings.DEFAULT_REGION)
+    if phonenumbers.region_code_for_number(parsed) != settings.DEFAULT_REGION:
+        return phonenumbers.format_number(
+            parsed,
+            phonenumbers.PhoneNumberFormat.INTERNATIONAL,
+        )
+
+    return phonenumbers.format_number(
+        parsed,
+        phonenumbers.PhoneNumberFormat.NATIONAL,
     )
 
 
@@ -97,7 +116,8 @@ def send_case_link(case: Case, phone_number: str):
 
     msg = "Open this link to access your case: " + link
 
-    send_sms(contact.phone_number, msg)
+    send_sms(contact.phone_number, msg, case.location.tenant)
+
 
 def send_results_link(case: Case):
     connection = Connection.objects.filter(case=case).first()
@@ -105,11 +125,27 @@ def send_results_link(case: Case):
         return
     contact = connection.client.contact
     link = settings.SITE_URL + "/results?case=" + case.human_id
-    
+
     msg = "Your test results are now available. Go to " + link
-    
-    send_sms(contact.phone_number, msg, case.location.tenant)
-    
+
+    slot = case.location.get_next_opening(timezone.now())
+    if not slot:
+        slot = timezone.now() + timedelta(minutes=10)
+        logger.warning(
+            f"No opening hours found for location {case.location.id}, scheduling SMS immediately."
+        )
+
+    logger.info(
+        f"Scheduling SMS sending for {contact.phone_number} at {slot + timedelta(minutes=5)}"
+    )
+    print(
+        f"Scheduling SMS sending for {contact.phone_number} at {slot + timedelta(minutes=5)}"
+    )
+    schedule_sms_sending.apply_async(
+        args=(contact.phone_number, msg, case.location.tenant.id),
+        eta=slot + timedelta(minutes=5),
+    )
+
 
 def send_token(phone_number: str, case: Case):
     """Send a verification token to the given phone number"""
@@ -125,7 +161,7 @@ def send_token(phone_number: str, case: Case):
     token = contact.generate_token(case)
     msg = "Enter this token to verify your phone number: " + token
 
-    send_sms(contact.phone_number, msg)
+    send_sms(contact.phone_number, msg, case.location.tenant)
 
 
 def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:
@@ -292,17 +328,20 @@ def get_case(request, pk):
     return visit
 
 
-def get_case_unverified(pk, key: str = ''):
+def get_case_unverified(pk, key: str = ""):
     pk = strip_id(pk)
 
     visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
-    
+
     if not visit.case.has_key():
         return visit
-    
+
     if not key:
-        raise ValueError("Key is required for accessing a case that is not in CREATED status")
-    
-    visit.case.check_key(key)
+        raise PermissionError(
+            "Key is required for accessing a case that is not in CREATED status"
+        )
+
+    if not visit.case.check_key(key):
+        raise PermissionError("Invalid key for accessing the case")
 
     return visit

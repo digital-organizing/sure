@@ -10,13 +10,21 @@ const router = useRouter()
 
 const tenant = ref<TenantSchema | null>(null)
 
-const { getText: t } = useTexts()
+const { getText: t, setLanguage, getAvailableLanguages, language } = useTexts()
+
+const langs = ref<[string, string][]>([])
 
 onMounted(() => {
   tenantsApiGetTenant().then((response) => {
     if (response.data) tenant.value = response.data
   })
+
+  getAvailableLanguages().then((l) => {
+    langs.value = l
+  })
 })
+
+const drawerVisible = ref(false)
 </script>
 
 <template>
@@ -65,8 +73,28 @@ onMounted(() => {
           <i class="pi pi-sign-out"> </i>
         </RouterLink>
       </div>
+      <Button
+        icon="pi pi-bars"
+        severity="secondary"
+        @click="drawerVisible = true"
+        aria-label="Open Menu"
+        variant="text"
+      />
     </section>
   </header>
+
+  <Drawer header="Menu" v-model:visible="drawerVisible" position="right">
+    <section class="languages">
+      <span
+        v-for="lang in langs"
+        :key="lang[0]"
+        class="lang"
+        :class="{ active: lang[0] == language }"
+        @click="setLanguage(lang[0]).then(() => (drawerVisible = false))"
+        >{{ lang[0].toUpperCase() }}</span
+      >
+    </section>
+  </Drawer>
 </template>
 
 <style scoped>
@@ -80,6 +108,18 @@ header {
   overflow-x: auto;
 }
 
+.languages {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.lang {
+  cursor: pointer;
+}
+.lang.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
 .logos {
   display: flex;
   align-items: center;

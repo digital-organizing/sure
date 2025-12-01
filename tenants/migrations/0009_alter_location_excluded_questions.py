@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0030_resultinformation_visitdocument_visitlog_visitnote"),
         ("tenants", "0008_location_excluded_questions"),

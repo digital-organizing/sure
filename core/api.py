@@ -32,6 +32,35 @@ api.add_router("/tenants", tenants.api.router)
 api.add_router("/texts", texts.api.router)
 
 
+@api.exception_handler(ValidationError)
+def validation_exception_handler(request, exc):
+    return api.create_response(
+        request,
+        data={
+            "detail": exc.message_dict if hasattr(exc, "message_dict") else exc.messages
+        },
+        status=400,
+    )
+
+
+@api.exception_handler(ValueError)
+def value_exception_handler(request, exc):
+    return api.create_response(
+        request,
+        data={"detail": str(exc)},
+        status=400,
+    )
+
+
+@api.exception_handler(PermissionError)
+def permission_exception_handler(request, exc):
+    return api.create_response(
+        request,
+        data={"detail": str(exc)},
+        status=403,
+    )
+
+
 class LoginResponse(Schema):
     success: bool
     error: str | None = None

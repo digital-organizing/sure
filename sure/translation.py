@@ -1,5 +1,5 @@
-from modeltranslation.translator import TranslationOptions, translator
 import simple_history
+from modeltranslation.translator import TranslationOptions, translator
 
 from sure.models import (
     ClientOption,
@@ -87,6 +87,7 @@ simple_history.register(TestResultOption)
 
 class TestResultInformationTranslationOptions(TranslationOptions):
     fields = ("information_text",)
-    
+
+
 translator.register(ResultInformation, TestResultInformationTranslationOptions)
 simple_history.register(ResultInformation)

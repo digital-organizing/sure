@@ -484,11 +484,165 @@ export type CaseHistory = {
     /**
      * Client Answers
      */
-    client_answers: Array<ClientAnswerSchema>;
+    client_answers: Array<FlatClientAnswerSchema>;
     /**
      * Consultant Answers
      */
-    consultant_answers: Array<ConsultantAnswerSchema>;
+    consultant_answers: Array<FlatConsultantAnswerSchema>;
+    /**
+     * Tests
+     */
+    tests: Array<FlatTestSchema>;
+    /**
+     * Test Results
+     */
+    test_results: Array<FlatTestResultSchema>;
+    /**
+     * Log
+     */
+    log: Array<LogEntrySchema>;
+};
+
+/**
+ * FlatClientAnswerSchema
+ */
+export type FlatClientAnswerSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Texts
+     */
+    texts?: Array<unknown> | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * User
+     * The user who recorded the answer (consultant)
+     */
+    user?: number | null;
+};
+
+/**
+ * FlatConsultantAnswerSchema
+ */
+export type FlatConsultantAnswerSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Texts
+     */
+    texts?: Array<unknown> | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * User
+     * The user who recorded the answer (consultant)
+     */
+    user?: number | null;
+};
+
+/**
+ * FlatTestResultSchema
+ */
+export type FlatTestResultSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    test: FlatTestSchema;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Result Option
+     */
+    result_option: number;
+    /**
+     * Note
+     * Additional notes about the test result
+     */
+    note?: string | null;
+    /**
+     * User
+     * The user who recorded the test result (consultant)
+     */
+    user?: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * FlatTestSchema
+ */
+export type FlatTestSchema = {
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Test Kind
+     */
+    test_kind: number;
+    /**
+     * Note
+     * Additional notes about the test result
+     */
+    note?: string | null;
+    /**
+     * User
+     * The user who recorded the test
+     */
+    user?: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * LogEntrySchema
+ */
+export type LogEntrySchema = {
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * User
+     * The user who performed the action
+     */
+    user?: number | null;
 };
 
 /**
@@ -2603,6 +2757,36 @@ export type SureApiGetClientResultsResponses = {
 };
 
 export type SureApiGetClientResultsResponse = SureApiGetClientResultsResponses[keyof SureApiGetClientResultsResponses];
+
+export type SureApiGetClientFreeFormResultsData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Key
+         */
+        key?: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/results/{pk}/free-form-client/';
+};
+
+export type SureApiGetClientFreeFormResultsResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: Array<FreeFormTestSchema>;
+};
+
+export type SureApiGetClientFreeFormResultsResponse = SureApiGetClientFreeFormResultsResponses[keyof SureApiGetClientFreeFormResultsResponses];
 
 export type SureApiGetResultInfoData = {
     /**

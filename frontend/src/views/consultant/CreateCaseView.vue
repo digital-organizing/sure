@@ -2,6 +2,7 @@
 import { sureApiCreateCaseView } from '@/client'
 import { useLocations } from '@/composables/useLocations'
 import { useQuestionnaires } from '@/composables/useQuestionnaires'
+import { useTexts } from '@/composables/useTexts'
 import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue/usetoast'
 
@@ -11,6 +12,7 @@ import { onMounted, ref } from 'vue'
 
 const { locations, fetchLocations } = useLocations()
 const { questionnaires, fetchQuestionnaires } = useQuestionnaires()
+const { getText: t } = useTexts()
 
 const questionnaire = ref<number | null>(null)
 const location = ref<number | null>(null)
@@ -62,8 +64,8 @@ function onCopy() {
   copy(link.value).then(() => {
     toast.add({
       severity: 'success',
-      summary: 'Link Copied',
-      detail: 'The case link has been copied to clipboard.',
+      summary: t('link-copied').value,
+      detail: t('link-copied-detail').value,
       life: 3000,
     })
   })
@@ -72,19 +74,24 @@ function onCopy() {
 
 <template>
   <Form @submit="handleSubmit" class="form-col stretch">
-    <h2>Create New Case</h2>
+    <h2>{{ t('create-new-case') }}</h2>
     <div class="form-field">
-      <label for="external_id">Internal ID</label>
-      <InputText label="Internal ID" name="external_id" v-model="externalId" id="external_id" />
-      <Message size="small" severity="secondary" variant="simple"
-        >An internal identifier for your reference (optional).</Message
-      >
+      <label for="external_id">{{ t('internal-id') }}</label>
+      <InputText
+        :label="t('internal-id').value"
+        name="external_id"
+        v-model="externalId"
+        id="external_id"
+      />
+      <Message size="small" severity="secondary" variant="simple">{{
+        t('internal-id-help')
+      }}</Message>
     </div>
     <div class="form-field">
-      <label for="questionnaire_id">Questionnaire</label>
+      <label for="questionnaire_id">{{ t('questionnaire') }}</label>
       <Select
         id="questionnaire_id"
-        label="Questionnaire"
+        :label="t('questionnaire').value"
         name="questionnaire_id"
         :options="questionnaires"
         option-label="name"
@@ -93,10 +100,10 @@ function onCopy() {
       />
     </div>
     <div class="form-field">
-      <label for="location_id">Location</label>
+      <label for="location_id">{{ t('location') }}</label>
       <Select
         id="location_id"
-        label="Location"
+        :label="t('location').value"
         name="location_id"
         :options="locations"
         option-label="name"
@@ -105,17 +112,17 @@ function onCopy() {
       />
     </div>
     <div class="form-field">
-      <label for="phone">Mobile Phone Number</label>
-      <InputText id="phone" label="Mobile Phone Number" name="phone" v-model="phone" />
-      <Message size="small" severity="secondary" variant="simple"
-        >Enter the clients phone number to send the questionnaire via SMS (optional).</Message
-      >
+      <label for="phone">{{ t('mobile-phone-number') }}</label>
+      <InputText id="phone" :label="t('mobile-phone-number').value" name="phone" v-model="phone" />
+      <Message size="small" severity="secondary" variant="simple">{{
+        t('phone-number-help')
+      }}</Message>
     </div>
-    <Button label="Create Case" type="submit" />
+    <Button :label="t('create-case').value" type="submit" />
   </Form>
   <Dialog
     v-if="link"
-    header="Case Created successfully"
+    :header="t('case-created-successfully').value"
     visible
     modal
     :closable="false"
@@ -125,8 +132,8 @@ function onCopy() {
       <div class="qr-code">
         <img :src="qrCode" alt="QR Code" />
       </div>
-      <p>Case has been created successfully. Share the following link with your client:</p>
-      <span>Case ID: {{ caseId }}</span>
+      <p>{{ t('case-created-message') }}</p>
+      <span>{{ t('case-id') }}: {{ caseId }}</span>
 
       <div class="case-link">
         <a :href="link" target="_blank">{{ link }}</a>
@@ -140,16 +147,23 @@ function onCopy() {
       </div>
 
       <div class="dialog-buttons">
-        <Button label="Close" @click="link = ''" />
-        <Button label="Open client questionnaire" asChild v-slot="slotProps" severity="contrast">
-          <a :href="link" target="_blank" :class="slotProps.class"> Open client questionnaire </a>
+        <Button :label="t('close').value" @click="link = ''" />
+        <Button
+          :label="t('open-client-questionnaire').value"
+          asChild
+          v-slot="slotProps"
+          severity="contrast"
+        >
+          <a :href="link" target="_blank" :class="slotProps.class">
+            {{ t('open-client-questionnaire') }}
+          </a>
         </Button>
         <Button asChild v-slot="slotProps" severity="contrast">
           <RouterLink
             :to="{ name: 'consultant-case', params: { caseId: caseId } }"
             :class="slotProps.class"
           >
-            Open consultant view
+            {{ t('open-consultant-view') }}
           </RouterLink>
         </Button>
       </div>

@@ -42,7 +42,7 @@
   --status-color: var(--communication-color);
 }
 .closed {
-  --status-color: var(--results-color);
+  --status-color: var(--communication-color);
 }
 .canceled {
   --status-color: var(--color-ahs-light-gray);

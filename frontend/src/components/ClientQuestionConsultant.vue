@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { AnswerSchema, ClientQuestionSchema } from '@/client'
 import { useCase } from '@/composables/useCase'
+import { useTexts } from '@/composables/useTexts'
 import ClientQuestion from './ClientQuestion.vue'
 import { computed, ref } from 'vue'
 
@@ -9,6 +10,7 @@ const props = defineProps<{
   disableEdit?: boolean
 }>()
 
+const { getText: t } = useTexts()
 const questionComponentRef = ref<{ getClientAnswer: () => AnswerSchema } | null>(null)
 
 const edit = ref(false)
@@ -83,7 +85,7 @@ const remote = computed(() => {
           ref="questionComponentRef"
           :hide-title="true"
         />
-        <Button label="Submit Answer" @click.prevent="onSubmit()" />
+        <Button :label="t('submit-answer').value" @click.prevent="onSubmit()" />
       </Panel>
     </section>
   </section>

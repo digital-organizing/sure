@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { useAccount } from '@/composables/useAccount'
+import { useTexts } from '@/composables/useTexts'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const { logout } = useAccount()
+
+const { getText: t } = useTexts()
 
 function onLogout(e: { values: Record<string, boolean>; valid: boolean }) {
   logout(e.values.forget).then(() => {
@@ -14,13 +17,13 @@ function onLogout(e: { values: Record<string, boolean>; valid: boolean }) {
 
 <template>
   <Form @submit="onLogout" class="form-col">
-    <p>Are you sure you want to logout?</p>
+    <p>{{ t('are-you-sure-logout') }}</p>
     <CheckboxGroup name="ingredient" class="toggle">
-      <ToggleSwitch name="forget" label="Forget this device for 2FA" id="forget" />
-      <label for="forget">Forget this device for 2FA</label>
+      <ToggleSwitch name="forget" :label="t('forget-trust')" id="forget" />
+      <label for="forget">{{ t('forget-trust') }}</label>
     </CheckboxGroup>
 
-    <Button type="submit" label="Logout" />
-    <Button label="Cancel" @click="router.back()" severity="secondary"></Button>
+    <Button type="submit" :label="t('logout').value" />
+    <Button :label="t('cancel').value" @click="router.back()" severity="secondary"></Button>
   </Form>
 </template>

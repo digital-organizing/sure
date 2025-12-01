@@ -2,13 +2,13 @@
 
 import django.db.models.deletion
 import simple_history.models
-import tenants.models
 from django.conf import settings
 from django.db import migrations, models
 
+import tenants.models
+
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tenants", "0009_alter_location_excluded_questions"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

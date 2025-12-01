@@ -1,64 +1,62 @@
 <script lang="ts" setup>
-import type { TestResultOptionSchema, TestResultSchema, TestSchema } from '@/client';
-import chroma from 'chroma-js';
-import MarkdownIt from 'markdown-it';
+import type { TestResultOptionSchema, TestResultSchema, TestSchema } from '@/client'
+import chroma from 'chroma-js'
+import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt({
-    linkify: true,
-    html: true,
-    breaks: true,
-    typographer: true,
-});
+  linkify: true,
+  html: true,
+  breaks: true,
+  typographer: true,
+})
 const props = defineProps<{
-    resultOption: TestResultOptionSchema
-    result: TestResultSchema,
-    test: TestSchema,
-    infoText?: string | undefined | null
-}>();
+  resultOption: TestResultOptionSchema
+  result: TestResultSchema
+  test: TestSchema
+  infoText?: string | undefined | null
+}>()
 
 function render(text: string): string {
-    return md.renderInline(text);
+  return md.renderInline(text)
 }
 
 function formatInformationText(text: string): string {
-    if (props.test.test_kind.interpretation_needed) {
-        if (text == ''){
-            return `${props.test.test_kind.name}: **${props.resultOption.label}**\n${props.test.test_kind.note}: ${props.result.note || 'N/A'}`;
-        }
-        return text.replace('XXX', props.result.note || 'N/A');
+  if (props.test.test_kind.interpretation_needed) {
+    if (text == '') {
+      return `${props.test.test_kind.name}: **${props.resultOption.label}**\n${props.test.test_kind.note}: ${props.result.note || 'N/A'}`
     }
-    if(text === '') {
-        return `${props.test.test_kind.name}: **${props.resultOption.label}**`;
-    }
-    return text 
+    return text.replace('XXX', props.result.note || 'N/A')
+  }
+  if (text === '') {
+    return `${props.test.test_kind.name}: **${props.resultOption.label}**`
+  }
+  return text
 }
 
 function getBackgroundColor(color: string): string {
-    const scale = chroma.scale(['#ffffff', color]).mode('lab').colors(10);
-    return scale[4];
+  const scale = chroma.scale(['#ffffff', color]).mode('lab').colors(10)
+  return scale[4]
 }
 </script>
 
 <template>
-    <section :style="{ '--result-color': getBackgroundColor(props.resultOption.color || '#aaa') }">
+  <section :style="{ '--result-color': getBackgroundColor(props.resultOption.color || '#aaa') }">
     <p v-html="render(formatInformationText(resultOption.information_text ?? ''))"></p>
     <p v-if="infoText" v-html="render(infoText)"></p>
-    </section>
+  </section>
 </template>
 
 <style scoped>
-
 section {
-    background-color: var(--result-color);
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+  background-color: var(--result-color);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 p {
-    margin: 0;
-    line-height: 1.5;
+  margin: 0;
+  line-height: 1.5;
 }
-
 </style>

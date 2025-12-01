@@ -6,46 +6,48 @@ import { formatDate, useClipboard, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
 import { userAnswersStore } from '@/stores/answers'
 import { useStatus } from '@/composables/useStatus'
+import { useTexts } from '@/composables/useTexts'
 import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
+const { getText: t } = useTexts()
 
 const props = defineProps<{
   caseId: string
 }>()
 
-const navItems = [
+const navItems = computed(() => [
   {
-    label: 'Client',
+    label: t('nav-client').value,
     routeName: 'consultant-client-answers',
     status: 'client_submitted',
   },
   {
-    label: 'Consultant',
+    label: t('nav-consultant').value,
     routeName: 'consultant-questionnaire',
     status: 'consultant_submitted',
   },
   {
-    label: 'Tests',
+    label: t('nav-tests').value,
     routeName: 'consultant-tests',
     status: 'tests_recorded',
   },
   {
-    label: 'Summary',
+    label: t('nav-summary').value,
     routeName: 'consultant-case-summary',
     status: 'summary',
   },
   {
-    label: 'Results',
+    label: t('nav-results').value,
     routeName: 'consultant-results',
     status: 'results_recorded',
   },
   {
-    label: 'Communication',
+    label: t('nav-communication').value,
     routeName: 'consultant-communication',
     status: 'results_sent',
   },
-]
+])
 
 const title = computed(() => 'Case ' + props.caseId + ' - Case View')
 
@@ -74,7 +76,7 @@ function isStatusDone(status: string): boolean {
 
 function isCurrentRoute(status: string): boolean {
   const route = router.currentRoute.value
-  const item = navItems.find((item) => item.status === status)
+  const item = navItems.value.find((item) => item.status === status)
   if (!item) {
     return false
   }
@@ -92,8 +94,8 @@ function copyClientLink() {
 
   toast.add({
     severity: 'success',
-    summary: 'Client Link Copied',
-    detail: 'The client link has been copied to your clipboard.',
+    summary: t('client-link-copied').value,
+    detail: t('client-link-copied-detail').value,
     life: 3000,
   })
 }
@@ -111,7 +113,11 @@ onMounted(() => {
       case 'tests_recorded':
         router.replace({ name: 'consultant-results', params: { caseId: props.caseId } })
         break
+      case 'closed':
+        router.replace({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
+        break
       case 'results_recorded':
+      case 'results_sent':
       case 'communication':
         router.replace({ name: 'consultant-communication', params: { caseId: props.caseId } })
         break
@@ -131,46 +137,46 @@ watch(
 
 <template>
   <article :class="loading ? 'loading' : ''">
-    <h1>Case-ID {{ props.caseId }}</h1>
+    <h1>{{ t('case-id-title') }} {{ props.caseId }}</h1>
 
     <div class="refresh">
       <Button icon="pi pi-refresh" @click="setCaseId(props.caseId)" severity="secondary" />
     </div>
     <aside>
-      <Panel header="Case Details">
+      <Panel :header="t('case-details').value">
         <div class="case-field">
-          <span class="label">Client ID</span>
+          <span class="label">{{ t('client-id') }}</span>
           <span class="value">{{ visit?.client || '-' }}</span>
         </div>
         <div class="case-field">
-          <span class="label">Case ID</span>
+          <span class="label">{{ t('case-id') }}</span>
           <span class="value">{{ visit?.case }}</span>
         </div>
         <div></div>
         <div class="case-field">
-          <span class="label">Location</span>
+          <span class="label">{{ t('location') }}</span>
           <span class="value">{{ visit?.location }}</span>
         </div>
         <div class="case-field">
-          <span class="label">Last Modification</span>
+          <span class="label">{{ t('last-modification') }}</span>
           <span class="value">{{ formatTimestamp(visit?.last_modified_at) }}</span>
         </div>
         <div class="case-field">
-          <span class="label">Created At</span>
+          <span class="label">{{ t('created-at') }}</span>
           <span class="value">{{ formatTimestamp(visit?.created_at) }}</span>
         </div>
         <div class="case-field status">
-          <span class="label"> Status </span>
+          <span class="label"> {{ t('status') }} </span>
           <Tag :value="labelForStatus(visit?.status!)" :class="visit?.status" rounded />
         </div>
         <div class="case-field">
-          <span class="label">Tags</span>
+          <span class="label">{{ t('tags') }}</span>
           <div class="tags">
             <Tag v-for="tag in visit?.tags" :key="tag" :value="tag" rounded severity="secondary" />
           </div>
         </div>
         <div class="history case-field" v-if="relatedCases && relatedCases.length > 0">
-          <span class="label">Past visits</span>
+          <span class="label">{{ t('past-visits') }}</span>
           <div class="visits">
             <RouterLink
               v-for="relatedCase in relatedCases"
@@ -183,7 +189,7 @@ watch(
 
         <template #footer>
           <Button
-            label="Copy Client link"
+            :label="t('copy-client-link').value"
             size="small"
             variant="outlined"
             severity="secondary"
@@ -192,7 +198,7 @@ watch(
           ></Button>
         </template>
       </Panel>
-      <Panel header="History" v-if="!inHistoryView">
+      <Panel :header="t('history').value" v-if="!inHistoryView">
         <HistoryComponent :caseId="props.caseId" />
       </Panel>
     </aside>
@@ -217,7 +223,7 @@ watch(
           severity="secondary"
           class="nav-pill done"
           @click="router.back()"
-          label="Back"
+          :label="t('back').value"
         />
       </nav>
       <router-view />

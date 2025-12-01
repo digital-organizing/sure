@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     "unfold.contrib.location_field",  # optional, if django-location-field package is used
     "unfold.contrib.simple_history",
     "tenants.apps.TenantsConfig",
-    'simple_history',
+    "simple_history",
     # "django.contrib.admin",
     "sure.apps.SureAdminConfig",
     "django.contrib.auth",
@@ -99,7 +99,7 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'simple_history.middleware.HistoryRequestMiddleware',
+    "simple_history.middleware.HistoryRequestMiddleware",
     "guard.middleware.NotFoundRateLimitMiddleware",
 ]
 

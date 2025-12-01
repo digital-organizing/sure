@@ -2,11 +2,13 @@
 import { sureApiGetCaseFreeFormTests, sureApiGetCaseTests } from '@/client'
 import { useCase } from '@/composables/useCase'
 import { useTests } from '@/composables/useTests'
+import { useTexts } from '@/composables/useTexts'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{ caseId: string }>()
 const router = useRouter()
+const { getText: t, formatText } = useTexts()
 
 const { testKinds, testCategories, testBundles } = useTests()
 const { updateCaseTests, error } = useCase()
@@ -18,7 +20,7 @@ const freeFormTests = ref<string[]>([])
 onMounted(() => {
   sureApiGetCaseTests({ path: { pk: props.caseId } }).then((response) => {
     if (Array.isArray(response.data)) {
-      selectedTests.value = response.data.map((test) => test.test_kind)
+      selectedTests.value = response.data.map((test) => test.test_kind.id!)
     }
   })
   sureApiGetCaseFreeFormTests({ path: { pk: props.caseId } }).then((response) => {
@@ -57,10 +59,10 @@ async function submitSelectedTests() {
 </script>
 <template>
   <header class="case">
-    <h2>Select Tests to be Performed</h2>
+    <h2>{{ t('select-tests') }}</h2>
     <Button
       icon="pi pi-eraser"
-      label="Clear Selection"
+      :label="t('clear-selection').value"
       class="mb-4"
       @click="
         () => {
@@ -72,7 +74,7 @@ async function submitSelectedTests() {
     />
   </header>
   <Message v-if="error" severity="error" :text="error" />
-  <h3>Bundles</h3>
+  <h3>{{ t('bundles') }}</h3>
   <div v-for="bundle in testBundles" :key="bundle.id!" class="test option-item">
     <Checkbox
       v-model="seletectedBundles"
@@ -95,7 +97,7 @@ async function submitSelectedTests() {
   <div class="free-form test">
     <div v-for="(name, idx) in freeFormTests" :key="idx" class="free-form-item">
       <InputGroup>
-        <InputText v-model="freeFormTests[idx]" placeholder="Enter custom test name" />
+        <InputText v-model="freeFormTests[idx]" :placeholder="t('enter-custom-test').value" />
         <InputGroupAddon>
           <Button
             icon="pi pi-times"
@@ -116,12 +118,16 @@ async function submitSelectedTests() {
   </div>
   <section class="case-footer">
     <Button
-      label="Back"
+      :label="t('back').value"
       severity="secondary"
       @click="router.push({ name: 'consultant-questionnaire', params: { caseId: props.caseId } })"
     />
     <Button
-      :label="`Save ${selectedTests.length + freeFormTests.length} Selected Tests`"
+      :label="
+        formatText('save-selected-tests', [
+          { key: 'count', value: String(selectedTests.length + freeFormTests.length) },
+        ]).value
+      "
       class="mt-4"
       @click="submitSelectedTests"
     />

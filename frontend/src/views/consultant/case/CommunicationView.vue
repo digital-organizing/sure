@@ -1,52 +1,50 @@
 <script lang="ts" setup>
-import { sureApiGetCaseStatus, sureApiGetNonSmsResults, sureApiGetPhoneNumber, type TestSchema } from '@/client';
-import ClientResult from '@/components/ClientResult.vue';
-import { useCase } from '@/composables/useCase';
-import { useResults } from '@/composables/useResults';
-import { computed, onActivated, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import {
+  sureApiGetNonSmsResults,
+  sureApiGetPhoneNumber,
+  type TestSchema,
+} from '@/client'
+import ClientResult from '@/components/ClientResult.vue'
+import DocumentUploadComponent from '@/components/DocumentUploadComponent.vue'
+import { useCase } from '@/composables/useCase'
+import { useResults } from '@/composables/useResults'
+import { useTexts } from '@/composables/useTexts'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{ caseId: string }>()
+const { getText: t } = useTexts()
 
-const { publishResults, setCaseStatus } = useCase();
-const phoneNumber = ref('');
-const nonSmsResults = ref<TestSchema[]>([]);
+const { publishResults, setCaseStatus, onCaseRefresh, visit } = useCase()
+const phoneNumber = ref<string | null>(null)
+const hasPhoneNumber = ref(false)
+const nonSmsResults = ref<TestSchema[]>([])
 
 function getPhoneNumber() {
-  sureApiGetPhoneNumber({path: {pk: props.caseId}}).then(response => {
+  sureApiGetPhoneNumber({ path: { pk: props.caseId } }).then((response) => {
     if (response.data) {
       phoneNumber.value = '' + response.data.message
+      hasPhoneNumber.value = true
     } else {
-      phoneNumber.value = 'Phone number not available'
+      phoneNumber.value = 'No phone number available'
+      hasPhoneNumber.value = false
     }
-  });
+  })
 }
 
-const router = useRouter();
-const { fetchCase, caseStatus } = useResults();
+const router = useRouter()
+const { fetchCase, caseStatus } = useResults()
 
 onMounted(async () => {
-  await fetchCase(props.caseId, '', false);
-  if (caseStatus.value?.value == 'not_available') {
-    sureApiGetNonSmsResults({path: {pk: props.caseId}}).then(response => {
-      // Handle non-SMS results if needed
-      nonSmsResults.value = response.data || [];
-    });
-  }
-});
-
-onActivated(async () => {
-  await fetchCase(props.caseId, '', false);
-  if (caseStatus.value?.value == 'not_available') {
-    sureApiGetNonSmsResults({path: {pk: props.caseId}}).then(response => {
-      // Handle non-SMS results if needed
-      nonSmsResults.value = response.data || [];
-    });
-  }
-});
-
-const nonSmsTests = computed(() => {
-  return nonSmsResults.value.filter(test => test.results.length > 0);
+  fetchCase(props.caseId, '', false)
+  sureApiGetNonSmsResults({ path: { pk: props.caseId } }).then((response) => {
+    if (Array.isArray(response.data)) {
+      nonSmsResults.value = response.data
+    }
+  })
+  onCaseRefresh(async () => {
+    await fetchCase(props.caseId, '', false)
+  })
 })
 
 function onBack() {
@@ -54,13 +52,14 @@ function onBack() {
 }
 
 function onPublishResults() {
-  publishResults();
-
+  publishResults()
 }
 function onCaseClosed() {
-  setCaseStatus('closed').then(() => {
-    fetchCase(props.caseId, '', false);
-  });
+  setCaseStatus('closed')
+}
+
+function makeCall(number: string) {
+  window.open(`tel:${number}`, '_self')
 }
 </script>
 
@@ -68,51 +67,109 @@ function onCaseClosed() {
   <header class="case">
     <h2>Communication</h2>
   </header>
-  <section class="client-preview">
-    <section>
-    <p>This is how the client will see their results:</p>
-    <Button label="Refresh Preview" severity="info" @click="fetchCase(props.caseId, '', false)" />
-</section>
-  <ClientResult :caseId="props.caseId" :caseKey="''" class="preview" />
-  </section>  
-  
-  <section>
-    <Message severity="warn"  v-if="caseStatus?.value == 'not_available'">
-    Results cannot be communicated to the client per SMS, you need to call them to provide the results.
-         </Message>
-    <Button label="Show Phone Number" severity="info" @click="getPhoneNumber()" v-if="phoneNumber === ''" />
-    <Button label="Publish Results" v-if="caseStatus?.value == 'results_recorded'" severity="primary" @click="onPublishResults"></Button>
-    <Button label="Close case" v-if="caseStatus?.value != 'closed'" @click="onCaseClosed"></Button>
-    <span v-if="phoneNumber">{{ phoneNumber }}</span>
-    <div v-if="caseStatus?.value == 'not_available'">
-      <h4>These results cannot be communicated via SMS:</h4>
-      <div v-for="test in nonSmsTests" :key="test.id!" :style="{'--result-color': test.results[0] ? (test.test_kind.result_options.find(option => option.id === test.results[0].result_option)?.color || '#000') : '#000'}" class="non-sms-result">
+  <div class="case-row">
+    <section class="client-preview">
+      <section class="notes">
+        <Message severity="info">
+          {{ t('client-preview-info') }}
+        </Message>
+        <Message severity="warn" v-if="caseStatus?.value == 'not_available'">
+          {{ t('non-sms-results-warning') }}
+        </Message>
+      </section>
+      <Panel class="preview-panel">
+        <ClientResult :caseId="props.caseId" :caseKey="''" class="preview" />
+      </Panel>
+    </section>
+
+    <section class="results" v-if="caseStatus?.value == 'not_available'">
+      <h4>{{ t('non-sms-results-title') }}</h4>
+      <div
+        v-for="test in nonSmsResults"
+        :key="test.id!"
+        :style="{
+          '--result-color': test.results[0]
+            ? test.test_kind.result_options.find(
+                (option) => option.id === test.results[0].result_option,
+              )?.color || '#000'
+            : '#000',
+        }"
+        class="non-sms-result"
+      >
         <span class="test-name">
-        {{ test.test_kind.name }}
+          {{ test.test_kind.name }}
         </span>
 
         <span class="result">
-        {{ test.test_kind.result_options.find(option => option.id === test.results[0].result_option)?.label }}
+          {{
+            test.test_kind.result_options.find(
+              (option) => option.id === test.results[0].result_option,
+            )?.label
+          }}
         </span>
       </div>
-    </div>
-  <CaseNoteComponent class="row" />
-  </section>
-  
-  <section>
+    </section>
 
-  </section>
+    <section class="row">
+      <CaseNoteComponent class="row" />
+    </section>
+
+    <section class="row">
+      <DocumentUploadComponent :caseId="props.caseId" />
+    </section>
+  </div>
 
   <section class="case-footer">
-    <Button label="Back" severity="secondary" @click="onBack()" />
+    <Button :label="t('back').value" severity="secondary" @click="onBack()" />
+
+    <div class="actions">
+      <Button
+        :label="t('show-phone-number').value"
+        severity="secondary"
+        @click="getPhoneNumber()"
+        v-if="!hasPhoneNumber"
+      />
+      <Button
+        icon="pi pi-phone"
+        v-if="hasPhoneNumber && phoneNumber"
+        class="phonenumber"
+        :label="phoneNumber"
+        severity="secondary"
+        @click="makeCall(phoneNumber)"
+      />
+      <Button
+        :label="t('publish-results').value"
+        v-if="caseStatus?.value == 'results_recorded'"
+        severity="primary"
+        @click="onPublishResults"
+      ></Button>
+      <Button
+        :label="t('reopen-case').value"
+        v-if="visit?.status === 'closed'"
+        @click="
+          setCaseStatus('results_recorded').then(() => {
+            fetchCase(props.caseId, '', false)
+          })
+        "
+      ></Button>
+      <Button
+        :label="t('close-case').value"
+        v-if="visit?.status != 'closed'"
+        @click="onCaseClosed"
+      ></Button>
+    </div>
   </section>
 </template>
 
 <style scoped>
-.preview {
-  max-width: 420px;
+.client-preview {
+  max-width: 500px;
+}
+.preview-panel {
   max-height: 520px;
   overflow-y: auto;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 .non-sms-result {
   display: flex;
@@ -127,5 +184,24 @@ function onCaseClosed() {
   padding: 0.2rem 0.5rem;
   border-radius: 5px;
   font-weight: bold;
+}
+
+section.results {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.row {
+  margin-top: 1rem;
 }
 </style>

@@ -28,7 +28,7 @@ class UserSchema(ModelSchema):
     class Meta:
         model = User
         fields = ["id", "username", "first_name", "last_name"]
-    
+
     tenant: str = Field(..., alias="consultant.tenant.name")
 
 

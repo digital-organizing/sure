@@ -35,6 +35,7 @@ from sure.models import (
     Case,
     ClientOption,
     ClientQuestion,
+    Connection,
     ConsultantOption,
     ConsultantQuestion,
     FreeFormTest,
@@ -277,14 +278,11 @@ def get_phone_number(request, pk: str):
     if not verify_access_to_location(visit.case.location, request.user):
         raise PermissionError("User does not have access to this location")
 
-    try:
-        phone_number = (
-            visit.case.connection.client.contact.phone_number
-            if visit.case.connection
-            else None
+    if not hasattr(visit.case.connection, "client"):
+        return StatusSchema(
+            success=False, message="No phone number associated with this case"
         )
-    except Case.connection.RelatedObjectDoesNotExist:
-        phone_number = None
+    phone_number = visit.case.connection.client.contact.phone_number
     if phone_number:
         VisitLog.objects.create(
             visit=visit,

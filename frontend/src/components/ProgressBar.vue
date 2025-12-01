@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from 'vue'
 
 const props = defineProps({
   total: Number,
@@ -7,7 +7,7 @@ const props = defineProps({
 })
 
 const steps = computed(() => {
-  return [...Array(props.total?.valueOf() || 0).keys()].map(i => {
+  return [...Array(props.total?.valueOf() || 0).keys()].map((i) => {
     return {
       first: i === 0,
       last: i === (props.total?.valueOf() || 1) - 1,
@@ -16,15 +16,14 @@ const steps = computed(() => {
     }
   })
 })
-
 </script>
 
 <template>
   <div id="progress-bar">
     <template v-for="step in steps" :key="step.index">
-      <div class="pre" :class="{'completed': step.completed}" v-if="!step.first"></div>
-      <div class="circle" :class="{'completed': step.completed}"></div>
-      <div class="post" :class="{'completed': step.completed}" v-if="!step.last"></div>
+      <div class="pre" :class="{ completed: step.completed }" v-if="!step.first"></div>
+      <div class="circle" :class="{ completed: step.completed }"></div>
+      <div class="post" :class="{ completed: step.completed }" v-if="!step.last"></div>
     </template>
   </div>
 </template>
@@ -48,12 +47,13 @@ const steps = computed(() => {
   background-color: var(--current-color);
   z-index: 1;
 }
-    
+
 .completed {
   --current-color: black;
 }
-    
-.pre, .post {
+
+.pre,
+.post {
   flex: 1;
   height: 4px;
   background-color: var(--current-color);

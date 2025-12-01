@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.utils.timezone import make_aware
 
 from tenants.models import Location, Tenant
 
@@ -27,11 +28,11 @@ class TestLocation(TestCase):
             },
         )
 
-        date_1 = datetime(2024, 6, 3, 10, 0)  # Monday
+        date_1 = make_aware(datetime(2024, 6, 3, 10, 0))  # Monday
 
         next_opening_1 = location.get_next_opening(date_1)
-        self.assertEqual(next_opening_1, datetime(2024, 6, 3, 9, 0))
+        self.assertEqual(next_opening_1, make_aware(datetime(2024, 6, 3, 9, 0)))
 
-        date_2 = datetime(2024, 6, 3, 18, 0)  # Monday after hours
+        date_2 = make_aware(datetime(2024, 6, 3, 18, 0))  # Monday after hours
         next_opening_2 = location.get_next_opening(date_2)
-        self.assertEqual(next_opening_2, datetime(2024, 6, 4, 9, 0))
+        self.assertEqual(next_opening_2, make_aware(datetime(2024, 6, 4, 9, 0)))

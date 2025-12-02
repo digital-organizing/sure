@@ -1,4 +1,4 @@
-import { textsApiListLanguages, textsApiListTexts, textsApiReportMissingText } from '@/client'
+import { textsApiListLanguages, textsApiListTexts } from '@/client'
 import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
 

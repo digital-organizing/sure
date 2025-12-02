@@ -7,6 +7,7 @@ import LocationComponent from './LocationComponent.vue'
 import { useTexts } from '@/composables/useTexts'
 import FreeFormResultItem from './FreeFormResultItem.vue'
 import MarkdownIt from 'markdown-it'
+import { formatDate } from '@vueuse/core'
 
 const md = new MarkdownIt({
   linkify: true,
@@ -41,7 +42,19 @@ function infoForOption(optionId: number) {
 const testsWithResults = computed(() => tests.value.filter((test) => test.results.length > 0))
 const displayResults = computed(() => caseStatus.value && caseStatus.value.value != 'not_available')
 
-const { getText: t } = useTexts()
+const testCreationDate = computed(() => {
+  const date = tests.value
+    .map((test) => new Date(test.created_at))
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    .at(0)
+
+  if (!date) {
+    return ''
+  }
+  return formatDate(date, 'DD.MM.YYYY')
+})
+
+const { getText: t, formatText: f } = useTexts()
 </script>
 
 <template>
@@ -53,6 +66,9 @@ const { getText: t } = useTexts()
       <LocationComponent :location="location" v-if="location" />
     </section>
     <section class="results" v-if="testsWithResults.length > 0 && displayResults">
+      <div class="test-date">
+        {{ f('tests-conducted-on', [{ key: 'date', value: testCreationDate }]) }}
+      </div>
       <div v-for="test in testsWithResults" :key="test.id!" class="test-result">
         <TestResultItem
           :result="test.results[0]"
@@ -115,5 +131,8 @@ h3 {
   font-weight: bold;
   color: var(--text-color);
   cursor: pointer;
+}
+.test-date {
+  text-align: center;
 }
 </style>

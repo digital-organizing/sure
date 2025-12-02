@@ -79,7 +79,8 @@ const value = computed(() => {
     <span class="label">{{ label }}</span>
     <span class="value">{{ value }}</span>
     <div class="meta">
-      {{ formatDate(props.date) }} <span class="user" v-if="fullName"> - {{ fullName }}</span>
+      <span class="date">{{ formatDate(props.date) }}</span>
+      <span class="user" v-if="fullName">{{ fullName }}</span>
     </div>
   </div>
 </template>
@@ -105,5 +106,10 @@ i {
 
 span {
   overflow: hidden;
+}
+
+span.meta {
+  display: flex;
+  flex-direction: column;
 }
 </style>

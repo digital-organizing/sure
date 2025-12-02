@@ -4,6 +4,7 @@ import IconClock from '@/components/icons/IconClock.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import router from '@/router'
 import { useTexts } from '@/composables/useTexts'
+import ClientLogoFooter from '@/components/ClientLogoFooter.vue'
 
 const props = defineProps<{
   caseId: string
@@ -53,10 +54,19 @@ function onStart() {
         </div>
       </div>
     </div>
+    <div id="client-welcome-ahs-logo-footer">
+      <ClientLogoFooter />
+    </div>
   </div>
 </template>
 
 <style scoped>
+.client-form-view {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
 #client-welcome-flex {
   display: flex;
   padding-top: 30px;
@@ -98,5 +108,9 @@ function onStart() {
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+
+#client-welcome-ahs-logo-footer {
+  margin-top: auto;
 }
 </style>

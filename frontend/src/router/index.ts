@@ -59,7 +59,10 @@ const router = createRouter({
       path: '/client/:caseId/done',
       name: 'client-done',
       component: () => import('../views/ClientDoneView.vue'),
-      props: true,
+      props: (route) => ({
+        caseId: route.params.caseId as string,
+        showCaseId: route.query.showCaseId === 'true',
+      }),
       meta: {
         showInternalMenu: false,
       },

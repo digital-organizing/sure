@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import ClientLogoFooter from '@/components/ClientLogoFooter.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
   caseId: string
+  showCaseId: boolean
 }>()
 
 const { getText: t } = useTexts()
@@ -21,17 +23,26 @@ const { getText: t } = useTexts()
       <p class="client-body" style="margin: 0">
         {{ t('client-done-description') }}
       </p>
-      <p class="client-body" style="margin: 0">
+      <p v-if="showCaseId" class="client-body" style="margin: 0">
         {{ t('client-done-note') }}
       </p>
-      <p id="client-done-caseid" style="margin: 0">
+      <p v-if="showCaseId" id="client-done-caseid" style="margin: 0">
         {{ props.caseId }}
       </p>
+    </div>
+    <div id="client-welcome-ahs-logo-footer">
+      <ClientLogoFooter />
     </div>
   </div>
 </template>
 
 <style scoped>
+.client-form-view {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
 #client-done-flex {
   display: flex;
   padding-top: 30px;
@@ -49,5 +60,9 @@ const { getText: t } = useTexts()
   font-style: normal;
   font-weight: 700;
   line-height: 24.5px;
+}
+
+#client-welcome-ahs-logo-footer {
+  margin-top: auto;
 }
 </style>

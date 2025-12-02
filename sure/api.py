@@ -277,7 +277,7 @@ def get_phone_number(request, pk: str):
     if not verify_access_to_location(visit.case.location, request.user):
         raise PermissionError("User does not have access to this location")
 
-    if not hasattr(visit.case.connection, "client"):
+    if not hasattr(visit.case, "connection"):
         return StatusSchema(
             success=False, message="No phone number associated with this case"
         )
@@ -436,6 +436,10 @@ def update_case_status(request, pk: str, status: str):
     visit = get_case(request, pk)
     if status not in dict(VisitStatus.choices):
         raise ValueError(f"Invalid status: {status}")
+
+    if status == VisitStatus.RESULTS_SENT.value:
+        raise ValueError("Cannot set status to RESULTS_SENT directly")
+
     with transaction.atomic():
         visit.logs.create(
             action=f"Status changed to {status}",
@@ -805,11 +809,14 @@ def get_client_results(request, pk: str, key: Form[str] = "", as_client=False):
         if auth_2fa_or_trusted(request)
         else get_case_unverified(pk, key)
     )
-    if not auth_2fa_or_trusted(request) and visit.status != VisitStatus.RESULTS_SENT:
+    as_client = as_client or not auth_2fa_or_trusted(request)
+
+    if as_client and not visit.results_visible_for_client:
         raise HttpError(400, "Results not ready for this case yet")
 
-    if as_client and visit.status != VisitStatus.RESULTS_SENT:
-        raise HttpError(400, "Results not ready for this case yet")
+    if as_client and visit.status != VisitStatus.RESULTS_SEEN:
+        visit.status = VisitStatus.RESULTS_SEEN
+        visit.save(update_fields=["status"])
 
     return get_case_tests_with_latest_results(visit, filter_client=True)
 
@@ -823,7 +830,7 @@ def get_client_free_form_results(request, pk: str, key: Form[str] = ""):
         if auth_2fa_or_trusted(request)
         else get_case_unverified(pk, key)
     )
-    if not auth_2fa_or_trusted(request) and visit.status != VisitStatus.RESULTS_SENT:
+    if not auth_2fa_or_trusted(request) and not visit.results_visible_for_client:
         raise HttpError(400, "Results not ready for this case yet")
 
     return visit.free_form_tests.filter(result__isnull=False)

@@ -646,7 +646,8 @@ class VisitStatus(models.TextChoices):
 
     RESULTS_RECORDED = "results_recorded", _("Results Recorded")
     RESULTS_SENT = "results_sent", _("Results Sent")
-    RESULTS_MISSED = "results_missed", _("Results Missed")
+    RESULTS_MISSED = "results_missed", _("Client missed results")
+    RESULTS_SEEN = "results_seen", _("Client accessed results")
     CLOSED = "closed", _("Closed")
 
     CANCELED = "canceled", _("Canceled")
@@ -678,6 +679,10 @@ class Visit(models.Model):
         default=VisitStatus.CREATED,
         verbose_name=_("Status"),
     )
+
+    @property
+    def results_visible_for_client(self) -> bool:
+        return self.status in [VisitStatus.RESULTS_SENT, VisitStatus.RESULTS_SEEN]
 
     def save(self, *args, **kwargs):
         if self.status == VisitStatus.RESULTS_SENT and self.published_at is None:

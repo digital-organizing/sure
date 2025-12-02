@@ -24,3 +24,17 @@ def reset_unseen_task():
         counter += 1
 
     return f"Reset {counter} visits from RESULTS_SENT to RESULTS_MISSED."
+
+
+@shared_task
+def close_seen_task():
+    timestamp = timezone.now() - timedelta(days=7)
+    counter = 0
+    for visit in Visit.objects.filter(
+        status=VisitStatus.RESULTS_SEEN, published_at__lt=timestamp
+    ):
+        visit.status = VisitStatus.CLOSED
+        visit.save(update_fields=["status"])
+        counter += 1
+
+    return f"Closed {counter} visits from RESULTS_SEEN to CLOSED."

@@ -12,17 +12,17 @@ const props = defineProps<{ caseId: string }>()
 const { getText: t } = useTexts()
 
 const { publishResults, setCaseStatus, onCaseRefresh, visit } = useCase()
-const phoneNumber = ref<string | null>(null)
+const phoneNumber = ref<string>('')
 const hasPhoneNumber = ref(false)
 const nonSmsResults = ref<TestSchema[]>([])
 
 function getPhoneNumber() {
   sureApiGetPhoneNumber({ path: { pk: props.caseId } }).then((response) => {
-    if (response.data) {
+    if (response.data && response.data.success) {
       phoneNumber.value = '' + response.data.message
       hasPhoneNumber.value = true
-    } else {
-      phoneNumber.value = 'No phone number available'
+    } else if (response.data && !response.data.success) {
+      phoneNumber.value = '' + response.data.message
       hasPhoneNumber.value = false
     }
   })
@@ -51,7 +51,7 @@ function onPublishResults() {
   publishResults()
 }
 function onCaseClosed() {
-  setCaseStatus('closed')
+  setCaseStatus('results_seen')
 }
 
 function makeCall(number: string) {
@@ -123,14 +123,15 @@ function makeCall(number: string) {
         :label="t('show-phone-number').value"
         severity="secondary"
         @click="getPhoneNumber()"
-        v-if="!hasPhoneNumber"
+        v-if="phoneNumber === ''"
       />
       <Button
         icon="pi pi-phone"
-        v-if="hasPhoneNumber && phoneNumber"
+        v-if="phoneNumber !== ''"
         class="phonenumber"
         :label="phoneNumber"
         severity="secondary"
+        :disabled="!hasPhoneNumber"
         @click="makeCall(phoneNumber)"
       />
       <Button
@@ -140,8 +141,12 @@ function makeCall(number: string) {
         @click="onPublishResults"
       ></Button>
       <Button
-        :label="t('reopen-case').value"
-        v-if="visit?.status === 'closed'"
+        :label="t('reset-case-to-recorded').value"
+        v-if="
+          visit?.status === 'results_missed' ||
+          visit?.status === 'closed' ||
+          visit?.status === 'results_seen'
+        "
         @click="
           setCaseStatus('results_recorded').then(() => {
             fetchCase(props.caseId, '', false)
@@ -149,9 +154,14 @@ function makeCall(number: string) {
         "
       ></Button>
       <Button
-        :label="t('close-case').value"
-        v-if="visit?.status != 'closed'"
-        @click="onCaseClosed"
+        :label="t('client-accessed-results').value"
+        v-if="visit?.status != 'results_seen'"
+        @click="
+          setCaseStatus('results_seen').then(() => {
+            fetchCase(props.caseId, '', false)
+          })
+        "
+        severity="secondary"
       ></Button>
     </div>
   </section>

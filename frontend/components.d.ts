@@ -31,7 +31,6 @@ declare module 'vue' {
     ConfirmDialog: typeof import('primevue/confirmdialog')['default']
     ConsultantQuestion: typeof import('./src/components/ConsultantQuestion.vue')['default']
     ConsultantSection: typeof import('./src/components/ConsultantSection.vue')['default']
-    copy: typeof import('./src/components/ClientLogoHeader copy.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']

@@ -61,7 +61,11 @@ export const useResults = createGlobalState(() => {
       return
     }
 
-    if (caseStatus.value?.value !== 'results_sent' && asClient) {
+    if (
+      caseStatus.value?.value !== 'results_sent' &&
+      caseStatus.value?.value !== 'results_seen' &&
+      asClient
+    ) {
       error.value = 'Results are not yet available for this case.'
       return
     }

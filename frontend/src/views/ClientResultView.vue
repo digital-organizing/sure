@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
+import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import ClientResult from '@/components/ClientResult.vue'
 import { useResults } from '@/composables/useResults'
 import { useTexts } from '@/composables/useTexts'
@@ -11,6 +12,8 @@ const { getText: t } = useTexts()
 
 const key = ref('')
 const caseId = ref('')
+
+const showPasswordHelp = ref(false)
 
 const { caseFetched, fetchCase, error } = useResults()
 
@@ -42,11 +45,15 @@ async function onFetchCase() {
   <article>
     <img src="/sure_logo_C.png" v-if="!caseFetched" />
     <ClientLogoHeader v-if="caseFetched" :caseId="caseId" />
+    <ClientNavigationTop
+      :languageSelectorOnly="true"
+      :sectionTitle="t('access-your-results').value"
+      :sections="[]"
+    />
     <section v-if="!caseFetched">
-      <h2>Access your results</h2>
       <form class="form-col">
         <div class="form-row">
-          <label for="caseId">Case ID:</label>
+          <label for="caseId">{{ t('case-id') }}</label>
           <InputGroup>
             <InputGroupAddon>SUF-</InputGroupAddon>
             <InputMask
@@ -63,7 +70,7 @@ async function onFetchCase() {
           </InputGroup>
         </div>
         <div class="form-row">
-          <label for="key">Access Key:</label>
+          <label for="key">{{ t('access-key') }}</label>
           <Password
             id="key"
             v-model="key"
@@ -73,12 +80,21 @@ async function onFetchCase() {
           ></Password>
         </div>
         <Button :label="t('show-results').value" @click="onFetchCase"></Button>
+        <Button
+          :label="t('password-forgotten').value"
+          severity="secondary"
+          @click="showPasswordHelp = true"
+          v-if="!showPasswordHelp"
+        />
         <Message v-if="error" :severity="'error'">{{ error }}</Message>
       </form>
     </section>
     <section v-else>
       <ClientResult :caseId="caseId" :caseKey="key" />
     </section>
+    <Message v-if="showPasswordHelp" :closable="true" @close="showPasswordHelp = false">
+      {{ t('client-password-forgotten-info').value }}
+    </Message>
 
     <Button
       class="back"

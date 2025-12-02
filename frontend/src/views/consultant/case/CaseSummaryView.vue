@@ -82,6 +82,25 @@ function copyAnswersToClipboard() {
   })
 }
 
+function copyTestsToClipboard() {
+  let text = ''
+  for (const test of selectedTestKinds.value) {
+    text += `${test.testKind.name}: ${optionForTest(test.test)?.label || 'no result'}\n`
+  }
+  for (const test of freeFormTests.value) {
+    text += `${test.name}: ${test.result || 'no result'}\n`
+  }
+
+  copy(text).then(() => {
+    toast.add({
+      severity: 'success',
+      summary: t('copied-to-clipboard').value,
+      detail: t('tests-copied-to-clipboard').value,
+      life: 3000,
+    })
+  })
+}
+
 function onBack() {
   router.push({ name: 'consultant-tests', params: { caseId: visit.value?.case } })
 }
@@ -129,11 +148,21 @@ function onNext() {
           {{ answer.text }}
         </div>
       </div>
-      <h3>{{ t('tags').value }}</h3>
-      <div class="tags">
-        <Tag v-for="tag in visit?.tags || []" :key="tag" :value="tag" severity="secondary" />
+      <div class="tags-wrapper">
+        <h3>{{ t('tags').value }}</h3>
+        <div class="tags">
+          <Tag v-for="tag in visit?.tags || []" :key="tag" :value="tag" severity="secondary" />
+        </div>
       </div>
+      <Button
+        class="copy-btn"
+        icon="pi pi-copy"
+        :label="t('copy-to-clipboard').value"
+        severity="primary"
+        @click="copyAnswersToClipboard"
+      />
     </section>
+
     <section>
       <h3>{{ t('selected-tests').value }}</h3>
       <div v-for="test in selectedTestKinds" :key="test.testKind.id!" class="selected-test">
@@ -155,13 +184,13 @@ function onNext() {
           {{ test.result || 'no result' }}
         </span>
       </div>
-    </section>
-    <section class="copy-summary">
+
       <Button
+        class="copy-btn"
         icon="pi pi-copy"
         :label="t('copy-to-clipboard').value"
         severity="primary"
-        @click="copyAnswersToClipboard"
+        @click="copyTestsToClipboard"
       />
     </section>
   </section>
@@ -188,6 +217,16 @@ h3 {
   margin-bottom: 0.3rem;
   margin-top: 0.9rem;
 }
+.tags-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.tags-wrapper h3 {
+  margin: 0;
+}
 .tags {
   display: flex;
   gap: 0.5rem;
@@ -206,5 +245,9 @@ section {
   padding: 0.2rem 0.5rem;
   border-radius: 0.3rem;
   color: white;
+}
+.copy-btn {
+  margin-top: 0.8rem;
+  margin-bottom: 1.3rem;
 }
 </style>

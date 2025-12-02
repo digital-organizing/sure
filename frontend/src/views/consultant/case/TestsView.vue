@@ -70,7 +70,7 @@ async function submitSelectedTests() {
           seletectedBundles = []
         }
       "
-      severity="secondary"
+      severity="primary"
     />
   </header>
   <Message v-if="error" severity="error" :text="error" />

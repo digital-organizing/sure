@@ -98,6 +98,8 @@ const value = computed(() => {
 .history-entry .meta {
   font-size: 0.8rem;
   color: #666;
+  display: flex;
+  flex-direction: column;
 }
 
 i {
@@ -108,8 +110,4 @@ span {
   overflow: hidden;
 }
 
-span.meta {
-  display: flex;
-  flex-direction: column;
-}
 </style>

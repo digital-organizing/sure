@@ -8,6 +8,7 @@ import { useTexts } from '@/composables/useTexts'
 import FreeFormResultItem from './FreeFormResultItem.vue'
 import MarkdownIt from 'markdown-it'
 import { formatDate } from '@vueuse/core'
+import { saveAs } from 'file-saver'
 
 const md = new MarkdownIt({
   linkify: true,
@@ -26,18 +27,9 @@ function downloadDocument(id: number) {
   sureApiGetDocumentLink({
     path: { doc_pk: id, pk: props.caseId },
     body: { key: props.caseKey },
-  }).then(link => {
+  }).then((link) => {
     if (link.data) {
-      // Create a temporary anchor element
-      const a = document.createElement('a')
-      a.href = link.data.link
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      
-      // Trigger click
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      saveAs(link.data.link, link.data.link.split('/').at(-1).split('?').at(0))
     }
   })
 }

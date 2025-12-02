@@ -1070,6 +1070,13 @@ export const textsApiListLanguages = <ThrowOnError extends boolean = false>(opti
 export const textsApiReportMissingText = <ThrowOnError extends boolean = false>(options: Options<TextsApiReportMissingTextData, ThrowOnError>) => {
     return (options.client ?? client).post<TextsApiReportMissingTextResponses, unknown, ThrowOnError>({
         ...urlSearchParamsBodySerializer,
+        security: [
+            {
+                in: 'cookie',
+                name: 'key',
+                type: 'apiKey'
+            }
+        ],
         url: '/api/texts/missing/',
         ...options,
         headers: {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { sureApiGetDocumentLink, type TestSchema } from '@/client'
+import { type TestSchema } from '@/client'
 import TestResultItem from './TestResultItem.vue'
 import { useResults } from '@/composables/useResults'
 import { computed } from 'vue'
@@ -8,7 +8,6 @@ import { useTexts } from '@/composables/useTexts'
 import FreeFormResultItem from './FreeFormResultItem.vue'
 import MarkdownIt from 'markdown-it'
 import { formatDate } from '@vueuse/core'
-import { saveAs } from 'file-saver'
 
 const md = new MarkdownIt({
   linkify: true,
@@ -23,16 +22,6 @@ const props = defineProps<{
 }>()
 const { tests, notes, documents, infos, caseStatus, location, freeFormTests } = useResults()
 
-function downloadDocument(id: number) {
-  sureApiGetDocumentLink({
-    path: { doc_pk: id, pk: props.caseId },
-    body: { key: props.caseKey },
-  }).then((link) => {
-    if (link.data) {
-      saveAs(link.data.link, link.data.link.split('/').at(-1)?.split('?').at(0) || 'document')
-    }
-  })
-}
 function getResult(test: TestSchema, optionId: number) {
   return test.test_kind.result_options.find((option) => option.id == optionId)
 }
@@ -95,12 +84,16 @@ const { getText: t, formatText: f } = useTexts()
       toggleable
     >
       <div v-for="document in documents" :key="document.id!" class="document">
-        <p class="link" @click="downloadDocument(document.id!)">{{ document.name }}</p>
+        <a class="link" :href="document.link" target="_blank" rel="noopener noreferrer">{{
+          document.name
+        }}</a>
         <Button
           icon="pi pi-download"
+          as="a"
           size="small"
+          :href="document.link"
+          target="_blank"
           variant="outlined"
-          @click="downloadDocument(document.id!)"
         />
       </div>
     </Panel>

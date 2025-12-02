@@ -18,7 +18,7 @@ onMounted(() => {
 <template>
   <div id="client-welcome-logo-header">
     <img v-if="tenant?.logo" :src="tenant.logo" :alt="tenant.name" class="logo" />
-    <img src="/logo.png" class="logo" />
+    <img src="/sure_logo_C.png" class="logo" />
   </div>
 </template>
 

@@ -129,7 +129,12 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     errorKey.value = ensureString(response.error?.message) || translate('client-phone-error-key')
     return
   }
-  router.push({ name: 'client-done', params: { caseId: props.caseId } })
+  const showCaseId = selectedConsentOption.value === 'not_allowed'
+  router.push({
+    name: 'client-done',
+    params: { caseId: props.caseId },
+    query: { showCaseId: String(showCaseId) },
+  })
 }
 </script>
 

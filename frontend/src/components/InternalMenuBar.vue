@@ -84,15 +84,21 @@ const drawerVisible = ref(false)
   </header>
 
   <Drawer header="Menu" v-model:visible="drawerVisible" position="right">
-    <section class="languages">
-      <span
-        v-for="lang in langs"
-        :key="lang[0]"
-        class="lang"
-        :class="{ active: lang[0] == language }"
-        @click="setLanguage(lang[0]).then(() => (drawerVisible = false))"
-        >{{ lang[0].toUpperCase() }}</span
-      >
+    <section class="navigation">
+      <div class="text languages">
+        <span
+          v-for="lang in langs"
+          :key="lang[0]"
+          class="lang"
+          :class="{ active: lang[0] == language }"
+          @click="setLanguage(lang[0]).then(() => (drawerVisible = false))"
+          >{{ lang[0].toUpperCase() }}</span
+        >
+      </div>
+      <i class="pi pi-book icon" />
+      <a :href="t('manual-link').value" target="_blank" rel="noopener noreferrer" class="text">
+        {{ t('user-manual') }}
+      </a>
     </section>
   </Drawer>
 </template>
@@ -108,11 +114,31 @@ header {
   overflow-x: auto;
 }
 
+.navigation {
+  display: grid;
+  grid-template-columns: 2rem auto;
+  gap: 1rem 0.5rem;
+}
+
+.text {
+  grid-column: 2 / span 1;
+}
+.icon {
+  grid-column: 1 / span 1;
+}
+
 .languages {
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
+
+a.text {
+  text-decoration: none;
+  color: var(--text-color);
+}
+
 .lang {
   cursor: pointer;
 }

@@ -22,14 +22,25 @@ const props = defineProps<{
 }>()
 const { tests, notes, documents, infos, caseStatus, location, freeFormTests } = useResults()
 
-async function downloadDocument(id: number) {
-  const link = await sureApiGetDocumentLink({
+function downloadDocument(id: number) {
+  sureApiGetDocumentLink({
     path: { doc_pk: id, pk: props.caseId },
     body: { key: props.caseKey },
+  }).then((link) => {
+    if (link.data) {
+      // Create a temporary anchor element
+      const a = document.createElement('a')
+      a.href = link.data.link
+      a.target = '_blank'
+      a.download = ''
+      a.rel = 'noopener noreferrer'
+
+      // Trigger click
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
   })
-  if (link.data) {
-    window.open(link.data.link, '_blank')
-  }
 }
 function getResult(test: TestSchema, optionId: number) {
   return test.test_kind.result_options.find((option) => option.id == optionId)

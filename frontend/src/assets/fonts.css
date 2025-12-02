@@ -3,7 +3,7 @@
   font-weight: 400;
   font-style: normal;
   font-display: auto;
-  unicode-range: U+000-5FF;
+  /* unicode-range: U+000-5FF; */
   src:
     local('Circular Std'),
     url('/static/fonts/CircularStd/CircularStd-Book.woff2') format('woff2');
@@ -14,7 +14,7 @@
   font-weight: 700;
   font-style: bold;
   font-display: auto;
-  unicode-range: U+000-5FF;
+  /* unicode-range: U+000-5FF; */
   src:
     local('Circular Std'),
     url('/static/fonts/CircularStd/CircularStd-Bold.woff2') format('woff2');

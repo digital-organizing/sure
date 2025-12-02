@@ -29,7 +29,7 @@ function downloadDocument(id: number) {
     body: { key: props.caseKey },
   }).then((link) => {
     if (link.data) {
-      saveAs(link.data.link, link.data.link.split('/').at(-1).split('?').at(0))
+      saveAs(link.data.link, link.data.link.split('/').at(-1)?.split('?').at(0) || 'document')
     }
   })
 }

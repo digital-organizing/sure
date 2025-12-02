@@ -10,7 +10,7 @@ const route = useRoute()
 const { getText: t } = useTexts()
 
 const key = ref('')
-const caseId = ref('SUF-')
+const caseId = ref('')
 
 const { caseFetched, fetchCase, error } = useResults()
 
@@ -49,7 +49,17 @@ async function onFetchCase() {
           <label for="caseId">Case ID:</label>
           <InputGroup>
             <InputGroupAddon>SUF-</InputGroupAddon>
-            <InputMask id="caseId" v-model="caseId" mask="*******"></InputMask>
+            <InputMask
+              autocomplete="off"
+              data-1p-ignore
+              data-bwignore
+              data-lpignore="true"
+              data-form-type="other"
+              :auto-clear="false"
+              id="caseId"
+              v-model="caseId"
+              mask="*******"
+            ></InputMask>
           </InputGroup>
         </div>
         <div class="form-row">

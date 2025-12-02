@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ClientLogoFooter from '@/components/ClientLogoFooter.vue';
+import ClientLogoFooter from '@/components/ClientLogoFooter.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import { useTexts } from '@/composables/useTexts'
 
@@ -23,15 +23,15 @@ const { getText: t } = useTexts()
       <p class="client-body" style="margin: 0">
         {{ t('client-done-description') }}
       </p>
-      <p v-if="showCaseId"  class="client-body" style="margin: 0">
+      <p v-if="showCaseId" class="client-body" style="margin: 0">
         {{ t('client-done-note') }}
       </p>
-      <p v-if="showCaseId"  id="client-done-caseid" style="margin: 0">
+      <p v-if="showCaseId" id="client-done-caseid" style="margin: 0">
         {{ props.caseId }}
       </p>
     </div>
     <div id="client-welcome-ahs-logo-footer">
-      <ClientLogoFooter/>
+      <ClientLogoFooter />
     </div>
   </div>
 </template>

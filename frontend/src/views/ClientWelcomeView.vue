@@ -55,7 +55,7 @@ function onStart() {
       </div>
     </div>
     <div id="client-welcome-ahs-logo-footer">
-      <ClientLogoFooter/>
+      <ClientLogoFooter />
     </div>
   </div>
 </template>

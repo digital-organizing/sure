@@ -26,15 +26,14 @@ function downloadDocument(id: number) {
   sureApiGetDocumentLink({
     path: { doc_pk: id, pk: props.caseId },
     body: { key: props.caseKey },
-  }).then((link) => {
+  }).then(link => {
     if (link.data) {
       // Create a temporary anchor element
       const a = document.createElement('a')
       a.href = link.data.link
       a.target = '_blank'
-      a.download = ''
       a.rel = 'noopener noreferrer'
-
+      
       // Trigger click
       document.body.appendChild(a)
       a.click()

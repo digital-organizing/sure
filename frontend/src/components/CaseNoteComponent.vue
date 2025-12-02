@@ -2,8 +2,16 @@
 import { useCase } from '@/composables/useCase'
 import { useTexts } from '@/composables/useTexts'
 import { formatDate } from '@vueuse/core'
+import MarkdownIt from 'markdown-it'
 import { Textarea } from 'primevue'
 import { ref } from 'vue'
+
+const md = new MarkdownIt({
+  linkify: true,
+  html: true,
+  breaks: true,
+  typographer: true,
+})
 
 const { notes, createCaseNote, setCaseNoteHidden } = useCase()
 const text = ref('')
@@ -19,9 +27,7 @@ function onCreate() {
   <Panel :header="t('case-notes').value" toggleable collapsed>
     <section v-for="note in notes" :key="note.id!" class="note">
       <div>
-        <p>
-          {{ note.note }}
-        </p>
+        <p v-html="md.renderInline(note.note)"></p>
         <p class="small">
           {{ formatDate(new Date(note.created_at), 'YYYY-MM-DD HH:mm') }} -
           {{ note.user.first_name }} {{ note.user.last_name }} ({{ note.user.tenant }})

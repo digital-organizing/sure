@@ -6,6 +6,14 @@ import { computed } from 'vue'
 import LocationComponent from './LocationComponent.vue'
 import { useTexts } from '@/composables/useTexts'
 import FreeFormResultItem from './FreeFormResultItem.vue'
+import MarkdownIt from 'markdown-it'
+
+const md = new MarkdownIt({
+  linkify: true,
+  html: true,
+  breaks: true,
+  typographer: true,
+})
 
 const props = defineProps<{
   caseId: string
@@ -59,7 +67,7 @@ const { getText: t } = useTexts()
     </section>
     <Panel v-if="notes.length > 0 && displayResults" class="notes" :header="t('notes').value">
       <div v-for="note in notes" :key="note.id!" class="note">
-        <p>{{ note.note }}</p>
+        <p v-html="md.renderInline(note.note)"></p>
       </div>
     </Panel>
     <Panel

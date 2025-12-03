@@ -2,8 +2,7 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import F, Func, OuterRef, Prefetch, Subquery
-from django.db.models.query import QuerySet
+from django.db.models import F, Func
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -13,7 +12,12 @@ from ninja.files import UploadedFile
 from ninja.pagination import PageNumberPagination, paginate
 
 from core.auth import auth_2fa_or_trusted
-from sure.cases import annotate_last_modified
+from sure.cases import (
+    annotate_last_modified,
+    get_case_tests_with_latest_results,
+    get_test_results,
+    prefetch_questionnaire,
+)
 from sure.client_service import can_connect_case
 from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
@@ -33,14 +37,9 @@ from sure.client_service import strip_id, verify_access_to_location
 from sure.lang import inject_language
 from sure.models import (
     Case,
-    ClientOption,
-    ClientQuestion,
-    ConsultantOption,
-    ConsultantQuestion,
     FreeFormTest,
     Questionnaire,
     ResultInformation,
-    Section,
     Test,
     TestCategory,
     TestKind,
@@ -86,96 +85,6 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 
-def _prefetch_questionnaire(internal=False, excluded_question_ids=None):
-    client_questions_qs = ClientQuestion.objects.order_by("order").prefetch_related(
-        Prefetch("options", queryset=ClientOption.objects.order_by("order"))
-    )
-
-    if excluded_question_ids:
-        client_questions_qs = client_questions_qs.exclude(
-            id__in=excluded_question_ids, optional_for_centers=True
-        )
-
-    query = Questionnaire.objects.prefetch_related(
-        Prefetch(
-            "sections",
-            queryset=Section.objects.order_by("order").prefetch_related(
-                Prefetch(
-                    "client_questions",
-                    queryset=client_questions_qs,
-                )
-            ),
-        )
-    )
-
-    if internal:
-        query = query.prefetch_related(
-            Prefetch(
-                "consultant_questions",
-                queryset=ConsultantQuestion.objects.order_by("order").prefetch_related(
-                    Prefetch(
-                        "options", queryset=ConsultantOption.objects.order_by("order")
-                    )
-                ),
-            )
-        )
-    return query
-
-
-def get_test_results(visit):
-    return (
-        TestResult.objects.filter(test__visit=visit)
-        .annotate(
-            is_latest=Subquery(
-                TestResult.objects.filter(test_id=OuterRef("test_id"))
-                .order_by("-created_at")
-                .values("id")[:1]
-            )
-        )
-        .filter(id=F("is_latest"))
-    )
-
-
-def get_case_tests_with_latest_results(
-    visit: Visit, filter_client=None
-) -> QuerySet[Test]:
-    test_latest_result_ids = get_test_results(visit)
-
-    if (
-        filter_client is True
-    ):  # Clients are only allowed to see results if all results are information_by_sms=True
-        if test_latest_result_ids.filter(
-            result_option__information_by_sms=False
-        ).exists():
-            return Test.objects.none()
-    if filter_client is False:  # Return only results that are not information_by_sms
-        test_latest_result_ids = test_latest_result_ids.filter(
-            result_option__information_by_sms=False
-        )
-
-    test_latest_result_ids = test_latest_result_ids.values_list("id", flat=True)
-
-    visit_with_latest = (
-        Visit.objects.filter(pk=visit.pk)
-        .prefetch_related(
-            Prefetch(
-                "tests",
-                queryset=Test.objects.prefetch_related(
-                    Prefetch(
-                        "results",
-                        queryset=TestResult.objects.filter(
-                            id__in=list(test_latest_result_ids)
-                        ).prefetch_related("result_option"),
-                    )
-                ),
-            )
-        )
-        .get()
-    )
-
-    return visit_with_latest.tests
-
-
 @router.get(
     "/case/{pk}/questionnaire/",
     response={200: QuestionnaireSchema, 302: StatusSchema, 403: StatusSchema},
@@ -202,7 +111,7 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     location = visit.case.location
     excluded_ids = location.excluded_questions.values_list("id", flat=True)
 
-    questionnaire = _prefetch_questionnaire(excluded_question_ids=excluded_ids).get(
+    questionnaire = prefetch_questionnaire(excluded_question_ids=excluded_ids).get(
         pk=visit.questionnaire.pk
     )
 
@@ -263,9 +172,7 @@ def get_case_internal(request, pk: str):
     """Get the internal questionnaire associated with a case."""
     visit = get_case(request, pk)
 
-    questionnaire = _prefetch_questionnaire(internal=True).get(
-        pk=visit.questionnaire.pk
-    )
+    questionnaire = prefetch_questionnaire(internal=True).get(pk=visit.questionnaire.pk)
 
     return questionnaire
 
@@ -659,7 +566,7 @@ def create_case_view(request, data: CreateCaseSchema):
 @inject_language
 def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID."""
-    questionnaire = _prefetch_questionnaire().get(pk=pk)
+    questionnaire = prefetch_questionnaire().get(pk=pk)
     return questionnaire
 
 
@@ -667,7 +574,7 @@ def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
 @inject_language
 def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
     """Get a questionnaire by its ID, including consultant questions."""
-    questionnaire = _prefetch_questionnaire(internal=True).get(pk=pk)
+    questionnaire = prefetch_questionnaire(internal=True).get(pk=pk)
     return questionnaire
 
 

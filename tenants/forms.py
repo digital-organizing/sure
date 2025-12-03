@@ -85,7 +85,8 @@ class ConsultantInviteForm(forms.Form):
         request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.add_input(Submit("submit", ("Submit Hallo")))
+        self.helper.form_method = "post"
+        self.helper.add_input(Submit("submit", _("Submit")))
 
         self.fields["locations"].queryset = Location.objects.filter(  # type: ignore
             tenant__admins=request.user

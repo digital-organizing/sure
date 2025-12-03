@@ -1,0 +1,21 @@
+{% extends 'admin/base.html' %}
+
+{% load i18n unfold %}
+
+{% block title %}
+    {% if subtitle %}
+        {{ subtitle }} |
+    {% endif %}
+
+    {{ title }} | {{ site_title|default:_('Django site admin') }}
+{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+    <h2>Case Cohort</h2>
+    {% component "unfold/components/chart/cohort.html" with component_class="CaseCohortComponent" %}
+{% endcomponent %}
+{% endblock %}

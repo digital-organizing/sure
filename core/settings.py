@@ -45,10 +45,10 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
+    "sure.apps.SureConfig",
     "unfold.apps.BasicAppConfig",
     "unfold.contrib.constance",
     "constance",
-    "sure.apps.SureConfig",
     "texts",
     "guard",
     "sms",

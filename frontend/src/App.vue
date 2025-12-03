@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { RouterView, useRoute } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useAccount } from './composables/useAccount'
 import InternalMenuBar from './components/InternalMenuBar.vue'
 import { useTitle } from '@vueuse/core'
@@ -41,6 +41,72 @@ onMounted(() => {
   <Toast />
   <ConfirmDialog></ConfirmDialog>
   <RouterView />
+  <footer>
+    <div class="container">
+      <div class="left">
+        <h4>About</h4>
+        <nav>
+          <RouterLink to="/about">About this App</RouterLink>
+          <RouterLink to="/privacy">Privacy Policy</RouterLink>
+        </nav>
+      </div>
+      <div class="right">
+        <span
+          ><a href="https://digitalorganizing.ch" target="_blank" rel="noopener"
+            >digital/organizing.ch</a
+          ></span
+        >
+        <span><a href="https://aids.ch" target="_blank" rel="noopener">Aids-Hilfe Schweiz</a></span>
+        <span>© {{ new Date().getFullYear() }} digital/organizing GmbH</span>
+      </div>
+    </div>
+  </footer>
 </template>
 
-<style scoped></style>
+<style scoped>
+footer {
+  background: black;
+  color: white;
+  padding-top: 4rem;
+  padding-bottom: 3rem;
+  margin-top: 5rem;
+}
+.container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  width: 90%;
+  margin: 0 auto;
+  max-width: 700px;
+}
+
+footer .left,
+footer .right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+footer .left nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+footer a {
+  color: white;
+  text-decoration: none;
+}
+footer a:hover {
+  text-decoration: underline;
+}
+
+h4 {
+  margin: 0;
+}
+
+footer .right {
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+</style>

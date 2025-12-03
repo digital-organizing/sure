@@ -884,3 +884,61 @@ class TestResult(models.Model):
         help_text=_("The user who recorded the test result (consultant)"),
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+
+
+class ExportStatus(models.TextChoices):
+    """Status of a visit export."""
+
+    PENDING = "pending", _("Pending")
+    IN_PROGRESS = "in_progress", _("In Progress")
+    COMPLETED = "completed", _("Completed")
+    FAILED = "failed", _("Failed")
+
+
+class VisitExport(models.Model):
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        related_name="visit_exports",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    status = models.CharField(
+        max_length=20,
+        choices=ExportStatus.choices,
+        default=ExportStatus.PENDING,
+        verbose_name=_("Status"),
+    )
+
+    start_date = models.DateField(verbose_name=_("Start Date"))
+    end_date = models.DateField(verbose_name=_("End Date"))
+
+    file = models.FileField(
+        upload_to="visit_exports/",
+        null=True,
+        blank=True,
+        verbose_name=_("Exported File"),
+        help_text=_("The exported file containing visit data"),
+    )
+
+    error_message = models.TextField(
+        blank=True,
+        verbose_name=_("Error Message"),
+        help_text=_("Error message if the export failed"),
+    )
+
+    total_visits = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Total Visits"),
+        help_text=_("Total number of visits included in the export"),
+    )
+
+    progress = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Progress"),
+        help_text=_("Progress of the export in percentage"),
+    )
+
+    def __str__(self):
+        return f"Visit Export {self.pk} by {self.user.get_full_name()} ({self.status})"

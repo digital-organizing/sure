@@ -5,10 +5,9 @@ from ninja import Router
 
 from sure.client_service import strip_id
 from sure.models import Case
-from tenants.models import Tag
+from tenants.models import Tag, Consultant
 from tenants.schema import (
     BannerSchema,
-    Consultant,
     LocationSchema,
     TagSchema,
     TenantSchema,

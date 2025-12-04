@@ -10,6 +10,7 @@ from sure.client_service import (
     get_case_link,
     get_cases,
     get_client_by_id,
+    location_can_view_case,
     record_client_answers,
     verify_access_to_location,
 )
@@ -193,3 +194,30 @@ class CaseManagementTest(TestCase):
         self.assertEqual(len(cases), 2)
         self.assertIn(case1, cases)
         self.assertIn(case2, cases)
+
+    def test_case_access(self):
+        case1 = create_case(self.location.pk, self.user)
+
+        phone_number = "+41797360516"
+
+        new_location = self.location.tenant.locations.create(name="Other Location")
+
+        other_user = User.objects.create_user(username="other")
+        other_consultant = Consultant.objects.create(
+            tenant=self.location.tenant,
+            user=other_user,
+        )
+        other_consultant.locations.set([new_location])
+
+        case2 = create_case(new_location.pk, other_user)
+
+        self.assertFalse(location_can_view_case([new_location.pk], case1))
+        self.assertFalse(location_can_view_case([self.location.pk], case2))
+
+        _, token = generate_token(phone_number, case1)
+        connect_case(case1, phone_number, token, consent=ConsentChoice.ALLOWED)
+        _, token = generate_token(phone_number, case2)
+        connect_case(case2, phone_number, token, consent=ConsentChoice.ALLOWED)
+
+        self.assertTrue(location_can_view_case([new_location.pk], case1))
+        self.assertTrue(location_can_view_case([self.location.pk], case2))

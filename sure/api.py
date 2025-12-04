@@ -621,12 +621,10 @@ def get_case_tags_options(request):
 @paginate(PageNumberPagination, page_size=20)
 def list_client_cases(request, pk: str):
     """List all cases for a specific client the user has access to."""
-    consultant = get_object_or_404(Consultant, user=request.user)
     client_id = strip_id(pk)
 
     return Case.objects.filter(
         connection__client__id=client_id,
-        location__in=consultant.locations.all(),
     ).order_by("-created_at")
 
 

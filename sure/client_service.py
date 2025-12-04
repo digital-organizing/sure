@@ -2,6 +2,7 @@
 
 import logging
 from datetime import timedelta
+from typing import Iterable
 
 import phonenumbers
 from django.conf import settings
@@ -61,6 +62,21 @@ def verify_access_to_location(location: tenants.models.Location, user) -> bool:
         return False
     consultant: tenants.models.Consultant = user.consultant
     return consultant.locations.filter(id=location.pk).exists()
+
+
+def location_can_view_case(location_ids: Iterable[int], case: Case) -> bool:
+    """Verify that the location has access to the given case."""
+    if case.location.pk in location_ids:
+        return True
+
+    connection = Connection.objects.filter(case=case).first()
+
+    if not connection:
+        return False
+
+    return connection.client.connections.filter(
+        case__location_id__in=location_ids
+    ).exists()
 
 
 def create_case(location_id: int, user, external_id: str | None = None) -> Case:
@@ -322,7 +338,17 @@ def get_case(request, pk):
 
     visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
 
-    if not verify_access_to_location(visit.case.location, request.user):
+    if request.user.is_superuser:
+        return visit
+
+    if not hasattr(request.user, "consultant"):
+        raise PermissionError("User does not have access to this location")
+
+    consultant: tenants.models.Consultant = request.user.consultant
+
+    if not location_can_view_case(
+        consultant.locations.values_list("id", flat=True), visit.case
+    ):
         raise PermissionError("User does not have access to this location")
 
     return visit

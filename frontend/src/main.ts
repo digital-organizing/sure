@@ -153,13 +153,4 @@ app.use(PrimeVue, {
 app.use(ToastService)
 app.use(ConfirmationService)
 
-// Initialize stores after Pinia is set up
-const initializeStores = () => {
-  // Initialize key stores
-  // Stores are automatically initialized when accessed
-}
-
 app.mount('#app')
-
-// Initialize stores after app is mounted
-initializeStores()

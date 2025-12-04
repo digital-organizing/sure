@@ -698,8 +698,9 @@ class LogEntrySchema(ModelSchema):
         model = VisitLog
         fields = [
             "id",
-            "user",
         ]
+
+    user: int = Field(..., alias="user.consultant.pk")
 
     created_at: datetime = Field(..., alias="timestamp")
     label: str = Field(..., alias="action")

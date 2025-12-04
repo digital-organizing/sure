@@ -4,6 +4,7 @@ import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import ClientResult from '@/components/ClientResult.vue'
 import { useResults } from '@/composables/useResults'
 import { useTexts } from '@/composables/useTexts'
+import { InputGroup, InputGroupAddon, InputMask, Password } from 'primevue'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 

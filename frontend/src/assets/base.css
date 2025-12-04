@@ -10,8 +10,52 @@
   --color-green: #d0ea2b;
   --color-green-2: #66b032;
   --color-orange: #fb9902;
+  --created-color: #fb9902;
+  --client-color: #66b032;
+  --consultant-color: #0391ce;
+  --tests-color: #0247fe;
+  --results-color: #8601af;
+  --summary-color: #3d01a4;
+  --communication-color: #646464;
 }
 
+.created {
+  --status-color: var(--created-color);
+}
+
+.client_submitted {
+  --status-color: var(--client-color);
+}
+.consultant_submitted {
+  --status-color: var(--consultant-color);
+}
+.tests_recorded {
+  --status-color: var(--tests-color);
+}
+.summary {
+  --status-color: var(--summary-color);
+}
+.results_recorded {
+  --status-color: var(--results-color);
+}
+.results_sent {
+  --status-color: var(--communication-color);
+}
+
+.results_seen {
+  --status-color: var(--communication-color);
+}
+
+.results_missed {
+  --status-color: var(--results-color);
+}
+
+.closed {
+  --status-color: var(--communication-color);
+}
+.canceled {
+  --status-color: var(--color-ahs-light-gray);
+}
 /* semantic color variables for this project */
 :root {
   --color-background: var(--color-ahs-white);
@@ -19,17 +63,96 @@
   --primary-color: var(--color-ahs-red);
   --secondary-color: var(--color-ahs-white);
   --font-family: 'Circular Std';
+  --container-width: 1520px;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-text);
   font-family: var(--font-family);
+  margin: 0;
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--color-black);
-    --color-text: var(--color-white);
-  }
-} */
+main {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+.option-item.with-text-input.active {
+  display: grid;
+  grid-template-areas:
+    'checkbox label'
+    ' . textinput';
+  grid-template-columns: auto 1fr;
+  justify-content: start;
+  justify-items: start;
+  gap: 0.25rem 0.75rem;
+}
+.option-item .text-input {
+  grid-area: textinput;
+  margin-top: 0.25rem;
+}
+
+.dropdown-select {
+  grid-area: textinput;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+.option-item label {
+  gap: 0.5rem;
+}
+
+.form-col {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.form-col.stretch {
+  align-items: stretch;
+}
+
+.toggle label {
+  margin-left: 0.5rem;
+}
+
+a.p-button {
+  text-decoration: none;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dialog-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.case-footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  justify-self: stretch;
+  align-self: stretch;
+}
+
+.status .p-tag,
+.status.p-tag {
+  background-color: var(--status-color);
+}
+
+.p-panel p {
+  margin-top: 0;
+  margin-bottom: 0;
+}

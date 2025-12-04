@@ -2,7 +2,8 @@
 import { type SectionSchema } from '@/client'
 import ClientQuestion from './ClientQuestion.vue'
 import { userAnswersStore } from '@/stores/answers'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import ClientBottomNavButtons from './ClientBottomNavButtons.vue'
 
 const props = defineProps<{ section: SectionSchema; hasNext: boolean; hasPrevious: boolean }>()
 
@@ -15,71 +16,63 @@ const emits = defineEmits<{
   (e: 'submit'): void
 }>()
 
-function onNext() {
-  const answers = questions.value.map((q) => q.getClientAnswer())
-  answersStore.setAnswersForSection(props.section.id!, answers)
-  emits('next')
-}
-
-function onPrevious() {
-  emits('previous')
-}
-
-function onSubmit() {
-  emits('submit')
-}
+const visibleQuestions = computed(() => {
+  return props.section.client_questions.filter((q) => {
+    if (!q.show_for_options || q.show_for_options.length === 0) {
+      return true
+    }
+    for (const option of q.show_for_options) {
+      if (answersStore.isOptionSelected(option)) {
+        return true
+      }
+    }
+    return false
+  })
+})
 </script>
 
 <template>
-  <div class="client-section">
-    <h2>{{ props.section.title }}</h2>
-    <p>{{ props.section.description }}</p>
+  <div class="client-section-element">
+    <p class="section-description">{{ props.section.description }}</p>
     <ClientQuestion
-      v-for="question in props.section.client_questions"
+      v-for="(question, index) in visibleQuestions"
       :key="question.id!"
       :question="question"
+      :index="index"
       ref="questions"
+      :hide-title="false"
     />
-    <div class="btn-group">
-      <Button
-        id="previous"
-        v-if="props.hasPrevious"
-        label="Previous"
-        @click="onPrevious"
-        severity="secondary"
-        variant="outlined"
-        rounded
-      />
-      <Button
-        id="next"
-        v-if="props.hasNext"
-        label="Next"
-        @click="onNext"
-        severity="primary"
-        rounded
-      />
-      <Button
-        id="submit"
-        v-if="!props.hasNext"
-        type="submit"
-        label="Submit"
-        @click="onSubmit"
-        severity="primary"
-        rounded
+    <div class="client-bottom-button-section">
+      <ClientBottomNavButtons
+        @next="emits('next')"
+        @previous="emits('previous')"
+        @submit="emits('submit')"
+        :section="props.section"
+        :hasNext="props.hasNext"
+        :hasPrevious="props.hasPrevious"
+        ref="questions"
       />
     </div>
   </div>
 </template>
 
 <style scoped>
-.btn-group {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
 #next {
   align-self: flex-end;
   margin-left: auto;
+}
+
+#previous {
+  height: 28.5px;
+}
+
+.section-description {
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 24.5px;
+  margin-top: 0px;
 }
 </style>

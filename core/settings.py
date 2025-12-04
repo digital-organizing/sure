@@ -13,9 +13,8 @@ import os
 import re
 from pathlib import Path
 
-from environ import Env
 import sentry_sdk
-
+from environ import Env
 
 env = Env()
 
@@ -36,7 +35,7 @@ env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env.str("SECRET_KEY", default="secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=True)
+DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
@@ -46,13 +45,22 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
-    "unfold",
+    "sure.apps.SureConfig",
+    "unfold.apps.BasicAppConfig",
+    "unfold.contrib.constance",
+    "constance",
+    "texts",
+    "guard",
+    "sms",
+    "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
     "unfold.contrib.location_field",  # optional, if django-location-field package is used
-    "sure.apps.SureConfig",
+    "unfold.contrib.simple_history",
     "tenants.apps.TenantsConfig",
-    "django.contrib.admin",
+    "simple_history",
+    # "django.contrib.admin",
+    "sure.apps.SureAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -63,6 +71,21 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "django.contrib.postgres",
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.storage",
+    "health_check.contrib.migrations",
+    "health_check.contrib.celery",
+    "health_check.contrib.redis",
+    "health_check.contrib.psutil",
+    "crispy_forms",
+    "django_otp",
+    "django_agent_trust",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_hotp",
+    "django_otp.plugins.otp_static",
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -73,8 +96,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_agent_trust.middleware.AgentMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
+    "guard.middleware.NotFoundRateLimitMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -124,6 +152,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+KEY_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 6,
+        },
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -161,12 +201,30 @@ DJANGO_VITE = {
     "default": {
         "dev_mode": env.bool("VITE_DEV_MODE", default=DEBUG),
         "dev_server_port": env("DJANGO_VITE_DEV_SERVER_PORT", default="5173"),
+        "manifest_path": BASE_DIR / "frontend/dist/manifest.json",
     }
 }
+
+if DJANGO_VITE["default"]["dev_mode"]:
+    STATICFILES_DIRS.insert(0, BASE_DIR / "frontend")
 
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": env.str("S3_ACCESS_KEY", default=""),
+            "secret_key": env.str("S3_SECRET_KEY", default=""),
+            "bucket_name": env.str("S3_BUCKET_NAME", default=""),
+            "querystring_auth": True,
+            "file_overwrite": True,
+            "region_name": env.str("S3_REGION", default="us-east-1"),
+            "endpoint_url": env.str("S3_ENDPOINT", ""),
+            # "custom_domain": env.str("S3_DOMAIN", ""),
+            "addressing_style": "auto",
+        },
     },
 }
 
@@ -205,6 +263,20 @@ CELERY_CACHE_BACKEND = "django-cache"
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+CELERY_RESULT_EXTENDED = True
+CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24 * 30
+
+
+HEALTH_CHECK = {
+    "DISK_USAGE_MAX": 90,
+    "MEMORY_MIN": 100,  # in MB
+    "SUBSETS": {
+        "startup-probe": ["MigrationsHealthCheck", "DatabaseBackend"],
+        "liveness-probe": ["DatabaseBackend"],
+    },
+}
+
+CONSTANCE_REDIS_CONNECTION = REDIS_URL + "/2"
 
 # SURE Settings
 
@@ -237,3 +309,86 @@ UNFOLD = {
         "search_models": True,  # Search models in command search
     },
 }
+
+CRISPY_TEMPLATE_PACK = "unfold_crispy"
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = ["unfold_crispy"]
+
+
+SESAME_MAX_AGE = env.int("SESAME_MAX_AGE", default=60 * 60 * 24)  # 1 day in seconds
+
+
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+    "sesame.backends.ModelBackend",
+]
+
+
+EMAIL_CONFIG = env.email_url("EMAIL_URL", default="smtp://user@:password@localhost:25")
+
+vars().update(EMAIL_CONFIG)
+
+SERVER_EMAIL = env("SERVER_EMAIL", default="root@localhost")
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=SERVER_EMAIL)
+
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+
+CONSTANCE_CONFIG = {
+    "TWO_FA_REMINDER_SUBJECT": (
+        "2FA Setup Reminder",
+        "Subject of the 2FA setup reminder email.",
+    ),
+    "TWO_FA_REMINDER_EMAIL_TEMPLATE": (
+        "Hello {{ user.get_full_name }}, ",
+        "Template for the 2FA setup reminder email.",
+    ),
+    "PASSWORD_RESET_EMAIL_TEMPLATE": (
+        "{{activation_link}}",
+        "Template for the password reset email.",
+    ),
+    "PASSWORD_RESET_EMAIL_SUBJECT": (
+        "Password Reset",
+        "Subject of the password reset email.",
+    ),
+    "TWO_FA_RESET_EMAIL_SUBJECT": (
+        "2FA Reset Notification",
+        "Subject of the 2FA reset notification email.",
+    ),
+    "TWO_FA_RESET_EMAIL_TEMPLATE": (
+        "Hello {{ user.get_full_name }}, your 2FA has been reset by {{ admin.get_full_name }}.",
+        "Template for the 2FA reset notification email.",
+    ),
+}
+
+OTP_TOTP_ISSUER = env.str("OTP_TOTP_ISSUER", default="SURE")
+OTP_TOTP_IMAGE = env.str("OTP_TOTP_IMAGE", default="")
+
+
+CASE_CONNECTION_WINDOW_MINUTES = env.int("CASE_CONNECTION_WINDOW_MINUTES", default=60)
+TOKEN_VALIDITY_MINUTES = env.int("TOKEN_VALIDITY_MINUTES", default=30)
+
+SMSUP_API_TOKEN = env.str("SMSUP_API_TOKEN", default="")
+
+SIMULATE_SMS = env.bool("SIMULATE_SMS", default=False)
+
+TOKEN_RESEND_INTERVAL_MINUTES = env.int(
+    "TOKEN_RESEND_INTERVAL_MINUTES", default=0 if DEBUG else 3
+)
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+MAX_KEY_LENGTH = env.int("MAX_KEY_LENGTH", default=512)
+
+DEEPL_API_KEY = env.str("DEEPL_API_KEY", default="")
+
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0 if DEBUG else 3600)
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=not DEBUG)
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

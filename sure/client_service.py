@@ -1,17 +1,34 @@
 """Functions for creating and managing clients and their cases."""
 
+import logging
+from datetime import timedelta
+from typing import Iterable
+
 import phonenumbers
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 import tenants.models
+from sms.service import send_sms
+from sms.tasks import schedule_sms_sending
+from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
-from sure.twilio import send_sms
 
-from .models import (Case, Client, Connection, ConsentChoice, Contact,
-                     Questionnaire, Visit, VisitStatus)
+from .models import (
+    Case,
+    Client,
+    Connection,
+    ConsentChoice,
+    Contact,
+    Questionnaire,
+    Visit,
+    VisitStatus,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def canonicalize_phone_number(phone_number: str) -> str:
@@ -22,22 +39,54 @@ def canonicalize_phone_number(phone_number: str) -> str:
     )
 
 
+def human_format_phone_number(phone_number: str) -> str:
+    """Convert a phone number to a human-readable format."""
+    parsed = phonenumbers.parse(phone_number, settings.DEFAULT_REGION)
+    if phonenumbers.region_code_for_number(parsed) != settings.DEFAULT_REGION:
+        return phonenumbers.format_number(
+            parsed,
+            phonenumbers.PhoneNumberFormat.INTERNATIONAL,
+        )
+
+    return phonenumbers.format_number(
+        parsed,
+        phonenumbers.PhoneNumberFormat.NATIONAL,
+    )
+
+
 def verify_access_to_location(location: tenants.models.Location, user) -> bool:
     """Verify that the user has access to the given location."""
     if user.is_superuser:
         return True
-    if user.tenants.filter(id=location.tenant.pk).exists():
+    if not hasattr(user, "consultant"):
+        return False
+    consultant: tenants.models.Consultant = user.consultant
+    return consultant.locations.filter(id=location.pk).exists()
+
+
+def location_can_view_case(location_ids: Iterable[int], case: Case) -> bool:
+    """Verify that the location has access to the given case."""
+    if case.location.pk in location_ids:
         return True
-    return False
+
+    connection = Connection.objects.filter(case=case).first()
+
+    if not connection:
+        return False
+
+    return connection.client.connections.filter(
+        case__location_id__in=location_ids
+    ).exists()
 
 
-def create_case(location_id: int, user) -> Case:
+def create_case(location_id: int, user, external_id: str | None = None) -> Case:
     """Create a new case at the given location."""
     location = get_object_or_404(tenants.models.Location, pk=location_id)
     if not verify_access_to_location(location, user):
         raise PermissionError("User does not have access to this location")
     case = Case.objects.create(
         location=location,
+        external_id=external_id or "",
     )
     return case
 
@@ -64,42 +113,74 @@ def get_case_link(case: Case) -> str:
     return settings.SITE_URL + "?case=" + case.human_id
 
 
-def generate_token(phone_number: str) -> tuple[Contact, str]:
+def generate_token(phone_number: str, case: Case) -> tuple[Contact, str]:
     """Generate a token for the given phone number, creating a contact if necessary."""
     contact, _ = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
     )
-    token = contact.generate_token()
+    token = contact.generate_token(case)
     return contact, token
 
 
 def send_case_link(case: Case, phone_number: str):
     """Send a link to access the case to the given phone number."""
-    contact, token = generate_token(phone_number)
+    contact, token = Contact.objects.get_or_create(
+        phone_number=canonicalize_phone_number(phone_number),
+    )
 
-    link = get_case_link(case) + "&token=" + token
+    link = get_case_link(case)
 
     msg = "Open this link to access your case: " + link
 
-    send_sms(contact.phone_number, msg)
+    send_sms(contact.phone_number, msg, case.location.tenant)
 
 
-def send_token(phone_number: str):
+def send_results_link(case: Case):
+    connection = Connection.objects.filter(case=case).first()
+    if not connection:
+        return
+    contact = connection.client.contact
+    link = settings.SITE_URL + "/results?case=" + case.human_id
+
+    msg = "Your test results are now available. Go to " + link
+
+    slot = case.location.get_next_opening(timezone.now())
+    if not slot:
+        slot = timezone.now() + timedelta(minutes=10)
+        logger.warning(
+            f"No opening hours found for location {case.location.id}, scheduling SMS immediately."
+        )
+
+    logger.info(
+        f"Scheduling SMS sending for {contact.phone_number} at {slot + timedelta(minutes=5)}"
+    )
+    print(
+        f"Scheduling SMS sending for {contact.phone_number} at {slot + timedelta(minutes=5)}"
+    )
+    schedule_sms_sending.apply_async(
+        args=(contact.phone_number, msg, case.location.tenant.id),
+        eta=slot + timedelta(minutes=5),
+    )
+
+
+def send_token(phone_number: str, case: Case):
     """Send a verification token to the given phone number"""
 
     contact, _ = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
     )
-    token = contact.generate_token()
-    # Send the token via SMS (implementation not shown)
-    link = f"{settings.SITE_URL}/verify/?token={token}"
+    if contact.has_recent_token():
+        raise ValueError(
+            "A recent token has already been sent, please wait before requesting a new one."
+        )
 
-    msg = "Click this link to verify your phone number: " + link
+    token = contact.generate_token(case)
+    msg = "Enter this token to verify your phone number: " + token
 
-    send_sms(contact.phone_number, msg)
+    send_sms(contact.phone_number, msg, case.location.tenant)
 
 
-def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
+def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:
     """Verify that the given token is valid for the given phone number.
 
     If 'use' is True, mark the token as used.
@@ -112,23 +193,36 @@ def verify_token(token: str, phone_number: str, use=False) -> Contact | None:
     if not contact:
         return None
 
-    valid_token = contact.tokens.filter(token=token, used_at__isnull=True).first()
-    if not valid_token:
+    if not contact.verify_token(token, case):
         return None
-
-    if use:
-        valid_token.used_at = timezone.now()
-        valid_token.save()
 
     return contact
 
 
+def can_connect_case(case: Case) -> bool:
+    """Check if a case can be connected to a client."""
+    if Connection.objects.filter(case=case).exists():
+        return False
+
+    if case.created_at < timezone.now() - timedelta(
+        minutes=settings.CASE_CONNECTION_WINDOW_MINUTES
+    ):
+        return False
+
+    return True
+
+
+@transaction.atomic
 def connect_case(case: Case, phone_number: str, token: str, consent: str) -> Connection:
     """Connect a case to a client identified by the given phone number and token."""
+
+    if not can_connect_case(case):
+        raise ValueError("Case cannot be connected")
+
     if consent != ConsentChoice.ALLOWED:
         raise ValueError("Consent must be allowed to connect case")
 
-    contact = verify_token(token, phone_number, use=True)
+    contact = verify_token(token, phone_number, case)
     if not contact:
         raise ValueError("Invalid token or phone number")
 
@@ -166,9 +260,23 @@ def record_client_answers(
             "Cannot record answers for a visit that is not in the CREATED status"
         )
 
+    current_answers = (
+        visit.client_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+    )
+    current_answer_map = {ans.question.pk: ans for ans in current_answers}
+
     for answer in answers:
-        choices = [choice.code for choice in answer.choices]
+        choices = [int(choice.code) for choice in answer.choices]
         texts = [choice.text or "-" for choice in answer.choices]
+
+        if answer.questionId in current_answer_map:
+            existing_answer = current_answer_map[answer.questionId]
+            if _compare_lists(existing_answer.choices, choices) and _compare_lists(
+                existing_answer.texts, texts
+            ):
+                continue
         visit.client_answers.create(
             question_id=answer.questionId,
             choices=choices,
@@ -176,5 +284,90 @@ def record_client_answers(
             user=user,
         )
 
-    visit.status = VisitStatus.CLIENT_SUBMITTED
-    visit.save()
+    with transaction.atomic():
+        visit.status = VisitStatus.CLIENT_SUBMITTED
+        visit.save(update_fields=["status"])
+
+
+def _compare_lists(list1: list, list2: list) -> bool:
+    """Compare two lists for equality, ignoring order."""
+    return sorted(list1) == sorted(list2)
+
+
+def record_consultant_answers(visit: Visit, answers: list[AnswerSchema], user: User):
+    """Record consultant answers for a visit."""
+    warnings = []
+    if visit.status != VisitStatus.CLIENT_SUBMITTED:
+        warnings.append(
+            "Recording consultant answers for a visit that is not in the CLIENT_SUBMITTED status"
+        )
+
+    current_answers = (
+        visit.consultant_answers.all()
+        .order_by("question_id", "-created_at")
+        .distinct("question_id")
+        .prefetch_related("question")
+    )
+
+    current_answer_map = {ans.question.pk: ans for ans in current_answers}
+
+    for answer in answers:
+        choices = [int(choice.code) for choice in answer.choices]
+        texts = [choice.text or "-" for choice in answer.choices]
+        if answer.questionId in current_answer_map:
+            existing_answer = current_answer_map[answer.questionId]
+            if _compare_lists(existing_answer.choices, choices) and _compare_lists(
+                existing_answer.texts, texts
+            ):
+                continue
+        visit.consultant_answers.create(
+            question_id=answer.questionId,
+            choices=choices,
+            texts=texts,
+            user=user,
+        )
+    with transaction.atomic():
+        visit.status = VisitStatus.CONSULTANT_SUBMITTED
+        visit.save(update_fields=["status"])
+
+    return warnings
+
+
+def get_case(request, pk):
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
+
+    if request.user.is_superuser:
+        return visit
+
+    if not hasattr(request.user, "consultant"):
+        raise PermissionError("User does not have access to this location")
+
+    consultant: tenants.models.Consultant = request.user.consultant
+
+    if not location_can_view_case(
+        consultant.locations.values_list("id", flat=True), visit.case
+    ):
+        raise PermissionError("User does not have access to this location")
+
+    return visit
+
+
+def get_case_unverified(pk, key: str = ""):
+    pk = strip_id(pk)
+
+    visit = get_object_or_404(annotate_last_modified(Visit.objects.all()), case_id=pk)
+
+    if not visit.case.has_key():
+        return visit
+
+    if not key:
+        raise PermissionError(
+            "Key is required for accessing a case that is not in CREATED status"
+        )
+
+    if not visit.case.check_key(key):
+        raise PermissionError("Invalid key for accessing the case")
+
+    return visit

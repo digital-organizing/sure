@@ -1,2 +1,130 @@
 @import './fonts.css';
 @import './base.css';
+@import 'primeicons/primeicons.css';
+
+.client-form-view {
+  max-width: 800px;
+  margin: auto;
+  min-height: 80vh;
+}
+
+.client-section-element {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.client-option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.client-option-label {
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.client-option-item .text-input,
+.client-option-item .dropdown-select {
+  flex-basis: 100%;
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.client-bottom-button-section {
+  position: sticky;
+  bottom: 0;
+}
+
+.client-phone-body {
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 24.5px;
+}
+
+.client-phone-subtitle {
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24.5px;
+}
+
+.button-extra-large {
+  display: flex;
+  width: 207px;
+  height: 49.975px;
+  padding: 13.977px 19.568px;
+  justify-content: center;
+  align-items: center;
+  gap: 11.182px;
+  aspect-ratio: 207/49.98;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Circular Std';
+  line-height: normal;
+}
+
+h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nr {
+  font-weight: bold;
+  background-color: var(--color-text);
+  color: var(--color-background);
+  border-radius: 100%;
+  height: 1.5em;
+  width: 1.5em;
+  display: block;
+  text-align: center;
+  line-height: 1.5em;
+  flex: 0 0 auto;
+}
+
+.p-tag-label {
+  text-align: center;
+}
+header.case {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+  margin-top: 0.3rem;
+}
+header.case h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.client-h1 {
+  color: var(--color-ahs-black);
+  text-align: center;
+  font-family: 'Circular Std';
+  font-size: 45px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 42.14px;
+}
+
+.client-body {
+  color: var(--color-ahs-black);
+  text-align: center;
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 24.5px;
+}
+
+.p-checkbox-box {
+  border-width: 1px !important;
+}

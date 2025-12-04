@@ -22,8 +22,10 @@ from .api import api
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # path("admin-old/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/", api.urls),
     path("", TemplateView.as_view(template_name="index.html")),
+    path("ht/", include("health_check.urls")),
     path("<path:path>", TemplateView.as_view(template_name="index.html")),
 ]

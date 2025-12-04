@@ -9,3 +9,8 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+# node_modules
+node_modules
+node_modules/
+agent_runs/

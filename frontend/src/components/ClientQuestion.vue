@@ -1,21 +1,61 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
-import { type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
+import { defineProps, ref, computed, type ComputedRef } from 'vue'
+import { type AnswerSchema, type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
 import { Form } from '@primevue/forms'
-import { Select } from 'primevue'
+import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'
+import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.vue'
+import OpenTextQuestion from './questions/OpenTextQuestion.vue'
+import SingleChoiceTextQuestion from './questions/SingleChoiceTextQuestion.vue'
+import MultipleChoiceTextQuestion from './questions/MultipleChoiceTextQuestion.vue'
+import SingleChoiceDropdownQuestion from './questions/SingleChoiceDropdownQuestion.vue'
+import MultiChoiceMultiTextQuestion from './questions/MultiChoiceMultiTextQuestion.vue'
 
 const props = defineProps<{
   question: ClientQuestionSchema
+  index?: number
+  remote?: ComputedRef<ClientAnswerSchema | null>
+  hideTitle: boolean
 }>()
 
-function getClientAnswer(): ClientAnswerSchema {
-  // TODO: Implement logic to gather user's answer based on question format
+const questionComponentRef = ref<{ getAnswer: () => AnswerSchema } | null>(null)
+
+// Determine which component to use based on question format and options
+const questionComponent = computed(() => {
+  const format = props.question.format
+  const hasDropdowns = props.question.options?.some(
+    (option) => option.choices && option.choices.length > 0,
+  )
+
+  switch (format) {
+    case 'single choice':
+      return hasDropdowns ? SingleChoiceDropdownQuestion : SingleChoiceQuestion
+    case 'multiple choice':
+      return MultipleChoiceQuestion
+    case 'single choice + open text field':
+      return SingleChoiceTextQuestion
+    case 'multiple choice + open text field':
+      return MultipleChoiceTextQuestion
+    case 'open text field':
+    case 'long text field':
+      return OpenTextQuestion
+    case 'multiple choice + multiple open text field':
+      return MultiChoiceMultiTextQuestion
+    default:
+      console.warn(`Unknown question format: ${format}, defaulting to SingleChoiceQuestion.`)
+      return SingleChoiceQuestion
+  }
+})
+
+const showQuestionNumber = computed(() => props.question.code !== 'CONSULT-WISH')
+function getClientAnswer(): AnswerSchema {
+  if (questionComponentRef.value?.getAnswer) {
+    return questionComponentRef.value.getAnswer()
+  }
+
+  // Fallback
   return {
-    question: props.question.id!,
     choices: [],
-    texts: [],
-    created_at: new Date().toISOString(),
-    user: null,
+    questionId: props.question.id!,
   }
 }
 
@@ -26,81 +66,57 @@ defineExpose({
 
 <template>
   <Form class="client-question">
-    <p>{{ props.question.question_text }}</p>
-    <template v-if="props.question.format == 'single choice'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <RadioButton
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-        <Select
-          v-if="option.choices && option.choices.length"
-          filter
-          :options="option.choices"
-          :placeholder="'Select an option for ' + option.text"
-        />
+    <div class="question-title">
+      <div v-if="showQuestionNumber && index !== undefined" class="question-number">
+        {{ index + 1 }}
       </div>
-    </template>
-    <template v-else-if="props.question.format == 'multiple choice'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <Checkbox
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
+      <div class="question-content">
+        <p class="question-text" v-if="!hideTitle">{{ question.question_text }}</p>
+        <component :is="questionComponent" ref="questionComponentRef" :question="question" />
       </div>
-    </template>
-    <template v-else-if="props.question.format == 'multiple choice + open text field'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <Checkbox
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-        <InputText type="text" :id="'other-' + props.question.id" v-if="option.allow_text" />
-      </div>
-    </template>
-    <template v-else-if="props.question.format == 'single choice + open text field'">
-      <div
-        v-for="(option, index) in props.question.options"
-        :key="index"
-        :class="{ 'option-item': true }"
-      >
-        <RadioButton
-          :value="option"
-          :inputId="'' + option.id"
-          :name="`question-${props.question.id}`"
-        />
-        <label :for="'' + option.id">
-          {{ option.text }}
-        </label>
-        <InputText type="text" :id="'other-' + props.question.id" v-if="option.allow_text" />
-      </div>
-    </template>
-    <template v-else-if="props.question.format == 'open text field'">
-      <InputText type="text" />
-    </template>
+    </div>
   </Form>
 </template>
+
+<style scoped>
+.question-title {
+  display: flex;
+  flex-direction: row;
+  align-items: top;
+  gap: 16px;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+}
+
+.question-text {
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 22px; /* 111.111% */
+  margin-bottom: 10px;
+  margin-top: 12.5px;
+}
+
+.question-content {
+  flex: 1;
+  width: calc(100% - 40px);
+}
+
+.question-number {
+  color: var(--color-ahs-white);
+  text-align: center;
+  font-family: 'Circular Std';
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 40px;
+  border-radius: 10rem;
+  background-color: #000;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+</style>

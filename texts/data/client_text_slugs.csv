@@ -1,0 +1,148 @@
+slug,page,note,English Text
+client-welcome-greeting,Client Welcome,,"Hello,"
+client-welcome-text,Client Welcome,,Lorem
+client-welcome-start-button,Client Welcome,,Start
+client-welcome-time,Client Welcome,,Filling out the questionnaire takes approximately 15 minutes.
+client-form-next-button,Client Form,,Next
+client-form-previous-button,Client Form,,Previous
+client-form-submit-button,Client Form / Client Recap,,Submit
+client-recap-edit-button,Client Recap,,Edit
+client-phone-section-title,Client Phone Form,,Privacy
+client-phone-lead-text,Client Phone Form,,We process your personal data solely to provide you with our consultation. Your personal data is stored only for the duration of the consultation and for no longer than three months.
+client-phone-sms-header,Client Phone Form,,Mobile phone number & key
+client-phone-sms-text,Client Phone Form,,"You will receive a text message to access your test results. In your next consultation, your consultant will be able to access your previous information. You will also receive a test reminder via text message when it is appropriate. More information about our data use."
+client-phone-id-header,Client Phone Form,,Identification number (ID)
+client-phone-id-text,Client Phone Form,,"You will receive a random ID. To receive your test results, you must contact us by telephone and provide this number or login on our platform. If you lose this number, we will not be able to provide your results. In your next consultation, you will receive a new ID and no follow-up will be possible."
+client-phone-password-text,Client Phone Form,,"In both cases you need to provide a secure key to access your data. Please choose a key that you can easily remember but is difficult for others to guess (e.g. a combination of letters, numbers, and special characters). You can also use the password manager of your browser or smartphone to generate and store a secure key."
+client-phone-verification-success,Client Phone Form,"needs to have the value {phone} in it somewhere, which will be replaced by the phone number that the client entered","
+Your phone number {phone} has been verified successfully."
+client-phone-error-required,ClientPhoneNumberView,Validation error when no phone number is provided,Please enter your phone number.
+client-phone-error-invalid,ClientPhoneNumberView,API response when provided phone number is invalid,Invalid phone number. Please check and try again.
+client-phone-error-verification,ClientPhoneNumberView,Fallback error when SMS verification fails,An error occurred during verification.
+client-phone-error-key,ClientPhoneNumberView,Fallback error when saving the secure key fails,An error occurred while setting the key.
+client-phone-identification-question,ClientPhoneNumberView,Heading asking how the user wants to receive results,How would you like us to identify you for test results and follow-up?
+client-phone-consent-yes-label,ClientPhoneNumberView,Consent option label for sharing phone number,You can send me a link for my results to my mobile phone number:
+client-phone-input-label,ClientPhoneNumberView,Label above the phone number input,Phone Number
+client-phone-input-placeholder,ClientPhoneNumberView,Placeholder example for the phone number input,+41 79 123 45 67
+client-phone-verify-button,ClientPhoneNumberView,Button text to trigger SMS verification,Verify
+client-phone-countdown-label,ClientPhoneNumberView,Button label showing countdown seconds (keep short),{seconds}s
+client-phone-verification-code-label,ClientPhoneNumberView,Label referencing the destination of the verification code,Enter the Verification Code sent to {phone}
+client-phone-verification-code-input,ClientPhoneNumberView,Placeholder instructing user to enter SMS code,Enter the verification code sent to your phone
+client-phone-no-code-text,ClientPhoneNumberView,Instruction shown when the SMS code was not received,"If you did not receive the code, please check your phone number and try again."
+client-phone-resend-countdown,ClientPhoneNumberView,Message showing how long until a new code request is allowed,You can request a new code in {seconds} seconds.
+client-phone-consent-no-text,ClientPhoneNumberView,First part of the anonymous option label before the case ID,"No, i will note my Questionnaire-ID and remain completely anonymous:"
+client-phone-consent-no-followup,ClientPhoneNumberView,Second sentence of the anonymous option label after the case ID,I will check www.stay-sure.ch/results in the following days.
+client-phone-key-description,ClientPhoneNumberView,Paragraph explaining why the secure key is required,"To protect your results, please set a secure key below. You will need this key to access your test results and for any follow-up consultations. You can use the password manager of your browser or smartphone to generate and store a secure key."
+client-phone-key-label,ClientPhoneNumberView,Label displayed above the secure key input,Your secure key
+client-phone-finalize-button,ClientPhoneNumberView,Button text for finalizing the phone number step,Finalize
+client-form-summary-title,ClientFormView,Title displayed when showing the final recap,Summary
+client-form-submit-error-alert,ClientFormView,Alert shown when submitting the form fails,Error submitting form. Please try again.
+client-form-error-label,ClientFormView,Label prefix inside the error message banner,Error:
+client-done-title,ClientDoneView,Heading on the completion page,Thank You
+client-done-description,ClientDoneView,Body paragraph shown on completion page,"Lorem ipsum dolor sit amet consectetur adipisicing elit. Cupiditate fugiat facere ipsum modi ipsam repudiandae, quam quia officia est! Dignissimos eaque quaerat excepturi optio harum porro veritatis autem id corrupti."
+client-done-note,ClientDoneView,Instruction reminding the user to note their ID,Bitte notieren sie sich ihre ID-Nummer:
+client-navigation-sections-label,ClientNavigationTop,Menu title displayed before section list,Sections
+client-recap-no-answer,ClientRecapQuestion,Fallback text when a question has no stored answer,No answer
+client-question-additional-text-placeholder,ClientQuestion components,Placeholder label for free text inputs attached to options,Additional text for {option}
+client-question-select-option-placeholder,ClientQuestion components,Placeholder text for select dropdown inputs,Select an option
+visible,,,Visible
+hidden,,,Hidden
+case-notes,,Title for case not panel,Case Notes
+add-note-placeholder,,Placeholder for Textfield for notes,Enter your note
+add-note,,Label for button to add a case note,Add Note
+case-note-info,,Information text for adding a new case note,"Here you can enter a new case note, you can toggle the visibility of the note to the client after you created the note"
+view-full-history,HistoryComponent,Link text to view complete history,View Full History
+logo,InternalMenuBar,Alt text for logo image,Logo
+dashboard,InternalMenuBar,Menu button label for dashboard,Dashboard
+administration,InternalMenuBar,Menu button label for admin panel,Administration
+new-case,InternalMenuBar,Menu button label to create new case,New Case
+logout,InternalMenuBar,Link text for logout,Logout
+your-results,ClientResult,Header for results section,Your Results
+results-available-message,ClientResult,Message shown when results are not yet available,Your results are not yet available. Please check back later or contact us.
+notes,ClientResult,Panel header for notes section,Notes
+documents,ClientResult,Panel header for documents section,Documents
+call-now,LocationComponent,Button label to call location,Call Now
+opening-hours,LocationComponent,Section header for opening hours,Opening Hours
+monday,LocationComponent,Day of week label,Monday
+tuesday,LocationComponent,Day of week label,Tuesday
+wednesday,LocationComponent,Day of week label,Wednesday
+thursday,LocationComponent,Day of week label,Thursday
+friday,LocationComponent,Day of week label,Friday
+saturday,LocationComponent,Day of week label,Saturday
+sunday,LocationComponent,Day of week label,Sunday
+closed,LocationComponent,Label when location is closed,Closed
+past-visits,PastVisitsComponent,Header for past visits section,Past Visits
+create-new-case,CreateCaseView,Page title,Create New Case
+internal-id,CreateCaseView,Label for internal ID field,Internal ID
+internal-id-help,CreateCaseView,Help text for internal ID field,An internal identifier for your reference (optional).
+questionnaire,CreateCaseView,Label for questionnaire selector,Questionnaire
+location,CreateCaseView,Label for location selector,Location
+mobile-phone-number,CreateCaseView,Label for phone number field,Mobile Phone Number
+phone-number-help,CreateCaseView,Help text for phone number field,Enter the clients phone number to send the questionnaire via SMS (optional).
+create-case,CreateCaseView,Button label to create case,Create Case
+case-created-successfully,CreateCaseView,Dialog header when case is created,Case Created successfully
+case-created-message,CreateCaseView,Message shown when case is created,Case has been created successfully. Share the following link with your client:
+case-id,CreateCaseView,Label for case ID display,Case ID
+close,CreateCaseView,Button label to close dialog,Close
+open-client-questionnaire,CreateCaseView,Button label to open questionnaire,Open client questionnaire
+open-consultant-view,CreateCaseView,Button label to open consultant view,Open consultant view
+link-copied,CreateCaseView,Toast summary when link copied,Link Copied
+link-copied-detail,CreateCaseView,Toast detail when link copied,The case link has been copied to clipboard.
+search-case-client,DashboardView,Placeholder for search input,Search by Case or Client ID
+case,DashboardView,Column header for case ID,Case
+search-case-id,DashboardView,Filter placeholder for case ID,Search by case id
+internal-id-column,DashboardView,Column header for internal ID,Internal ID
+search-internal-id,DashboardView,Filter placeholder for internal ID,Search by internal id
+client,DashboardView,Column header for client ID,Client
+search-client-id,DashboardView,Filter placeholder for client ID,Search by client id
+tags,DashboardView,Column header for tags,Tags
+last-modified,DashboardView,Column header for last modified date,Last Modified
+status,DashboardView,Column header for status,Status
+location-column,DashboardView,Column header for location,Location
+case-id-title,CaseView,Page title prefix,Case-ID
+client-id,CaseView,Label for client ID field,Client ID
+case-details,CaseView,Panel header for case details,Case Details
+last-modification,CaseView,Label for last modification timestamp,Last Modification
+created-at,CaseView,Label for creation timestamp,Created At
+history,CaseView,Panel header for history,History
+copy-client-link,CaseView,Button to copy client link,Copy Client link
+client-link-copied,CaseView,Toast summary when client link copied,Client Link Copied
+client-link-copied-detail,CaseView,Toast detail when client link copied,The client link has been copied to your clipboard.
+nav-client,CaseView,Navigation label for client tab,Client
+nav-consultant,CaseView,Navigation label for consultant tab,Consultant
+nav-tests,CaseView,Navigation label for tests tab,Tests
+nav-summary,CaseView,Navigation label for summary tab,Summary
+nav-results,CaseView,Navigation label for results tab,Results
+nav-communication,CaseView,Navigation label for communication tab,Communication
+back,General,Button label to go back,Back
+select-tests,TestsView,Header for test selection,Select Tests to be Performed
+clear-selection,TestsView,Button to clear test selection,Clear Selection
+bundles,TestsView,Section header for test bundles,Bundles
+enter-custom-test,TestsView,Placeholder for custom test input,Enter custom test name
+save-selected-tests,TestsView,Button label with count placeholder,Save {count} Selected Tests
+login,LoginView,Page title and button label,Login
+username,LoginView,Label for username field,Username
+password,LoginView,Label for password field,Password
+select-2fa-device,LoginView,Label for 2FA device selector,Select 2FA Device
+enter-token,LoginView,Label for 2FA token input,Enter Token
+trust-device,LoginView,Label for remember device toggle,Trust this device
+verify-2fa,LoginView,Button to verify 2FA,Verify 2FA
+cancel,LoginView,Button to cancel login,Cancel
+client-navigation-languages-label,ClientNavigationTop,Menu label for language selection,Languages
+give-file-name,DocumentUploadComponent,Placeholder for file name input,Give the file a name
+upload,DocumentUploadComponent,Button label to upload file,Upload
+document-upload-info,DocumentUploadComponent,Info message about document uploads,"Here you can upload documents related to the tests. These documents will be visible to the client unless marked as hidden. You cannot delete documents once uploaded."
+expand-section,ConsultantSection,Title attribute for expand button,Expand section
+submit-answer,ClientQuestionConsultant,Button label to submit answer,Submit Answer
+unknown-item,HistoryItem,Fallback label for unknown item type,Unknown Item
+copy-to-clipboard,CaseSummaryView,Button label to copy content,Copy to clipboard
+next,General,Button label for next action,Next
+enter-result,ResultView,Placeholder for result input,Enter result
+submit-all-answers,ConsultantQuestionnaire,Button label to submit all answers,Submit All Answers
+show-phone-number,CommunicationView,Button to reveal phone number,Show Phone Number
+publish-results,CommunicationView,Button to publish test results,Publish Results
+reopen-case,CommunicationView,Button to reopen a closed case,Reopen case
+close-case,CommunicationView,Button to close a case,Close case
+enter-access-key,ClientResultView,Placeholder for access key input,Enter access key
+show-results,ClientResultView,Button to display results,Show Results
+load-more,CaseHistoryView,Button to load more history,Load More

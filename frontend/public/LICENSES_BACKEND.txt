@@ -1,0 +1,890 @@
+## Info
+
+- program: licensecheck
+- version: 2025.1.0
+- license: MIT LICENSE
+
+## Project License
+
+MIT LICENSE
+
+## Packages
+
+Find a list of packages below
+
+|Compatible|Package|
+|:--|:--|
+|✔|aiohappyeyeballs|
+|✔|aiohttp|
+|✔|aiohttp-retry|
+|✔|aiosignal|
+|✔|altair|
+|✔|amqp|
+|✔|annotated-types|
+|✔|asgiref|
+|✔|attrs|
+|✔|billiard|
+|✔|boto3|
+|✔|botocore|
+|✔|celery|
+|✔|certifi|
+|✔|charset-normalizer|
+|✔|click|
+|✔|click-didyoumean|
+|✔|click-plugins|
+|✔|click-repl|
+|✔|cron-descriptor|
+|✔|dataclasses-json|
+|✔|deepl|
+|✔|django|
+|✔|django-agent-trust|
+|✔|django-celery-beat|
+|✔|django-celery-results|
+|✔|django-colorfield|
+|✔|django-constance|
+|✔|django-cors-headers|
+|✔|django-crispy-forms|
+|✔|django-debug-toolbar|
+|✔|django-decorator-include|
+|✔|django-environ|
+|✔|django-health-check|
+|✔|django-model-utils|
+|✔|django-modeltranslation|
+|✔|django-ninja|
+|✔|django-otp|
+|✔|django-sesame|
+|✔|django-simple-history|
+|✔|django-storages|
+|✔|django-timezone-field|
+|✔|django-unfold|
+|✔|django-vite|
+|✔|et-xmlfile|
+|✔|exceptiongroup|
+|✔|fastexcel|
+|✔|frozenlist|
+|✔|gunicorn|
+|✔|idna|
+|✔|jinja2|
+|✔|jmespath|
+|✔|jsonschema|
+|✔|jsonschema-specifications|
+|✔|kombu|
+|✔|markupsafe|
+|✔|marshmallow|
+|✔|multidict|
+|✔|narwhals|
+|✔|numpy|
+|✔|openpyxl|
+|✔|packaging|
+|✔|pandas|
+|✔|phonenumbers|
+|✔|pillow|
+|✔|polars|
+|✔|polars-runtime-32|
+|✔|prompt-toolkit|
+|✔|propcache|
+|✔|psutil|
+|✔|psycopg2-binary|
+|✔|pydantic|
+|✔|pydantic-core|
+|✔|pyjwt|
+|✔|python-crontab|
+|✔|python-dateutil|
+|✔|pytz|
+|✔|redis|
+|✔|referencing|
+|✔|requests|
+|✔|rpds-py|
+|✔|s3transfer|
+|✔|sentry-sdk|
+|✔|six|
+|✔|sqlparse|
+|✔|twilio|
+|✔|typing-extensions|
+|✔|typing-inspect|
+|✔|typing-inspection|
+|✔|tzdata|
+|✔|tzlocal|
+|✔|urllib3|
+|✔|vine|
+|✔|wcwidth|
+|✔|whitenoise|
+|✔|xlsxwriter|
+|✔|yarl|
+
+### aiohappyeyeballs-2.6.1
+
+- HomePage: UNKNOWN
+- Author: J. Nick Koston
+- License: PYTHON SOFTWARE FOUNDATION LICENSE
+- Compatible: True
+- Size: 40336
+
+### aiohttp-3.13.2
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: APACHE-2.0;; MIT
+- Compatible: True
+- Size: 6387260
+
+### aiohttp-retry-2.9.1
+
+- HomePage: https://github.com/inyutin/aiohttp_retry
+- Author: Dmitry Inyutin
+- License: MIT LICENSE
+- Compatible: True
+- Size: 31545
+
+### aiosignal-1.4.0
+
+- HomePage: https://github.com/aio-libs/aiosignal
+- Author: UNKNOWN
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 16634
+
+### altair-6.0.0
+
+- HomePage: UNKNOWN
+- Author: Vega-Altair Contributors
+- License: BSD LICENSE
+- Compatible: True
+- Size: 5896944
+
+### amqp-5.3.1
+
+- HomePage: http://github.com/celery/py-amqp
+- Author: Barry Pederson
+- License: BSD LICENSE
+- Compatible: True
+- Size: 190369
+
+### annotated-types-0.7.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 36458
+
+### asgiref-3.10.0
+
+- HomePage: https://github.com/django/asgiref/
+- Author: Django Software Foundation
+- License: BSD LICENSE
+- Compatible: True
+- Size: 71580
+
+### attrs-23.2.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 202960
+
+### billiard-4.2.2
+
+- HomePage: https://github.com/celery/billiard
+- Author: R Oudkerk / Python Software Foundation
+- License: BSD LICENSE
+- Compatible: True
+- Size: 297483
+
+### boto3-1.35.99
+
+- HomePage: https://github.com/boto/boto3
+- Author: Amazon Web Services
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 983763
+
+### botocore-1.35.99
+
+- HomePage: https://github.com/boto/botocore
+- Author: Amazon Web Services
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 17161121
+
+### celery-5.5.3
+
+- HomePage: https://docs.celeryq.dev/
+- Author: Ask Solem
+- License: BSD LICENSE
+- Compatible: True
+- Size: 1442316
+
+### certifi-2025.11.12
+
+- HomePage: https://github.com/certifi/python-certifi
+- Author: Kenneth Reitz
+- License: MOZILLA PUBLIC LICENSE 2.0 _MPL 2.0_
+- Compatible: True
+- Size: 291228
+
+### charset-normalizer-3.4.4
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 485419
+
+### click-8.3.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD-3-CLAUSE
+- Compatible: True
+- Size: 387747
+
+### click-didyoumean-0.3.1
+
+- HomePage: https://github.com/click-contrib/click-didyoumean
+- Author: Timo Furrer
+- License: MIT LICENSE
+- Compatible: True
+- Size: 7143
+
+### click-plugins-1.1.1.2
+
+- HomePage: https://github.com/click-contrib/click-plugins
+- Author: Kevin Wurster, Sean Gillies
+- License: BSD LICENSE
+- Compatible: True
+- Size: 21013
+
+### click-repl-0.3.0
+
+- HomePage: https://github.com/untitaker/click-repl
+- Author: Markus Unterwaditzer
+- License: MIT
+- Compatible: True
+- Size: 26150
+
+### cron-descriptor-2.0.6
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 188606
+
+### dataclasses-json-0.6.7
+
+- HomePage: https://github.com/lidatong/dataclasses-json
+- Author: Charles Li
+- License: MIT LICENSE
+- Compatible: True
+- Size: 91562
+
+### deepl-1.25.0
+
+- HomePage: https://github.com/DeepLcom/deepl-python
+- Author: DeepL SE
+- License: MIT LICENSE
+- Compatible: True
+- Size: 182383
+
+### django-5.2.8
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD-3-CLAUSE
+- Compatible: True
+- Size: 22952846
+
+### django-agent-trust-1.1.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: THE UNLICENSE _UNLICENSE_
+- Compatible: True
+- Size: 25118
+
+### django-celery-beat-2.8.1
+
+- HomePage: https://github.com/celery/django-celery-beat
+- Author: Asif Saif Uddin, Ask Solem
+- License: BSD LICENSE
+- Compatible: True
+- Size: 298148
+
+### django-celery-results-2.6.0
+
+- HomePage: https://github.com/celery/django-celery-results
+- Author: Asif Saif Uddin
+- License: BSD LICENSE
+- Compatible: True
+- Size: 95800
+
+### django-colorfield-0.14.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 100902
+
+### django-constance-4.3.4
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD LICENSE
+- Compatible: True
+- Size: 124039
+
+### django-cors-headers-4.9.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 32434
+
+### django-crispy-forms-2.5
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 126840
+
+### django-debug-toolbar-6.1.0
+
+- HomePage: UNKNOWN
+- Author: Rob Hudson
+- License: BSD LICENSE
+- Compatible: True
+- Size: 846688
+
+### django-decorator-include-3.3
+
+- HomePage: https://github.com/twidi/django-decorator-include
+- Author: Jeff Kistler
+- License: BSD LICENSE
+- Compatible: True
+- Size: 12784
+
+### django-environ-0.12.0
+
+- HomePage: https://django-environ.readthedocs.org
+- Author: Daniele Faraglia
+- License: MIT LICENSE
+- Compatible: True
+- Size: 60572
+
+### django-health-check-3.20.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 52437
+
+### django-model-utils-5.0.0
+
+- HomePage: https://github.com/jazzband/django-model-utils
+- Author: Carl Meyer
+- License: BSD LICENSE
+- Compatible: True
+- Size: 106258
+
+### django-modeltranslation-0.19.17
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD-3-CLAUSE
+- Compatible: True
+- Size: 413326
+
+### django-ninja-1.5.0
+
+- HomePage: https://django-ninja.dev
+- Author: Vitaliy Kucheryaviy
+- License: MIT LICENSE
+- Compatible: True
+- Size: 8681817
+
+### django-otp-1.6.3
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: THE UNLICENSE _UNLICENSE_
+- Compatible: True
+- Size: 147757
+
+### django-sesame-3.2.3
+
+- HomePage: https://github.com/aaugustin/django-sesame
+- Author: Aymeric Augustin
+- License: BSD LICENSE
+- Compatible: True
+- Size: 47132
+
+### django-simple-history-3.10.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD LICENSE
+- Compatible: True
+- Size: 215160
+
+### django-storages-1.14.6
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD LICENSE
+- Compatible: True
+- Size: 100920
+
+### django-timezone-field-7.1
+
+- HomePage: https://github.com/mfogel/django-timezone-field/
+- Author: Mike Fogel
+- License: BSD LICENSE
+- Compatible: True
+- Size: 29137
+
+### django-unfold-0.71.0
+
+- HomePage: https://unfoldadmin.com
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 2223693
+
+### django-vite-3.1.0
+
+- HomePage: https://github.com/MrBin99/django-vite
+- Author: MrBin99
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 73965
+
+### et-xmlfile-2.0.0
+
+- HomePage: https://foss.heptapod.net/openpyxl/et_xmlfile
+- Author: See AUTHORS.txt
+- License: MIT LICENSE
+- Compatible: True
+- Size: 58364
+
+### exceptiongroup-1.3.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: -1
+
+### fastexcel-0.18.0
+
+- HomePage: https://github.com/ToucanToco/fastexcel
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 12909246
+
+### frozenlist-1.8.0
+
+- HomePage: https://github.com/aio-libs/frozenlist
+- Author: UNKNOWN
+- License: APACHE-2.0
+- Compatible: True
+- Size: 826029
+
+### gunicorn-23.0.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 267747
+
+### idna-3.11
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD-3-CLAUSE
+- Compatible: True
+- Size: 353138
+
+### jinja2-3.1.6
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD LICENSE
+- Compatible: True
+- Size: 494554
+
+### jmespath-1.0.1
+
+- HomePage: https://github.com/jmespath/jmespath.py
+- Author: James Saryerwinnie
+- License: MIT LICENSE
+- Compatible: True
+- Size: 68607
+
+### jsonschema-4.25.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 471855
+
+### jsonschema-specifications-2025.9.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 44039
+
+### kombu-5.5.4
+
+- HomePage: https://kombu.readthedocs.io
+- Author: Ask Solem
+- License: BSD LICENSE
+- Compatible: True
+- Size: 708198
+
+### markupsafe-3.0.3
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD-3-CLAUSE
+- Compatible: True
+- Size: 66266
+
+### marshmallow-3.26.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 196216
+
+### multidict-6.7.0
+
+- HomePage: https://github.com/aio-libs/multidict
+- Author: Andrew Svetlov
+- License: APACHE LICENSE 2.0
+- Compatible: True
+- Size: 899140
+
+### narwhals-2.11.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 1791177
+
+### numpy-2.3.4
+
+- HomePage: UNKNOWN
+- Author: Travis E. Oliphant et al.
+- License: BSD LICENSE
+- Compatible: True
+- Size: 57852185
+
+### openpyxl-3.1.5
+
+- HomePage: https://openpyxl.readthedocs.io
+- Author: See AUTHORS
+- License: MIT LICENSE
+- Compatible: True
+- Size: 847316
+
+### packaging-25.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: APACHE SOFTWARE LICENSE;; BSD LICENSE
+- Compatible: True
+- Size: 236486
+
+### pandas-2.3.3
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD LICENSE
+- Compatible: True
+- Size: 43279672
+
+### phonenumbers-9.0.18
+
+- HomePage: https://github.com/daviddrysdale/python-phonenumbers
+- Author: David Drysdale
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 21646773
+
+### pillow-12.0.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT-CMU
+- Compatible: True
+- Size: 19437094
+
+### polars-1.35.2
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 3865534
+
+### polars-runtime-32-1.35.2
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 133093809
+
+### prompt-toolkit-3.0.52
+
+- HomePage: UNKNOWN
+- Author: Jonathan Slenders
+- License: BSD LICENSE
+- Compatible: True
+- Size: 1380539
+
+### propcache-0.4.1
+
+- HomePage: https://github.com/aio-libs/propcache
+- Author: Andrew Svetlov
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 779223
+
+### psutil-7.1.3
+
+- HomePage: https://github.com/giampaolo/psutil
+- Author: Giampaolo Rodola
+- License: BSD-3-CLAUSE
+- Compatible: True
+- Size: 976805
+
+### psycopg2-binary-2.9.11
+
+- HomePage: https://psycopg.org/
+- Author: Federico Di Gregorio
+- License: GNU LIBRARY;; LESSER GENERAL PUBLIC LICENSE _LGPL_
+- Compatible: True
+- Size: 11402354
+
+### pydantic-2.12.4
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 1841807
+
+### pydantic-core-2.41.5
+
+- HomePage: https://github.com/pydantic/pydantic-core
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 5096732
+
+### pyjwt-2.10.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: 80374
+
+### python-crontab-3.3.0
+
+- HomePage: https://gitlab.com/doctormo/python-crontab/
+- Author: Martin Owens
+- License: LGPLV3
+- Compatible: True
+- Size: 85801
+
+### python-dateutil-2.9.0.post0
+
+- HomePage: https://github.com/dateutil/dateutil
+- Author: Gustavo Niemeyer
+- License: APACHE SOFTWARE LICENSE;; BSD LICENSE
+- Compatible: True
+- Size: 439501
+
+### pytz-2025.2
+
+- HomePage: http://pythonhosted.org/pytz
+- Author: Stuart Bishop
+- License: MIT LICENSE
+- Compatible: True
+- Size: 957583
+
+### redis-5.2.1
+
+- HomePage: https://github.com/redis/redis-py
+- Author: Redis Inc.
+- License: MIT LICENSE
+- Compatible: True
+- Size: 1105971
+
+### referencing-0.37.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 113788
+
+### requests-2.32.5
+
+- HomePage: https://requests.readthedocs.io
+- Author: Kenneth Reitz
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 202504
+
+### rpds-py-0.28.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 1053874
+
+### s3transfer-0.10.4
+
+- HomePage: https://github.com/boto/s3transfer
+- Author: Amazon Web Services
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 306915
+
+### sentry-sdk-2.44.0
+
+- HomePage: https://github.com/getsentry/sentry-python
+- Author: Sentry Team and Contributors
+- License: BSD LICENSE
+- Compatible: True
+- Size: 1403350
+
+### six-1.17.0
+
+- HomePage: https://github.com/benjaminp/six
+- Author: Benjamin Peterson
+- License: MIT LICENSE
+- Compatible: True
+- Size: 37542
+
+### sqlparse-0.5.3
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: BSD LICENSE
+- Compatible: True
+- Size: 139676
+
+### twilio-9.8.6
+
+- HomePage: https://github.com/twilio/twilio-python/
+- Author: Twilio
+- License: MIT LICENSE
+- Compatible: True
+- Size: 11788547
+
+### typing-extensions-4.15.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: PSF-2.0
+- Compatible: True
+- Size: 177708
+
+### typing-inspect-0.9.0
+
+- HomePage: https://github.com/ilevkivskyi/typing_inspect
+- Author: Ivan Levkivskyi
+- License: MIT LICENSE
+- Compatible: True
+- Size: 30933
+
+### typing-inspection-0.4.2
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 52832
+
+### tzdata-2025.2
+
+- HomePage: https://github.com/python/tzdata
+- Author: Python Software Foundation
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 528259
+
+### tzlocal-5.3.1
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT LICENSE
+- Compatible: True
+- Size: -1
+
+### urllib3-2.5.0
+
+- HomePage: UNKNOWN
+- Author: UNKNOWN
+- License: MIT
+- Compatible: True
+- Size: 421374
+
+### vine-5.1.0
+
+- HomePage: https://github.com/celery/vine
+- Author: Ask Solem
+- License: BSD LICENSE
+- Compatible: True
+- Size: 22234
+
+### wcwidth-0.2.14
+
+- HomePage: https://github.com/jquast/wcwidth
+- Author: Jeff Quast
+- License: MIT LICENSE
+- Compatible: True
+- Size: 571556
+
+### whitenoise-6.11.0
+
+- HomePage: UNKNOWN
+- Author: David Evans
+- License: MIT
+- Compatible: True
+- Size: 52855
+
+### xlsxwriter-3.2.9
+
+- HomePage: https://github.com/jmcnamara/XlsxWriter
+- Author: John McNamara
+- License: BSD LICENSE
+- Compatible: True
+- Size: 848434
+
+### yarl-1.22.0
+
+- HomePage: https://github.com/aio-libs/yarl
+- Author: Andrew Svetlov
+- License: APACHE SOFTWARE LICENSE
+- Compatible: True
+- Size: 1348685
+

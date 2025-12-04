@@ -1,15 +1,31 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from sure.client_service import (canonicalize_phone_number, connect_case,
-                                 create_case, create_visit, generate_token,
-                                 get_case_link, get_cases, get_client_by_id,
-                                 record_client_answers,
-                                 verify_access_to_location, verify_token)
-from sure.models import (Client, ClientQuestion, ConsentChoice, Contact,
-                         Questionnaire, Section, Token, VisitStatus)
+from sure.client_service import (
+    canonicalize_phone_number,
+    connect_case,
+    create_case,
+    create_visit,
+    generate_token,
+    get_case_link,
+    get_cases,
+    get_client_by_id,
+    location_can_view_case,
+    record_client_answers,
+    verify_access_to_location,
+)
+from sure.models import (
+    Client,
+    ClientQuestion,
+    ConsentChoice,
+    Contact,
+    Questionnaire,
+    Section,
+    Token,
+    VisitStatus,
+)
 from sure.schema import AnswerSchema, ChoiceSchema
-from tenants.models import Tenant
+from tenants.models import Consultant, Tenant
 
 
 class CaseManagementTest(TestCase):
@@ -21,7 +37,14 @@ class CaseManagementTest(TestCase):
             owner=owner,
         )
         tenant.admins.add(owner)
+        consultant = Consultant.objects.create(
+            tenant=tenant,
+            user=owner,
+        )
         location = tenant.locations.create(name="Test Location")
+        consultant.locations.set([location])
+        self.case = create_case(location.pk, owner)
+
         self.location = location
 
     def test_canonicalize_phone_number(self):
@@ -43,7 +66,7 @@ class CaseManagementTest(TestCase):
 
     def test_generate_token(self):
         phone_number = "+41797360516"
-        token = generate_token(phone_number)
+        token = generate_token(phone_number, self.case)
         contact = Contact.objects.filter(
             phone_number=canonicalize_phone_number(phone_number)
         ).first()
@@ -55,22 +78,10 @@ class CaseManagementTest(TestCase):
         contact = Contact.objects.get(phone_number=phone_number)
         self.assertTrue(contact.tokens.filter(token=token.token).exists())
 
-    def test_verify_token(self):
-        phone_number = "+41797360516"
-        _, token = generate_token(phone_number)
-
-        contact = verify_token(token, phone_number, use=False)
-
-        self.assertIsNotNone(contact)
-        assert contact is not None
-        self.assertEqual(contact.phone_number, canonicalize_phone_number(phone_number))
-
-        self.assertIsNone(contact.tokens.get(token=token).used_at)
-
     def test_connect_case(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case)
 
         connection = connect_case(
             case, phone_number, token, consent=ConsentChoice.ALLOWED
@@ -94,7 +105,7 @@ class CaseManagementTest(TestCase):
     def test_connect_case_no_consent(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case)
 
         with self.assertRaises(ValueError):
             connect_case(case, phone_number, token, consent=ConsentChoice.DENIED)
@@ -102,7 +113,7 @@ class CaseManagementTest(TestCase):
     def test_connect_case_invalid_token(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)
-        generate_token(phone_number)
+        generate_token(phone_number, case)
 
         with self.assertRaises(ValueError):
             connect_case(
@@ -136,7 +147,9 @@ class CaseManagementTest(TestCase):
     def test_record_client_answers(self):
         # Build a minimal questionnaire with one client question
         questionnaire = Questionnaire.objects.create(name="Q with client question")
-        section = Section.objects.create(questionnaire=questionnaire, order=0, title="S")
+        section = Section.objects.create(
+            questionnaire=questionnaire, order=0, title="S"
+        )
         client_question = ClientQuestion.objects.create(
             section=section, question_text="How are you?", code="Q1", order=0
         )
@@ -159,18 +172,18 @@ class CaseManagementTest(TestCase):
         ca = visit.client_answers.first()
         assert ca is not None
         self.assertEqual(ca.choices, [1])
-        self.assertEqual(ca.texts, ["fine"]) 
+        self.assertEqual(ca.texts, ["fine"])
 
     def test_get_cases(self):
         case1 = create_case(self.location.pk, self.user)
         case2 = create_case(self.location.pk, self.user)
         phone_number = "+41797360516"
 
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case1)
 
         connect_case(case1, phone_number, token, consent=ConsentChoice.ALLOWED)
 
-        _, token = generate_token(phone_number)
+        _, token = generate_token(phone_number, case2)
         connect_case(case2, phone_number, token, consent=ConsentChoice.ALLOWED)
 
         contact = Contact.objects.get(phone_number=phone_number)
@@ -181,3 +194,30 @@ class CaseManagementTest(TestCase):
         self.assertEqual(len(cases), 2)
         self.assertIn(case1, cases)
         self.assertIn(case2, cases)
+
+    def test_case_access(self):
+        case1 = create_case(self.location.pk, self.user)
+
+        phone_number = "+41797360516"
+
+        new_location = self.location.tenant.locations.create(name="Other Location")
+
+        other_user = User.objects.create_user(username="other")
+        other_consultant = Consultant.objects.create(
+            tenant=self.location.tenant,
+            user=other_user,
+        )
+        other_consultant.locations.set([new_location])
+
+        case2 = create_case(new_location.pk, other_user)
+
+        self.assertFalse(location_can_view_case([new_location.pk], case1))
+        self.assertFalse(location_can_view_case([self.location.pk], case2))
+
+        _, token = generate_token(phone_number, case1)
+        connect_case(case1, phone_number, token, consent=ConsentChoice.ALLOWED)
+        _, token = generate_token(phone_number, case2)
+        connect_case(case2, phone_number, token, consent=ConsentChoice.ALLOWED)
+
+        self.assertTrue(location_can_view_case([new_location.pk], case1))
+        self.assertTrue(location_can_view_case([self.location.pk], case2))

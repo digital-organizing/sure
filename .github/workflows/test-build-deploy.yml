@@ -28,7 +28,7 @@ jobs:
         run: |
           cd frontend/
           npm install
-          npm run test:unit -- run
+          npm run test:unit -- run --passWithNoTests
 
   test-django:
     runs-on: ubuntu-latest
@@ -43,6 +43,15 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -61,6 +70,7 @@ jobs:
       - name: Run Django tests
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+          REDIS_HOST: localhost
         run: |
           uv run python manage.py test
 

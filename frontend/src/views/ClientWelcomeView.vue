@@ -42,7 +42,6 @@ const langMenuItems = computed(() =>
 function toggleMenu(event: Event) {
   langMenu.value.toggle(event)
 }
-
 </script>
 
 <template>
@@ -84,11 +83,21 @@ function toggleMenu(event: Event) {
     </div>
     <div id="client-welcome-ahs-logo-footer">
       <div class="client-welcome-footer-logo">
-        <Button id="lang-btn" type="button" label="Language" severity="primary" @click="toggleMenu" aria-haspopup="true" aria-controls="overlay_menu" rounded><IconWorld/></Button>
-        <Menu ref="langMenu" id="overlay_menu" :model="langMenuItems" :popup="true"/>
+        <Button
+          id="lang-btn"
+          type="button"
+          label="Language"
+          severity="primary"
+          @click="toggleMenu"
+          aria-haspopup="true"
+          aria-controls="overlay_menu"
+          rounded
+          ><IconWorld
+        /></Button>
+        <Menu ref="langMenu" id="overlay_menu" :model="langMenuItems" :popup="true" />
       </div>
       <div class="client-welcome-footer-logo">
-        <img src="/logo.png" height="60px"/>
+        <img src="/logo.png" height="60px" />
       </div>
     </div>
   </div>

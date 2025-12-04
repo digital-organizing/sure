@@ -6,6 +6,8 @@ import InternalMenuBar from './components/InternalMenuBar.vue'
 import { useTitle } from '@vueuse/core'
 import { useTexts } from './composables/useTexts'
 import { usePrimeVue } from 'primevue/config'
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 
 const primevue = usePrimeVue()
 
@@ -40,7 +42,7 @@ onMounted(() => {
   <InternalMenuBar v-if="account.verified && showInternalMenu" />
   <Toast />
   <ConfirmDialog></ConfirmDialog>
-  <RouterView />
+  <RouterView :key="$route.fullPath" />
   <footer>
     <div class="container">
       <div class="left">

@@ -14,3 +14,5 @@ wheels/
 node_modules
 node_modules/
 agent_runs/
+
+static/

@@ -205,9 +205,6 @@ DJANGO_VITE = {
     }
 }
 
-if DJANGO_VITE["default"]["dev_mode"]:
-    STATICFILES_DIRS.insert(0, BASE_DIR / "frontend")
-
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

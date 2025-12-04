@@ -28,7 +28,6 @@ declare module 'vue' {
     ClientResult: typeof import('./src/components/ClientResult.vue')['default']
     ClientSection: typeof import('./src/components/ClientSection.vue')['default']
     Column: typeof import('primevue/column')['default']
-    ConfirmDialog: typeof import('primevue/confirmdialog')['default']
     ConsultantQuestion: typeof import('./src/components/ConsultantQuestion.vue')['default']
     ConsultantSection: typeof import('./src/components/ConsultantSection.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
@@ -85,7 +84,6 @@ declare module 'vue' {
     Tag: typeof import('primevue/tag')['default']
     TestResultItem: typeof import('./src/components/TestResultItem.vue')['default']
     Textarea: typeof import('primevue/textarea')['default']
-    Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
 }

@@ -11,6 +11,19 @@ import CommunicationView from '@/views/consultant/case/CommunicationView.vue'
 import CaseHistoryView from '@/views/consultant/case/CaseHistoryView.vue'
 import CreateCaseView from '@/views/consultant/CreateCaseView.vue'
 import SupportView from '@/views/consultant/SupportView.vue'
+import AboutView from '@/views/AboutView.vue'
+import PrivacyView from '@/views/PrivacyView.vue'
+import ClientWelcomeView from '@/views/ClientWelcomeView.vue'
+import ClientFormView from '@/views/ClientFormView.vue'
+import ClientPhoneNumberView from '@/views/ClientPhoneNumberView.vue'
+import ClientDoneView from '@/views/ClientDoneView.vue'
+import ClientResultView from '@/views/ClientResultView.vue'
+import AccountView from '@/views/user/AccountView.vue'
+import LoginView from '@/views/user/LoginView.vue'
+import LogoutView from '@/views/user/LogoutView.vue'
+import SetupView from '@/views/user/SetupView.vue'
+import Setup2FaView from '@/views/user/Setup2FaView.vue'
+import CaseSummaryView from '@/views/consultant/case/CaseSummaryView.vue'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -26,17 +39,17 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      component: AboutView,
     },
     {
       path: '/privacy',
       name: 'privacy',
-      component: () => import('../views/PrivacyView.vue'),
+      component: PrivacyView,
     },
     {
       path: '/client/:caseId',
       name: 'client-start',
-      component: () => import('../views/ClientWelcomeView.vue'),
+      component: ClientWelcomeView,
       props: true,
       meta: {
         showInternalMenu: false,
@@ -45,7 +58,7 @@ const router = createRouter({
     {
       path: '/client/:caseId/form',
       name: 'client-form',
-      component: () => import('../views/ClientFormView.vue'),
+      component: ClientFormView,
       props: true,
       meta: {
         showInternalMenu: false,
@@ -54,7 +67,7 @@ const router = createRouter({
     {
       path: '/client/:caseId/phone',
       name: 'client-phone',
-      component: () => import('../views/ClientPhoneNumberView.vue'),
+      component: ClientPhoneNumberView,
       props: true,
       meta: {
         showInternalMenu: false,
@@ -63,7 +76,7 @@ const router = createRouter({
     {
       path: '/client/:caseId/done',
       name: 'client-done',
-      component: () => import('../views/ClientDoneView.vue'),
+      component: ClientDoneView,
       props: (route) => ({
         caseId: route.params.caseId as string,
         showCaseId: route.query.showCaseId === 'true',
@@ -75,7 +88,7 @@ const router = createRouter({
     {
       path: '/results',
       name: 'results',
-      component: () => import('../views/ClientResultView.vue'),
+      component: ClientResultView,
       meta: {
         showInternalMenu: false,
       },
@@ -83,12 +96,12 @@ const router = createRouter({
     {
       path: '/account',
       name: 'account',
-      component: () => import('../views/user/AccountView.vue'),
+      component: AccountView,
       children: [
         {
           path: '/login',
           name: 'login',
-          component: () => import('../views/user/LoginView.vue'),
+          component: LoginView,
           meta: {
             doNotRedirectToLogin: true,
           },
@@ -96,12 +109,12 @@ const router = createRouter({
         {
           path: '/logout',
           name: 'logout',
-          component: () => import('../views/user/LogoutView.vue'),
+          component: LogoutView,
         },
         {
           path: '/setup',
           name: 'setup',
-          component: () => import('../views/user/SetupView.vue'),
+          component: SetupView,
           meta: {
             doNotRedirectToLogin: true,
           },
@@ -109,7 +122,7 @@ const router = createRouter({
         {
           path: '/setup-2fa',
           name: 'setup-2fa',
-          component: () => import('../views/user/Setup2FaView.vue'),
+          component: Setup2FaView,
         },
       ],
     },
@@ -147,7 +160,7 @@ const router = createRouter({
             {
               path: 'summary',
               name: 'consultant-case-summary',
-              component: () => import('@/views/consultant/case/CaseSummaryView.vue'),
+              component: CaseSummaryView,
               props: true,
             },
             {

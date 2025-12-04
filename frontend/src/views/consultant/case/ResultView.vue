@@ -234,7 +234,7 @@ function onBack() {
   padding-left: 2.5rem;
   padding-right: 1rem;
   gap: 1rem;
-  height: 45px;
+  min-height: 45px;
 }
 .missing-warning {
   margin-top: 1rem;

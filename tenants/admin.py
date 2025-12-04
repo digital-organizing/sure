@@ -30,7 +30,7 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
     search_fields = ("name", "tenant__name")
 
     autocomplete_fields = ("tenant",)
-    filter_horizontal = ("excluded_questions",)
+    filter_horizontal = ("excluded_questions", "included_questions")
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Location]:
         if request.user.is_superuser:

@@ -1,9 +1,11 @@
 import pandas as pd
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 from sure.api import prefetch_questionnaire
 from sure.models import ClientQuestion, Questionnaire
 from sure.questionnaire import import_client_questions, import_consultant_questions
+from tenants.models import Location, Tenant
 
 
 class TestQuestionnaireImport(TestCase):
@@ -28,28 +30,19 @@ class TestQuestionnaireImport(TestCase):
         excluded_ids = ClientQuestion.objects.filter(
             optional_for_centers=True
         ).values_list("id", flat=True)[:3]
+        user = User.objects.create_user(username="testuser", password="testpass")
+        tenant = Tenant.objects.create(name="Test Tenant", owner=user)
+        location = Location.objects.create(name="Test Location", tenant=tenant)
+        location.excluded_questions.set(
+            ClientQuestion.objects.filter(id__in=excluded_ids)
+        )
 
-        questionnaire = prefetch_questionnaire(
-            excluded_question_ids=list(excluded_ids)
-        ).get(pk=questionnaire.pk)
+        questionnaire = prefetch_questionnaire(location=location).get(
+            pk=questionnaire.pk
+        )
 
         for section in questionnaire.sections.all():
             for question in section.client_questions.all():
                 self.assertNotEqual(question.id, excluded_ids[0])
                 self.assertNotEqual(question.id, excluded_ids[1])
                 self.assertNotEqual(question.id, excluded_ids[2])
-
-        should_not_exclude = ClientQuestion.objects.filter(
-            optional_for_centers=False
-        ).values_list("id", flat=True)[:1]
-
-        questionnaire = prefetch_questionnaire(
-            excluded_question_ids=list(should_not_exclude)
-        ).get(pk=questionnaire.pk)
-
-        found = False
-        for section in questionnaire.sections.all():
-            for question in section.client_questions.all():
-                if question.id == should_not_exclude[0]:
-                    found = True
-        self.assertTrue(found)

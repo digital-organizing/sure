@@ -114,6 +114,15 @@ class Location(models.Model):
         limit_choices_to={"optional_for_centers": True},
     )
 
+    included_questions = models.ManyToManyField(
+        "sure.ClientQuestion",
+        blank=True,
+        related_name="included_in_centers",
+        verbose_name=_("Included Questions at this center."),
+        help_text=_("These questions will be asked for cases at this center."),
+        limit_choices_to={"extra_for_centers": True},
+    )
+
     def get_next_opening(
         self, from_datetime: datetime.datetime
     ) -> datetime.datetime | None:

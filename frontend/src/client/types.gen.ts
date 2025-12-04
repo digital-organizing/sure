@@ -2446,58 +2446,6 @@ export type SureApiCreateCaseViewResponses = {
 
 export type SureApiCreateCaseViewResponse = SureApiCreateCaseViewResponses[keyof SureApiCreateCaseViewResponses];
 
-export type SureApiGetQuestionnaireData = {
-    body?: never;
-    path: {
-        /**
-         * Pk
-         */
-        pk: number;
-    };
-    query?: {
-        /**
-         * Lang
-         */
-        lang?: string | null;
-    };
-    url: '/api/sure/questionnaires/{pk}/';
-};
-
-export type SureApiGetQuestionnaireResponses = {
-    /**
-     * OK
-     */
-    200: QuestionnaireSchema;
-};
-
-export type SureApiGetQuestionnaireResponse = SureApiGetQuestionnaireResponses[keyof SureApiGetQuestionnaireResponses];
-
-export type SureApiGetInternalQuestionnaireData = {
-    body?: never;
-    path: {
-        /**
-         * Pk
-         */
-        pk: number;
-    };
-    query?: {
-        /**
-         * Lang
-         */
-        lang?: string | null;
-    };
-    url: '/api/sure/internal/questionnaires/{pk}/';
-};
-
-export type SureApiGetInternalQuestionnaireResponses = {
-    /**
-     * OK
-     */
-    200: InternalQuestionnaireSchema;
-};
-
-export type SureApiGetInternalQuestionnaireResponse = SureApiGetInternalQuestionnaireResponses[keyof SureApiGetInternalQuestionnaireResponses];
-
 export type SureApiListCasesData = {
     body: CaseFilters;
     path?: never;

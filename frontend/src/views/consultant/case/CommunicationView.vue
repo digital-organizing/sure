@@ -50,9 +50,6 @@ function onBack() {
 function onPublishResults() {
   publishResults()
 }
-function onCaseClosed() {
-  setCaseStatus('results_seen')
-}
 
 function makeCall(number: string) {
   window.open(`tel:${number}`, '_self')

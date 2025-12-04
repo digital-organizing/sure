@@ -1,4 +1,4 @@
-from django.db.models import F, OuterRef, Prefetch, QuerySet, Subquery
+from django.db.models import F, OuterRef, Prefetch, QuerySet, Subquery, Q
 from django.db.models.functions import Greatest
 from django.utils.timezone import make_naive
 
@@ -17,7 +17,7 @@ from sure.models import (
     Visit,
     VisitStatus,
 )
-from tenants.models import Tenant
+from tenants.models import Location, Tenant
 
 
 def annotate_last_modified(queryset: QuerySet[Visit]) -> QuerySet[Visit]:
@@ -80,15 +80,16 @@ def annotate_latest_result(queryset: QuerySet[Test]) -> QuerySet[Test]:
     return queryset.annotate(latest_result=Subquery(latest_result_subquery[:1]))
 
 
-def prefetch_questionnaire(internal=False, excluded_question_ids=None):
+def prefetch_questionnaire(location: Location, internal=False):
     client_questions_qs = ClientQuestion.objects.order_by("order").prefetch_related(
         Prefetch("options", queryset=ClientOption.objects.order_by("order"))
     )
+    excluded_question_ids = location.excluded_questions.values_list("id", flat=True)
+    included_question_ids = location.included_questions.values_list("id", flat=True)
 
-    if excluded_question_ids:
-        client_questions_qs = client_questions_qs.exclude(
-            id__in=excluded_question_ids, optional_for_centers=True
-        )
+    client_questions_qs = client_questions_qs.exclude(
+        id__in=excluded_question_ids, optional_for_centers=True
+    ).filter(Q(extra_for_centers=False) | Q(id__in=included_question_ids))
 
     query = Questionnaire.objects.prefetch_related(
         Prefetch(

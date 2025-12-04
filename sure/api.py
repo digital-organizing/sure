@@ -109,9 +109,7 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
         }
 
     location = visit.case.location
-    excluded_ids = location.excluded_questions.values_list("id", flat=True)
-
-    questionnaire = prefetch_questionnaire(excluded_question_ids=excluded_ids).get(
+    questionnaire = prefetch_questionnaire(location=location, internal=False).get(
         pk=visit.questionnaire.pk
     )
 
@@ -172,7 +170,9 @@ def get_case_internal(request, pk: str):
     """Get the internal questionnaire associated with a case."""
     visit = get_case(request, pk)
 
-    questionnaire = prefetch_questionnaire(internal=True).get(pk=visit.questionnaire.pk)
+    questionnaire = prefetch_questionnaire(visit.case.location, internal=True).get(
+        pk=visit.questionnaire.pk
+    )
 
     return questionnaire
 
@@ -560,22 +560,6 @@ def create_case_view(request, data: CreateCaseSchema):
             )
 
     return CreateCaseResponse(link=link, case_id=case.human_id)
-
-
-@router.get("/questionnaires/{pk}/", response=QuestionnaireSchema, auth=None)
-@inject_language
-def get_questionnaire(request, pk: int):  # pylint: disable=unused-argument
-    """Get a questionnaire by its ID."""
-    questionnaire = prefetch_questionnaire().get(pk=pk)
-    return questionnaire
-
-
-@router.get("/internal/questionnaires/{pk}/", response=InternalQuestionnaireSchema)
-@inject_language
-def get_internal_questionnaire(request, pk: int):  # pylint: disable=unused-argument
-    """Get a questionnaire by its ID, including consultant questions."""
-    questionnaire = prefetch_questionnaire(internal=True).get(pk=pk)
-    return questionnaire
 
 
 @router.post("/cases/", response=list[CaseListingSchema])

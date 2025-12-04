@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_hotp",
     "django_otp.plugins.otp_static",
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -101,6 +102,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
     "guard.middleware.NotFoundRateLimitMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -317,6 +319,7 @@ SESAME_MAX_AGE = env.int("SESAME_MAX_AGE", default=60 * 60 * 24)  # 1 day in sec
 
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "sesame.backends.ModelBackend",
 ]
@@ -384,3 +387,8 @@ CSRF_COOKIE_SAMESITE = "Lax"
 MAX_KEY_LENGTH = env.int("MAX_KEY_LENGTH", default=512)
 
 DEEPL_API_KEY = env.str("DEEPL_API_KEY", default="")
+
+SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=0 if DEBUG else 3600)
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=not DEBUG)
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

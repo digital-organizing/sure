@@ -4,7 +4,6 @@ import datetime
 
 import simple_history
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
@@ -150,7 +149,6 @@ class Location(models.Model):
         return None
 
     history = HistoricalRecords()
-
 
     def __str__(self) -> str:
         return f"{self.name} ({self.tenant.name}, {self.pk})"

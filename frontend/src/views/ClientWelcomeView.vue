@@ -1,20 +1,48 @@
 <script setup lang="ts">
 import IconRightArrow from '@/components/icons/IconRightArrow.vue'
 import IconClock from '@/components/icons/IconClock.vue'
+import IconWorld from '@/components/icons/IconWorld.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import router from '@/router'
 import { useTexts } from '@/composables/useTexts'
-import ClientLogoFooter from '@/components/ClientLogoFooter.vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   caseId: string
 }>()
 
-const { getText: t } = useTexts()
+const { getText: t, getAvailableLanguages, setLanguage, language: selectedLanguage } = useTexts()
 
 function onStart() {
   router.push({ name: 'client-form', params: { caseId: props.caseId } })
 }
+
+const langMenu = ref()
+const availableLanguages = ref<[string, string][]>([])
+const currentLanguage = computed(() => selectedLanguage.value)
+
+getAvailableLanguages().then((languages) => {
+  if (!languages) return
+  availableLanguages.value = languages
+})
+
+async function selectLanguage(lang: string) {
+  if (currentLanguage.value === lang) return
+  await setLanguage(lang)
+}
+
+const langMenuItems = computed(() =>
+  availableLanguages.value.map(([code, name]) => ({
+    label: name,
+    ...(currentLanguage.value === code ? { icon: 'pi pi-check' } : {}),
+    command: () => selectLanguage(code),
+  })),
+)
+
+function toggleMenu(event: Event) {
+  langMenu.value.toggle(event)
+}
+
 </script>
 
 <template>
@@ -55,12 +83,27 @@ function onStart() {
       </div>
     </div>
     <div id="client-welcome-ahs-logo-footer">
-      <ClientLogoFooter />
+      <div class="client-welcome-footer-logo">
+        <Button id="lang-btn" type="button" label="Language" severity="primary" @click="toggleMenu" aria-haspopup="true" aria-controls="overlay_menu" rounded><IconWorld/></Button>
+        <Menu ref="langMenu" id="overlay_menu" :model="langMenuItems" :popup="true"/>
+      </div>
+      <div class="client-welcome-footer-logo">
+        <img src="/logo.png" height="60px"/>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.client-welcome-footer-logo {
+  width: 100%;
+  padding: 0px 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .client-form-view {
   display: flex;
   min-height: 100vh;
@@ -112,5 +155,11 @@ function onStart() {
 
 #client-welcome-ahs-logo-footer {
   margin-top: auto;
+}
+
+#lang-btn {
+  height: 28.5px;
+  padding: 5.25px 8.75px;
+  /* margin-bottom: 20px; */
 }
 </style>

@@ -37,6 +37,17 @@ async function selectLanguage(lang: string) {
 const menuItems = computed(() => {
   const items = []
 
+  if (availableLanguages.value.length) {
+    items.push({
+      label: languagesLabel.value,
+      items: availableLanguages.value.map(([code, name]) => ({
+        label: name,
+        ...(currentLanguage.value === code ? { icon: 'pi pi-check' } : {}),
+        command: () => selectLanguage(code),
+      })),
+    })
+  }
+
   if (!props.languageSelectorOnly && props.sections?.length) {
     const sectionItems = props.sections.map((section, index) => ({
       label: section.title,
@@ -51,17 +62,6 @@ const menuItems = computed(() => {
     items.push({
       label: sectionsLabel.value,
       items: sectionItems,
-    })
-  }
-
-  if (availableLanguages.value.length) {
-    items.push({
-      label: languagesLabel.value,
-      items: availableLanguages.value.map(([code, name]) => ({
-        label: name,
-        ...(currentLanguage.value === code ? { icon: 'pi pi-check' } : {}),
-        command: () => selectLanguage(code),
-      })),
     })
   }
 

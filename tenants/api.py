@@ -8,6 +8,7 @@ from sure.models import Case
 from tenants.models import Tag
 from tenants.schema import (
     BannerSchema,
+    Consultant,
     LocationSchema,
     TagSchema,
     TenantSchema,
@@ -47,8 +48,7 @@ def get_location_by_id(request, case_id):
 @router.get("/consultants/{pk}/", response=UserSchema)
 def get_consultant(request, pk: int):
     # Logic to retrieve and return a consultant by primary key
-    queryset = request.user.consultant.tenant.consultants.select_related("user")
-    consultant = get_object_or_404(queryset, pk=pk)
+    consultant = get_object_or_404(Consultant.objects.all(), pk=pk)
     return consultant.user
 
 

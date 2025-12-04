@@ -1,6 +1,6 @@
 import pandas as pd
-from django.test import TestCase
 from django.contrib.auth.models import User
+from django.test import TestCase
 
 from sure.api import prefetch_questionnaire
 from sure.models import ClientQuestion, Questionnaire

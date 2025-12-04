@@ -5,7 +5,7 @@ from ninja import Router
 
 from sure.client_service import strip_id
 from sure.models import Case
-from tenants.models import Tag
+from tenants.models import Tag, Consultant
 from tenants.schema import (
     BannerSchema,
     LocationSchema,
@@ -47,8 +47,7 @@ def get_location_by_id(request, case_id):
 @router.get("/consultants/{pk}/", response=UserSchema)
 def get_consultant(request, pk: int):
     # Logic to retrieve and return a consultant by primary key
-    queryset = request.user.consultant.tenant.consultants.select_related("user")
-    consultant = get_object_or_404(queryset, pk=pk)
+    consultant = get_object_or_404(Consultant.objects.all(), pk=pk)
     return consultant.user
 
 

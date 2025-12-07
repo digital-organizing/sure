@@ -627,10 +627,6 @@ export type FlatTestSchema = {
  */
 export type LogEntrySchema = {
     /**
-     * User
-     */
-    user: number;
-    /**
      * Created At
      */
     created_at: string;
@@ -642,6 +638,11 @@ export type LogEntrySchema = {
      * ID
      */
     id?: number | null;
+    /**
+     * User
+     * The user who performed the action
+     */
+    user?: number | null;
 };
 
 /**

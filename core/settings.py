@@ -21,6 +21,7 @@ env = Env()
 sentry_sdk.init(
     dsn="https://f23eef026dedb9d752fc45fc961f71a0@sentry.d-o.li/5",
     send_default_pii=True,
+    traces_sample_rate=1.0,
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

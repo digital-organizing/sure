@@ -101,9 +101,9 @@ def logout_view(request, forget: Form[bool] = False):
     response={200: LoginResponse, 400: list[str], 401: LoginResponse},
 )
 def set_initial_password(
-    request, sesame: Form[str], email: Form[str], new_password: Form[str]
+    request, sesame: str, email: Form[str], new_password: Form[str]
 ):
-    user = get_user(sesame, scope=f"setup_account:{email}")
+    user = get_user(request, scope=f"setup_account:{email}")
     if user is None:
         return api.create_response(
             request,

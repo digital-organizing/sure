@@ -47,7 +47,7 @@ def get_location_by_id(request, case_id):
 @router.get("/consultants/{pk}/", response=UserSchema)
 def get_consultant(request, pk: int):
     # Logic to retrieve and return a consultant by primary key
-    consultant = get_object_or_404(Consultant.objects.all(), pk=pk)
+    consultant = get_object_or_404(Consultant.objects.all(), user_id=pk)
     return consultant.user
 
 

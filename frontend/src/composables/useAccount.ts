@@ -46,7 +46,8 @@ export const useAccount = createGlobalState(() => {
     loading.value = true
     error.value = null
     const response = await coreApiSetInitialPassword({
-      body: { new_password: password, sesame: sesame, email: email },
+      body: { new_password: password, email: email },
+      query: { sesame: sesame },
     })
     if (response === null) {
       return null

@@ -1381,10 +1381,6 @@ export type CoreApiSetInitialPasswordData = {
      */
     body: {
         /**
-         * Sesame
-         */
-        sesame: string;
-        /**
          * Email
          */
         email: string;
@@ -1394,7 +1390,12 @@ export type CoreApiSetInitialPasswordData = {
         new_password: string;
     };
     path?: never;
-    query?: never;
+    query: {
+        /**
+         * Sesame
+         */
+        sesame: string;
+    };
     url: '/api/auth/set-initial-password';
 };
 

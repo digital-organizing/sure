@@ -1,5 +1,6 @@
 """Admin configuration for the tenants app."""
 
+from unfold.decorators import action
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
@@ -53,10 +54,30 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     actions = ["reset_password", "reset_2fa"]
 
+    actions_detail = ["reset_password_detail", "reset_2fa_detail"]
+
     def get_queryset(self, request: HttpRequest) -> QuerySet[Consultant]:
         if request.user.is_superuser:
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
+
+    @action(description="Reset password")
+    def reset_password_detail(
+        self, request: HttpRequest, consultant: Consultant
+    ) -> None:
+        """Admin action to reset password for a single consultant."""
+        user = consultant.user
+        user.set_unusable_password()
+        user.save()
+        send_reset_mail(request, consultant)
+
+    @action(description="Reset 2FA")
+    def reset_2fa_detail(self, request: HttpRequest, consultant: Consultant) -> None:
+        """Admin action to reset 2FA for a single consultant."""
+        user = consultant.user
+        for device in devices_for_user(user):
+            device.delete()
+        send_2fa_reset_mail(request, user)
 
     @admin.action(description="Reset passwords for selected consultants")
     def reset_password(

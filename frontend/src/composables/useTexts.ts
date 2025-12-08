@@ -1,10 +1,18 @@
 import { textsApiListLanguages, textsApiListTexts } from '@/client'
 import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
+import MarkdownIt from 'markdown-it'
 
 export const useTexts = createGlobalState(() => {
   const texts = ref<Record<string, string>>({})
   const availableLanguages = ref<[string, string][]>([])
+
+  const md = new MarkdownIt({
+    linkify: true,
+    html: true,
+    breaks: true,
+    typographer: true,
+  })
 
   const loadingAvailableLanguagesPromise = ref<Promise<void> | null>(null)
   const loadingPromise = ref<Promise<void> | null>(null)
@@ -25,7 +33,6 @@ export const useTexts = createGlobalState(() => {
   loadAvailableLanguages().then(() => {
     const storedLang = localStorage.getItem('preferredLanguage')
     if (storedLang) {
-      console.log('Using stored preferred language:', storedLang)
       setLanguage(storedLang)
       return
     }
@@ -67,6 +74,10 @@ export const useTexts = createGlobalState(() => {
     return language.value
   }
 
+  function render(slug: string) {
+    return md.renderInline(texts.value[slug] || slug)
+  }
+
   function getText(slug: string) {
     if (language.value === null) {
       setLanguage()
@@ -76,7 +87,7 @@ export const useTexts = createGlobalState(() => {
     })
   }
 
-  function formatText(slug: string, args: Record<string, string>[]) {
+  function formatText(slug: string, args: Record<string, string>[], markdown = false) {
     if (language.value === null) {
       setLanguage()
     }
@@ -88,6 +99,9 @@ export const useTexts = createGlobalState(() => {
         const regex = new RegExp(`{${key}}`, 'g')
         text = text.replace(regex, value)
       })
+      if (markdown) {
+        text = md.renderInline(text)
+      }
       return text
     })
   }
@@ -122,5 +136,6 @@ export const useTexts = createGlobalState(() => {
     formatText,
     language: readonly(language),
     onLanguageChange,
+    render,
   }
 })

@@ -101,7 +101,9 @@ function copyClientLink() {
 }
 
 onMounted(() => {
-  clearAnswers()
+  if (props.caseId === visit.value?.case) {
+    return
+  }
   setCaseId(props.caseId).then(() => {
     if (router.currentRoute.value.name !== 'consultant-case') {
       return

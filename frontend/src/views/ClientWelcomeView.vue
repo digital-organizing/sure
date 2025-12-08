@@ -11,7 +11,13 @@ const props = defineProps<{
   caseId: string
 }>()
 
-const { getText: t, getAvailableLanguages, setLanguage, language: selectedLanguage } = useTexts()
+const {
+  getText: t,
+  render: r,
+  getAvailableLanguages,
+  setLanguage,
+  language: selectedLanguage,
+} = useTexts()
 
 function onStart() {
   router.push({ name: 'client-form', params: { caseId: props.caseId } })
@@ -54,9 +60,7 @@ function toggleMenu(event: Event) {
         <h1 class="client-h1">
           {{ t('client-welcome-greeting') }}
         </h1>
-        <p class="client-body">
-          {{ t('client-welcome-text') }}
-        </p>
+        <p class="client-body" v-html="r('client-welcome-text')"></p>
         <Button
           class="button-extra-large"
           label="Start"

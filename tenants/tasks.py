@@ -12,9 +12,6 @@ from django_otp import devices_for_user
 
 @shared_task
 def send_background_mail(email_data):
-    print("Sending email to:", email_data["recipient_list"])
-    print("Subject:", email_data["subject"])
-    print("Message:", email_data["message"])
     send_mail(
         email_data["subject"],
         email_data["message"],

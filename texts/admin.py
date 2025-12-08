@@ -18,12 +18,14 @@ from texts.views import ImportTextView
 
 @admin.register(Text)
 class TextAdmin(ModelAdmin, TabbedTranslationAdmin):
-    list_display = ("slug", "context", "internal")
+    list_display = ("slug", "content")
     search_fields = ("slug", "context")
     list_filter = ("internal",)
 
     actions = ["export_as_excel"]
     actions_list = ["export_all_texts", "import_texts"]
+
+    list_editable = ("content",)
 
     @action(description="Export as Excel")
     def export_as_excel(self, request: HttpRequest, queryset):

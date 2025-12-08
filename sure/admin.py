@@ -269,8 +269,12 @@ class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 @admin.register(TestResultOption)
 class TestResultOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
-    list_display = ("label", "test_kind")
+    list_display = ("label", "test_kind", "information_by_sms", "information_text")
     search_fields = ("label", "test_kind__name")
+
+    list_editable = ("information_by_sms", "information_text")
+
+    list_filter = ("label", "test_kind")
 
 
 @admin.register(ResultInformation)

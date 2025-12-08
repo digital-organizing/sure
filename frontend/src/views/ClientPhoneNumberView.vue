@@ -14,7 +14,7 @@ const props = defineProps<{
   caseId: string
 }>()
 
-const { getText: t, formatText: f } = useTexts()
+const { getText: t, formatText: f, render: r } = useTexts()
 const translate = (slug: string) => t(slug).value
 
 const router = useRouter()
@@ -37,7 +37,6 @@ const { remaining, start } = useCountdown(countdownSeconds, {
 })
 
 const showContactForm = computed(() => {
-  console.log('Selected consent option:', selectedConsentOption.value)
   return selectedConsentOption.value === 'allowed'
 })
 
@@ -149,9 +148,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     </div>
     <div class="client-section-element" id="phone-flex">
       <div class="client-phone-body">
-        <p>
-          {{ t('client-phone-lead-text') }}
-        </p>
+        <p v-html="r('client-phone-lead-text')"></p>
       </div>
       <div class="client-phone-icon">
         <IconPhone />
@@ -164,9 +161,6 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         <IconPen />
       </div>
       <div class="client-phone-subtitle">{{ t('client-phone-id-header') }}</div>
-      <div class="client-phone-body">
-        {{ t('client-phone-id-text') }}
-      </div>
       <div class="client-phone-body">
         {{ t('client-phone-password-text') }}
       </div>
@@ -285,9 +279,11 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
               value="not_allowed"
             />
             <label for="phone-consent-no" class="client-option-label">
-              {{ t('client-phone-consent-no-text') }}
-              <strong>{{ caseId }}</strong
-              >. {{ t('client-phone-consent-no-followup') }}
+              <span
+                v-html="
+                  f('client-phone-consent-no-text', [{ key: 'caseId', value: caseId }], true).value
+                "
+              ></span>
             </label>
           </div>
         </div>
@@ -307,6 +303,9 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         <Message v-if="errorKey" severity="error" size="small" variant="outlined">{{
           errorKey
         }}</Message>
+
+        <section v-html="r('client-phone-improving-health')" class="health-info-text"></section>
+
         <Button class="button-extra-large" severity="primary" rounded type="submit"
           >{{ t('client-phone-finalize-button') }}
           <IconRightArrow />
@@ -378,5 +377,13 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   justify-content: center;
   margin-bottom: 50px;
   margin-top: 1rem;
+}
+
+.health-info-text {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  line-height: 1.2;
+  color: var(--color-ahs-gray-700);
 }
 </style>

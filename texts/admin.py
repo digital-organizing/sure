@@ -19,7 +19,7 @@ from texts.views import ImportTextView
 @admin.register(Text)
 class TextAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("slug", "content")
-    search_fields = ("slug", "context")
+    search_fields = ("slug", "context", "content", "content_en")
     list_filter = ("internal",)
 
     actions = ["export_as_excel"]

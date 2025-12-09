@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import re
 from pathlib import Path
+from django.urls import reverse_lazy
 
 import sentry_sdk
 from environ import Env
@@ -302,6 +303,190 @@ UNFOLD = {
     "SIDEBAR": {
         "show_search": True,  # Search in applications and models names
         "command_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Questionnaire",
+                "separator": True,  # Top border
+                "collapsible": False,  # Collapsible group of links
+                "items": [
+                    {
+                        "title": "Questionnaires",
+                        "icon": "edit_document",
+                        "link": reverse_lazy("admin:sure_questionnaire_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Client questions",
+                        "icon": "quiz",
+                        "link": reverse_lazy("admin:sure_clientquestion_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Client options",
+                        "icon": "checklist",
+                        "link": reverse_lazy("admin:sure_clientoption_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Sections",
+                        "icon": "vertical_split",
+                        "link": reverse_lazy("admin:sure_section_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Consultant questions",
+                        "icon": "quiz",
+                        "link": reverse_lazy(
+                            "admin:sure_consultantquestion_changelist"
+                        ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+            {
+                "title": "Tests",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Tests",
+                        "icon": "lab_research",
+                        "link": reverse_lazy("admin:sure_testkind_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Test categories",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:sure_testcategory_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Test bundles",
+                        "icon": "stack",
+                        "link": reverse_lazy("admin:sure_testbundle_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Test results",
+                        "icon": "stacked_bar_chart",
+                        "link": reverse_lazy("admin:sure_testresultoption_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Result information",
+                        "icon": "info",
+                        "link": reverse_lazy("admin:sure_resultinformation_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Tenants",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Tenants",
+                        "icon": "apartment",
+                        "link": reverse_lazy("admin:tenants_tenant_changelist"),
+                    },
+                    {
+                        "title": "Locations",
+                        "icon": "location_on",
+                        "link": reverse_lazy("admin:tenants_location_changelist"),
+                    },
+                    {
+                        "title": "Consultants",
+                        "icon": "stethoscope",
+                        "link": reverse_lazy("admin:tenants_consultant_changelist"),
+                    },
+                    {
+                        "title": "Information Banners",
+                        "icon": "announcement",
+                        "link": reverse_lazy(
+                            "admin:tenants_informationbanner_changelist"
+                        ),
+                    },
+                    {
+                        "title": "Tags",
+                        "icon": "label",
+                        "link": reverse_lazy("admin:tenants_tag_changelist"),
+                    },
+                    {
+                        "title": "SMS Logs",
+                        "icon": "sms",
+                        "link": reverse_lazy("admin:sms_smsmessage_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+            {
+                "title": "Texts",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Text Entries",
+                        "icon": "translate",
+                        "link": reverse_lazy("admin:texts_text_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+            {
+                "title": "Export",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Data Export",
+                        "icon": "file_download",
+                        "link": reverse_lazy("admin:sure_visitexport_changelist"),
+                    }
+                ],
+            },
+            {
+                "title": "Security",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Blocked Users",
+                        "icon": "block",
+                        "link": reverse_lazy(
+                            "admin:guard_blockedidentifier_changelist"
+                        ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Login Attempts",
+                        "icon": "login",
+                        "link": reverse_lazy("admin:axes_accessattempt_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Access Logs",
+                        "icon": "security",
+                        "link": reverse_lazy("admin:axes_accesslog_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Failed logins",
+                        "icon": "error",
+                        "link": reverse_lazy("admin:axes_accessfailurelog_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Guard",
+                        "icon": "shield",
+                        "link": reverse_lazy(
+                            "admin:guard_protectedendpoint_changelist"
+                        ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+        ],
     },
     "COMMAND": {
         "search_models": True,  # Search models in command search

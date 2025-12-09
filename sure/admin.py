@@ -54,9 +54,13 @@ from sure.tasks import create_export
     ClientOption,
 )
 class ClientOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
-    list_display = ("text", "order")
-    search_fields = ("question__code", "code")
-    ordering = ("order",)
+    list_display = ("question", "text", "code", "question__section", "order")
+    search_fields = ("question__code", "code", "text", "text_en")
+    ordering = (
+        "question__section",
+        "question",
+        "order",
+    )
 
 
 class ClientOptionInline(TabularInline, TranslationTabularInline):
@@ -122,7 +126,7 @@ class ConsultantQuestionInline(TabularInline, TranslationTabularInline):
 )
 class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
-    search_fields = ("name",)
+    search_fields = ("name", "name_en")
     inlines = [SectionInline, ConsultantQuestionInline]
     ordering = ("name",)
 
@@ -132,7 +136,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 )
 class SectionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("title", "questionnaire", "order")
-    search_fields = ("title", "questionnaire__name")
+    search_fields = ("title", "questionnaire__name", "title_en")
     list_filter = ("questionnaire",)
     ordering = ("questionnaire__name", "order")
     inlines = [ClientQuestionInline]
@@ -143,7 +147,7 @@ class SectionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 )
 class ClientQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "label_en", "section", "order")
-    search_fields = ("question_text", "section__title")
+    search_fields = ("question_text", "question_text_en")
     list_filter = ("section", "section__questionnaire")
     ordering = ("section__questionnaire__name", "section__order", "order")
     list_editable = ("label_en",)
@@ -157,7 +161,7 @@ class ClientQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin
 )
 class ConsultantQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("question_text", "order")
-    search_fields = ("question_text",)
+    search_fields = ("question_text", "question_text_en")
     list_filter = ("questionnaire",)
     ordering = ("order",)
     inlines = [ConsultantOptionInline]
@@ -228,7 +232,7 @@ class TestKindAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     )
 
     list_filter = ("category",)
-    search_fields = ("name",)
+    search_fields = ("name", "name_en")
     ordering = ("name",)
     inlines = [TestOptionInline]
 
@@ -252,7 +256,7 @@ class TestKindInline(TabularInline, TranslationTabularInline):
 )
 class TestCategoryAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
-    search_fields = ("name",)
+    search_fields = ("name", "name_en")
     ordering = ("name",)
     inlines = [TestKindInline]
 
@@ -262,7 +266,7 @@ class TestCategoryAdmin(ModelAdmin, TabbedTranslationAdmin):
 )
 class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("name",)
-    search_fields = ("name",)
+    search_fields = ("name", "name_en")
     ordering = ("name",)
     filter_horizontal = ("test_kinds",)
 
@@ -270,19 +274,21 @@ class TestBundleAdmin(ModelAdmin, TabbedTranslationAdmin):
 @admin.register(TestResultOption)
 class TestResultOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("label", "test_kind", "information_by_sms", "information_text")
-    search_fields = ("label", "test_kind__name")
+    search_fields = ("label", "test_kind__name", "test_kind__name_en", "label_en")
 
     list_editable = ("information_by_sms", "information_text")
 
-    list_filter = ("label", "test_kind")
+    list_filter = ("label", "test_kind", "test_kind__category")
 
 
 @admin.register(ResultInformation)
 class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
     list_display = ("option",)
     list_filter = ("locations",)
-    search_fields = ("information_text",)
+    search_fields = ("information_text", "information_text_en")
     autocomplete_fields = ("option", "locations")
+
+    fields = ("option", "information_text", "locations")
 
 
 admin.site.unregister(PeriodicTask)

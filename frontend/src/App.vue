@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import { useAccount } from './composables/useAccount'
 import InternalMenuBar from './components/InternalMenuBar.vue'
 import { useTitle } from '@vueuse/core'
@@ -43,26 +43,6 @@ onMounted(() => {
   <Toast />
   <ConfirmDialog></ConfirmDialog>
   <RouterView :key="$route.fullPath" />
-  <footer>
-    <div class="container">
-      <div class="left">
-        <h4>About</h4>
-        <nav>
-          <RouterLink to="/about">About this App</RouterLink>
-          <RouterLink to="/privacy">Privacy Policy</RouterLink>
-        </nav>
-      </div>
-      <div class="right">
-        <span
-          ><a href="https://digitalorganizing.ch" target="_blank" rel="noopener"
-            >digital/organizing.ch</a
-          ></span
-        >
-        <span><a href="https://aids.ch" target="_blank" rel="noopener">Aids-Hilfe Schweiz</a></span>
-        <span>© {{ new Date().getFullYear() }} digital/organizing GmbH</span>
-      </div>
-    </div>
-  </footer>
 </template>
 
 <style scoped>

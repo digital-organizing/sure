@@ -15,6 +15,8 @@ from django.contrib.auth.password_validation import (
     validate_password,
 )
 from django.contrib.postgres.fields import ArrayField
+
+from html_sanitizer import Sanitizer
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -653,7 +655,9 @@ class ResultInformation(models.Model):
     def preview(self) -> str:
         generic = markdown(self.option.information_text)
         special = markdown(self.information_text)
-        return mark_safe(f"{generic}<br>{special}")
+        sanitizer = Sanitizer()
+        sanitized = sanitizer.sanitize(generic + "<br/>" + special)
+        return mark_safe(sanitized)  # nosec
 
     def __str__(self):
         return f"Information for {self.option} @ {', '.join([loc.name for loc in self.locations.all()])}"

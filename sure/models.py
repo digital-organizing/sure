@@ -20,7 +20,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 from django.utils.safestring import mark_safe
-from django.utils.html import urlize
 
 from markdown import markdown
 
@@ -650,12 +649,12 @@ class ResultInformation(models.Model):
             "Locations where this information is applicable. To show different texts at different locations create another entry for this location."
         ),
     )
-    
+
     def preview(self) -> str:
         generic = markdown(self.option.information_text)
         special = markdown(self.information_text)
         return mark_safe(f"{generic}<br>{special}")
-    
+
     def __str__(self):
         return f"Information for {self.option} @ {', '.join([loc.name for loc in self.locations.all()])}"
 

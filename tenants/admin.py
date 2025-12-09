@@ -9,6 +9,8 @@ from django_otp import devices_for_user
 from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
 
+from django.utils.translation import gettext_lazy as _
+
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant
 from tenants.views import ConsultantInviteView
@@ -32,6 +34,23 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     autocomplete_fields = ("tenant",)
     filter_horizontal = ("excluded_questions", "included_questions")
+
+    # Section for excluded and included questions with title ('visible questions')
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("name", "tenant"),
+            },
+        ),
+        (
+            _("Visible questions"),
+            {
+                "fields": ("excluded_questions", "included_questions"),
+                "classes": ("tab",),
+            },
+        ),
+    )
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Location]:
         if request.user.is_superuser:

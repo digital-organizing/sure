@@ -30,7 +30,12 @@ INVITATION_MAIL_SUBJECT = "Your new account on SURE"
 class Tenant(models.Model):
     """A tenant (organization) using the service."""
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(
+        max_length=255,
+        help_text=_(
+            "Name of the tenant organization, which will be displayed to consultants and admins"
+        ),
+    )
 
     admins = models.ManyToManyField("auth.User", related_name="tenants")
 
@@ -42,15 +47,22 @@ class Tenant(models.Model):
 
     invitation_mail_template = models.TextField(
         default=INVITIATION_MAIL_TEMPLATE,
-        help_text="Template for invitation emails sent to new users.",
+        help_text=_("Template for invitation emails sent to new users."),
     )
     invitation_mail_subject = models.CharField(
         max_length=255,
         default=INVITATION_MAIL_SUBJECT,
-        help_text="Subject for invitation emails sent to new users.",
+        help_text=_("Subject for invitation emails sent to new users."),
     )
 
-    logo = models.ImageField(upload_to="tenant_logos/", blank=True, null=True)
+    logo = models.ImageField(
+        upload_to="tenant_logos/",
+        blank=True,
+        null=True,
+        help_text=_(
+            "Upload a png with white or tranparent background resolution of 250px pixels"
+        ),
+    )
 
     history = HistoricalRecords()
 
@@ -99,7 +111,9 @@ class Location(models.Model):
     opening_hours = models.JSONField(
         blank=True,
         null=True,
-        help_text="JSON field to store opening hours.",
+        help_text=_(
+            "JSON field to store opening hours. These are displayed to clients and used to prevent SMS sending outside opening hours."
+        ),
         default=default_opening_hours,
     )
 
@@ -109,8 +123,10 @@ class Location(models.Model):
         "sure.ClientQuestion",
         blank=True,
         related_name="excluded_in_centers",
-        verbose_name=_("Excluded Questions at this center."),
-        help_text=_("These questions will not be asked for cases at this center."),
+        verbose_name=_("Not visible questions at this center."),
+        help_text=_(
+            "The selected questions will not be asked for cases at this center."
+        ),
         limit_choices_to={"optional_for_centers": True},
     )
 
@@ -118,7 +134,7 @@ class Location(models.Model):
         "sure.ClientQuestion",
         blank=True,
         related_name="included_in_centers",
-        verbose_name=_("Included Questions at this center."),
+        verbose_name=_("Visible questions at this center."),
         help_text=_("These questions will be asked for cases at this center."),
         limit_choices_to={"extra_for_centers": True},
     )
@@ -216,22 +232,47 @@ class SeverityLevel(models.TextChoices):
 
 
 class InformationBanner(models.Model):
+    """
+    Docstring für InformationBanner
+    """
+
     tenant = models.ForeignKey(
         Tenant, on_delete=models.CASCADE, related_name="information_banners"
     )
 
-    locations = models.ManyToManyField(Location, related_name="information_banners")
+    locations = models.ManyToManyField(
+        Location,
+        related_name="information_banners",
+        help_text=_("Locations for which this banner is displayed."),
+    )
 
     name = models.CharField(max_length=100)
-    content = models.TextField()
+    content = models.TextField(
+        help_text=_(
+            'Content of the information banner, supports markdown or html. <a href="https://example.com/more-info">More info</a>.'
+        )
+    )
     severity = models.CharField(
         max_length=20,
         choices=SeverityLevel.choices,
         default=SeverityLevel.INFO,
+        help_text=_("Severity level of the banner, which determines its appearance."),
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    published_at = models.DateTimeField(blank=True, null=True)
-    expires_at = models.DateTimeField(blank=True, null=True)
+    published_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Date and time when the banner becomes visible. If empty, the banner is visible immediately."
+        ),
+    )
+    expires_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Date and time when the banner expires. If empty, the banner does not expire."
+        ),
+    )
 
     def __str__(self) -> str:
         return f"Banner for {self.tenant.name} ({self.pk})"

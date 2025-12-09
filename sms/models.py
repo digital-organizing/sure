@@ -18,3 +18,8 @@ class SMSMessage(models.Model):
 
     def __str__(self) -> str:
         return f"SMS to {self.to} at {self.sent_at}"
+
+    def save(self, *args, **kwargs) -> None:
+        # Mask the phone number for privacy
+        self.to = "X" * (len(self.to) - 4) + self.to[-4:]
+        super().save(*args, **kwargs)

@@ -15,10 +15,15 @@ from django.contrib.auth.password_validation import (
     validate_password,
 )
 from django.contrib.postgres.fields import ArrayField
+
+from html_sanitizer import Sanitizer
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
+from django.utils.safestring import mark_safe
+
+from markdown import markdown
 
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
@@ -622,20 +627,40 @@ class TestResultOption(models.Model):
 
 class ResultInformation(models.Model):
     option = models.ForeignKey(
-        TestResultOption, on_delete=models.CASCADE, related_name="result_informations"
+        TestResultOption,
+        on_delete=models.CASCADE,
+        related_name="result_informations",
+        limit_choices_to={"information_by_sms": True},
+        help_text=_(
+            "Select the result for which you want to display additional information"
+        ),
     )
     information_text = models.TextField(
         max_length=2000,
         blank=True,
         verbose_name=_("Information Text"),
-        help_text=_("Detailed information related to this result option"),
+        help_text=_(
+            "Detailed information related to this result option, the information about the result is already displayed, you only need to specify additional information (booking link, ...)"
+        ),
     )
     locations = models.ManyToManyField(
         "tenants.Location",
         related_name="result_informations",
         verbose_name=_("Locations"),
-        help_text=_("Locations where this information is applicable"),
+        help_text=_(
+            "Locations where this information is applicable. To show different texts at different locations create another entry for this location."
+        ),
     )
+
+    def preview(self) -> str:
+        generic = markdown(self.option.information_text)
+        special = markdown(self.information_text)
+        sanitizer = Sanitizer()
+        sanitized = sanitizer.sanitize(generic + "<br/>" + special)
+        return mark_safe(sanitized)  # nosec
+
+    def __str__(self):
+        return f"Information for {self.option} @ {', '.join([loc.name for loc in self.locations.all()])}"
 
 
 class TestBundle(models.Model):

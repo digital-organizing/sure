@@ -66,8 +66,6 @@ function formatTimestamp(timestamp: string | null | undefined): string {
 
 const { visit, setCaseId, relatedCases, loading } = useCase()
 
-const { clearAnswers } = userAnswersStore()
-
 function isStatusDone(status: string): boolean {
   const caseStatusIndex = indexForStatus(visit.value?.status || '')
   const targetStatusIndex = indexForStatus(status)

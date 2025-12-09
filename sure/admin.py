@@ -288,7 +288,8 @@ class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("information_text", "information_text_en")
     autocomplete_fields = ("option", "locations")
 
-    fields = ("option", "information_text", "locations")
+    fields = ("option", "preview", "information_text", "locations")
+    readonly_fields = ("preview",)
 
 
 admin.site.unregister(PeriodicTask)

@@ -1,4 +1,4 @@
-import { textsApiListLanguages, textsApiListTexts } from '@/client'
+import { coreApiSetLanguage, textsApiListLanguages, textsApiListTexts } from '@/client'
 import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
 import { useRender } from './useRender'
@@ -54,12 +54,16 @@ export const useTexts = createGlobalState(() => {
       return
     }
     localStorage.setItem('preferredLanguage', lang)
-    loadingPromise.value = textsApiListTexts({ query: { lang } }).then((response) => {
-      if (!response.data) return
-      texts.value = response.data.texts
-      rightToLeft.value = response.data.right_to_left
-      language.value = response.data.language!
-    })
+    loadingPromise.value = textsApiListTexts({ query: { lang } })
+      .then((response) => {
+        if (!response.data) return
+        texts.value = response.data.texts
+        rightToLeft.value = response.data.right_to_left
+        language.value = response.data.language!
+      })
+      .then(() => {
+        coreApiSetLanguage({ query: { language: lang! } })
+      })
 
     await loadingPromise.value
     callbacks.forEach((callback) => callback(language.value))

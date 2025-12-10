@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useBanner } from '@/composables/useBanner'
+import { useRender } from '@/composables/useRender'
 
 const { showBanners, dismissBanner } = useBanner()
+const { renderMarkdown } = useRender()
 </script>
 
 <template>
@@ -15,7 +17,7 @@ const { showBanners, dismissBanner } = useBanner()
         :key="banner.id!"
         @close="dismissBanner(banner.id!)"
       >
-        <div v-html="banner.content" />
+        <div v-html="renderMarkdown(banner.content)" />
       </Message>
     </header>
     <router-view />

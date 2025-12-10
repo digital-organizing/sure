@@ -5,6 +5,7 @@ from ninja import Router
 
 from sure.client_service import strip_id
 from sure.models import Case
+from sure.lang import inject_language
 from tenants.models import Tag, Consultant
 from tenants.schema import (
     BannerSchema,
@@ -52,13 +53,14 @@ def get_consultant(request, pk: int):
 
 
 @router.get("/banners/", response=list[BannerSchema])
+@inject_language
 def get_banners(request):
     consultant = request.user.consultant
     now = timezone.now()
     banners = (
         consultant.tenant.information_banners.filter(
+            Q(published_at__lte=now) | Q(published_at__isnull=True),
             locations__in=consultant.locations.all(),
-            published_at__lte=now,
         )
         .exclude(Q(expires_at__isnull=False) & Q(expires_at__lt=now))
         .distinct()

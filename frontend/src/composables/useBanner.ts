@@ -1,8 +1,10 @@
 import { type BannerSchema, tenantsApiGetBanners } from '@/client'
 import { createGlobalState } from '@vueuse/core'
 import { computed, ref } from 'vue'
+import { useTexts } from './useTexts'
 
 export const useBanner = createGlobalState(() => {
+  const { language, onLanguageChange } = useTexts()
   const banners = ref<Array<BannerSchema>>([])
   const dismissed = ref<Array<number>>([])
 
@@ -23,7 +25,7 @@ export const useBanner = createGlobalState(() => {
   })
 
   async function fetchBanners() {
-    await tenantsApiGetBanners().then((response) => {
+    await tenantsApiGetBanners({ query: { lang: language.value } }).then((response) => {
       if (response.data) banners.value = response.data
     })
   }
@@ -34,6 +36,10 @@ export const useBanner = createGlobalState(() => {
       saveDismissed()
     }
   }
+
+  onLanguageChange(() => {
+    fetchBanners()
+  })
 
   fetchBanners()
 

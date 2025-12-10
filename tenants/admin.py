@@ -64,7 +64,13 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
 class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
     """Admin for consultants."""
 
-    list_display = ("user", "tenant")
+    list_display = (
+        "user",
+        "tenant",
+        "user__first_name",
+        "user__last_name",
+        "display_locations",
+    )
     search_fields = ("user__username", "user__email", "tenant__name")
 
     autocomplete_fields = ("user", "locations")
@@ -129,6 +135,12 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
             for path in super().get_urls()
             if path.pattern.name != "tenants_consultant_add"
         ]
+
+    def display_locations(self, obj: Consultant) -> str:
+        """Display locations as a comma-separated list."""
+        return ", ".join(location.name for location in obj.locations.all())
+
+    display_locations.short_description = "Locations"
 
 
 class ConsultantInline(TabularInline):

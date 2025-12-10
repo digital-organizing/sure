@@ -1,18 +1,13 @@
-import { textsApiListLanguages, textsApiListTexts } from '@/client'
+import { coreApiSetLanguage, textsApiListLanguages, textsApiListTexts } from '@/client'
 import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
-import MarkdownIt from 'markdown-it'
+import { useRender } from './useRender'
 
 export const useTexts = createGlobalState(() => {
   const texts = ref<Record<string, string>>({})
   const availableLanguages = ref<[string, string][]>([])
 
-  const md = new MarkdownIt({
-    linkify: true,
-    html: true,
-    breaks: true,
-    typographer: true,
-  })
+  const { renderMarkdown: md } = useRender()
 
   const loadingAvailableLanguagesPromise = ref<Promise<void> | null>(null)
   const loadingPromise = ref<Promise<void> | null>(null)
@@ -37,7 +32,7 @@ export const useTexts = createGlobalState(() => {
       return
     }
     const preferredLang = languages.value.find((lang) =>
-      availableLanguages.value.find(([code, _]) => code === lang),
+      availableLanguages.value.find(([code, _]) => code === lang.split('-')[0]),
     )
     setLanguage(preferredLang || 'en')
   })
@@ -59,12 +54,16 @@ export const useTexts = createGlobalState(() => {
       return
     }
     localStorage.setItem('preferredLanguage', lang)
-    loadingPromise.value = textsApiListTexts({ query: { lang } }).then((response) => {
-      if (!response.data) return
-      texts.value = response.data.texts
-      rightToLeft.value = response.data.right_to_left
-      language.value = response.data.language!
-    })
+    loadingPromise.value = textsApiListTexts({ query: { lang } })
+      .then((response) => {
+        if (!response.data) return
+        texts.value = response.data.texts
+        rightToLeft.value = response.data.right_to_left
+        language.value = response.data.language!
+      })
+      .then(() => {
+        coreApiSetLanguage({ query: { language: lang! } })
+      })
 
     await loadingPromise.value
     callbacks.forEach((callback) => callback(language.value))
@@ -75,7 +74,7 @@ export const useTexts = createGlobalState(() => {
   }
 
   function render(slug: string) {
-    return md.renderInline(texts.value[slug] || slug)
+    return md(texts.value[slug] || slug)
   }
 
   function getText(slug: string) {
@@ -100,7 +99,7 @@ export const useTexts = createGlobalState(() => {
         text = text.replace(regex, value)
       })
       if (markdown) {
-        text = md.renderInline(text)
+        text = md(text)
       }
       return text
     })

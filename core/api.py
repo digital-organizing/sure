@@ -2,6 +2,9 @@ import django_agent_trust
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.utils import translation
+from django.http import HttpResponse
+from django.conf import settings
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django_otp import devices_for_user
@@ -304,3 +307,13 @@ def account(request):
             "full_name": request.user.get_full_name(),
         }
     return {"username": None, "is_staff": None, "is_superuser": None}
+
+
+@api.get("/set-language/", auth=None)
+def set_language(request, language: str):
+    if language not in dict(settings.LANGUAGES):
+        language = settings.LANGUAGE_CODE
+    translation.activate(language)
+    response = HttpResponse()
+    response.set_cookie(settings.LANGUAGE_COOKIE_NAME, language)
+    return response

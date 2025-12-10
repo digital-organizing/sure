@@ -175,7 +175,7 @@ def send_token(phone_number: str, case: Case):
         )
 
     token = contact.generate_token(case)
-    msg = "Enter this token to verify your phone number: " + token
+    msg = f"Your verification code for {settings.SITE_URL} is: " + token
 
     send_sms(contact.phone_number, msg, case.location.tenant)
 

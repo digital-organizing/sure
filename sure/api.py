@@ -18,7 +18,7 @@ from sure.cases import (
     get_test_results,
     prefetch_questionnaire,
 )
-from sure.client_service import can_connect_case
+from sure.client_service import can_connect_case, location_can_view_case
 from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
     create_case,
@@ -96,18 +96,36 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
     pk = strip_id(pk)
 
     visit = get_object_or_404(Visit, case_id=pk)
+
+    # Handle authenticated users
+    if auth_2fa_or_trusted(request):
+        consultant = request.user.consultant
+        if not location_can_view_case(
+            consultant.locations.all().values_list("id", flat=True), visit.case
+        ):
+            return 403, {
+                "success": False,
+                "message": "User does not have access to this case's location",
+            }
+        return prefetch_questionnaire(location=visit.case.location, internal=False).get(
+            pk=visit.questionnaire.pk
+        )
+
+    # Handle unauthenticated users, case submitted but key not set
     if visit.status == VisitStatus.CLIENT_SUBMITTED and visit.case.key == "":
         return 302, {
             "success": False,
             "message": "Questionnaire already submitted, key not set",
         }
 
-    if visit.status != VisitStatus.CREATED and request.user.is_authenticated is False:
+    # Case is already submitted, deny access
+    if visit.status != VisitStatus.CREATED:
         return 403, {
             "success": False,
             "message": "Access denied to the case questionnaire",
         }
 
+    # Get questionnaire for clients
     location = visit.case.location
     questionnaire = prefetch_questionnaire(location=location, internal=False).get(
         pk=visit.questionnaire.pk

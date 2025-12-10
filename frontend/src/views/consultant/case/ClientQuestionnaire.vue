@@ -15,7 +15,10 @@ const answerStore = userAnswersStore()
 onMounted(() => {
   onCaseId(() => {
     fetchClientAnswers()
-    fetchClientSchema()
+    fetchClientSchema().then(() => {
+      console.log('Client schema and answers loaded')
+      console.log(answerStore.schema)
+    })
   })
 })
 

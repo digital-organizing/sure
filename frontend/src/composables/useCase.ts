@@ -233,6 +233,8 @@ export const useCase = createGlobalState(() => {
       query: { lang: language.value },
     })
       .then((response) => {
+        console.log(response)
+        console.log('Fetched client questionnaire:', response.data)
         if (response.data) {
           clientQuestionnaire.value = response.data!
           store.setSchema(response.data!)

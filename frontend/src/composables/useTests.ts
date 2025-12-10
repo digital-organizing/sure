@@ -10,6 +10,7 @@ export const useTests = createGlobalState(() => {
     return testCategories.value
       .flatMap((category) => category.test_kinds.flatMap((test) => test.test_bundles))
       .filter((value, index, self) => self.findIndex((v) => v.id === value.id) === index)
+      .sort((a, b) => a.name.localeCompare(b.name))
   })
 
   const testKinds = computed(() => {

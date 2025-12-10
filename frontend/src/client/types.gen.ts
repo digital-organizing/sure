@@ -2917,7 +2917,12 @@ export type TenantsApiGetConsultantResponse = TenantsApiGetConsultantResponses[k
 export type TenantsApiGetBannersData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/tenants/banners/';
 };
 

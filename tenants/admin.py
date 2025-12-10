@@ -10,6 +10,9 @@ from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
 
 from django.utils.translation import gettext_lazy as _
+from modeltranslation.admin import (
+    TabbedTranslationAdmin,
+)
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant
@@ -192,7 +195,7 @@ class TagAdmin(ModelAdmin):
 
 
 @admin.register(InformationBanner)
-class InformationBannerAdmin(ModelAdmin):
+class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     """Admin for information banners."""
 
     list_display = ("name", "created_at", "published_at", "expires_at", "tenant")

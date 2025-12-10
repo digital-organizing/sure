@@ -19,6 +19,8 @@ from environ import Env
 
 env = Env()
 
+MODELTRANSLATION_CUSTOM_FIELDS = ["ArrayField"]
+
 sentry_sdk.init(
     dsn="https://f23eef026dedb9d752fc45fc961f71a0@sentry.d-o.li/5",
     send_default_pii=True,
@@ -181,6 +183,7 @@ LANGUAGES = [
     ("pt", "Portuguese"),
 ]
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en"
+
 
 TIME_ZONE = env.str("TIME_ZONE", default="Europe/Zurich")
 

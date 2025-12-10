@@ -1,18 +1,13 @@
 import { textsApiListLanguages, textsApiListTexts } from '@/client'
 import { createGlobalState, usePreferredLanguages } from '@vueuse/core'
 import { computed, readonly, ref } from 'vue'
-import MarkdownIt from 'markdown-it'
+import { useRender } from './useRender'
 
 export const useTexts = createGlobalState(() => {
   const texts = ref<Record<string, string>>({})
   const availableLanguages = ref<[string, string][]>([])
 
-  const md = new MarkdownIt({
-    linkify: true,
-    html: true,
-    breaks: true,
-    typographer: true,
-  })
+  const { renderMarkdown: md } = useRender()
 
   const loadingAvailableLanguagesPromise = ref<Promise<void> | null>(null)
   const loadingPromise = ref<Promise<void> | null>(null)
@@ -75,7 +70,7 @@ export const useTexts = createGlobalState(() => {
   }
 
   function render(slug: string) {
-    return md.renderInline(texts.value[slug] || slug)
+    return md(texts.value[slug] || slug)
   }
 
   function getText(slug: string) {
@@ -100,7 +95,7 @@ export const useTexts = createGlobalState(() => {
         text = text.replace(regex, value)
       })
       if (markdown) {
-        text = md.renderInline(text)
+        text = md(text)
       }
       return text
     })

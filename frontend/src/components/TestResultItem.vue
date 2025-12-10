@@ -1,14 +1,8 @@
 <script lang="ts" setup>
 import type { TestResultOptionSchema, TestResultSchema, TestSchema } from '@/client'
 import chroma from 'chroma-js'
-import MarkdownIt from 'markdown-it'
+import { useRender } from '@/composables/useRender'
 
-const md = new MarkdownIt({
-  linkify: true,
-  html: true,
-  breaks: true,
-  typographer: true,
-})
 const props = defineProps<{
   resultOption: TestResultOptionSchema
   result: TestResultSchema
@@ -16,9 +10,7 @@ const props = defineProps<{
   infoText?: string | undefined | null
 }>()
 
-function render(text: string): string {
-  return md.renderInline(text)
-}
+const { renderMarkdown: render } = useRender()
 
 function formatInformationText(text: string): string {
   if (props.test.test_kind.interpretation_needed) {

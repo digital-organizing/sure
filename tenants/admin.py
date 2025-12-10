@@ -40,7 +40,7 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
         (
             None,
             {
-                "fields": ("name", "tenant"),
+                "fields": ("name", "tenant", "opening_hours", "phone_number"),
             },
         ),
         (

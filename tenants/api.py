@@ -6,7 +6,7 @@ from ninja import Router
 from sure.client_service import strip_id
 from sure.models import Case
 from sure.lang import inject_language
-from tenants.models import Tag, Consultant
+from tenants.models import InformationBanner, Tag, Consultant
 from tenants.schema import (
     BannerSchema,
     LocationSchema,
@@ -58,7 +58,7 @@ def get_banners(request):
     consultant = request.user.consultant
     now = timezone.now()
     banners = (
-        consultant.tenant.information_banners.filter(
+        InformationBanner.objects.filter(
             Q(published_at__lte=now) | Q(published_at__isnull=True),
             locations__in=consultant.locations.all(),
         )

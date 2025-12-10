@@ -32,7 +32,7 @@ export const useTexts = createGlobalState(() => {
       return
     }
     const preferredLang = languages.value.find((lang) =>
-      availableLanguages.value.find(([code, _]) => code === lang),
+      availableLanguages.value.find(([code, _]) => code === lang.split('-')[0]),
     )
     setLanguage(preferredLang || 'en')
   })

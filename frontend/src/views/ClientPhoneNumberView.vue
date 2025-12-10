@@ -85,9 +85,12 @@ async function startVerification() {
   const response = await sureApiSendToken({
     body: { phone_number: phonenumber.value },
     path: { pk: props.caseId },
+  }).catch(() => {
+    error.value = translate('client-phone-error-network')
+    return { error: { message: '' } }
   })
   if (response.error) {
-    error.value = ensureString(response.error?.message)
+    error.value = translate('client-phone-error-invalid')
     return
   }
   if (response.response.status !== 200) {
@@ -139,6 +142,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
 
 <template>
   <div class="client-form-view">
+    {{ error }}
     <div class="client-section-element" id="navi-top">
       <ClientNavigationTop
         :section-title="t('client-phone-section-title').value"
@@ -248,11 +252,18 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
                   id="verification-code"
                   v-model="token"
                   class="text-input"
+                  autocomplete="tel"
                   :placeholder="t('client-phone-verification-code-input').value"
                 />
 
                 <InputGroupAddon>
-                  <Button severity="primary" variant="text" icon="pi pi-send" @click="onVerify" />
+                  <Button
+                    severity="primary"
+                    variant="text"
+                    icon="pi pi-send"
+                    @click="onVerify"
+                    :label="t('submit').value"
+                  />
                 </InputGroupAddon>
               </InputGroup>
               <section>
@@ -298,7 +309,13 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         <label for="client-key" class="client-option-label">
           {{ t('client-phone-key-label') }}
         </label>
-        <Password input-id="client-key" required name="key" :feedback="false" />
+        <InputText
+          type="password"
+          autocomplete="new-password"
+          input-id="client-key"
+          required
+          name="key"
+        />
 
         <Message v-if="errorKey" severity="error" size="small" variant="outlined">{{
           errorKey

@@ -133,12 +133,6 @@ function makeCall(number: string) {
         @click="makeCall(phoneNumber)"
       />
       <Button
-        :label="t('publish-results').value"
-        v-if="caseStatus?.value == 'results_recorded'"
-        severity="primary"
-        @click="onPublishResults"
-      ></Button>
-      <Button
         :label="t('reset-case-to-recorded').value"
         v-if="
           visit?.status === 'results_missed' ||
@@ -160,6 +154,12 @@ function makeCall(number: string) {
           })
         "
         severity="secondary"
+      ></Button>
+      <Button
+        :label="t('publish-results').value"
+        v-if="caseStatus?.value == 'results_recorded'"
+        severity="primary"
+        @click="onPublishResults"
       ></Button>
     </div>
   </section>

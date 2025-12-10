@@ -281,6 +281,10 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         }}
       </Message>
       <Form v-if="canFinish" class="form-col form-key" @submit="onSubmit" ref="$form">
+        <p
+          v-if="!verified"
+          v-html="f('client-phone-case-id', [{ key: 'caseId', value: caseId }], true).value"
+        ></p>
         <p>
           {{ t('client-phone-key-description') }}
         </p>

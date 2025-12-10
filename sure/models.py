@@ -681,6 +681,11 @@ class TestBundle(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+    class Meta:
+        verbose_name = _("Test Bundle")
+        verbose_name_plural = _("Test Bundles")
+        ordering = ["name"]
+
 
 class VisitStatus(models.TextChoices):
     """Status of a visit."""

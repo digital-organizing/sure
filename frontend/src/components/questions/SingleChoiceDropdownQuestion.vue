@@ -78,6 +78,10 @@ function getAnswer() {
   return answer.value
 }
 
+if (props.question.options.length === 1) {
+  // Preselect the only available option
+  selectedChoice.value = props.question.options[0].code || null
+}
 defineExpose({
   getAnswer,
 })
@@ -99,8 +103,13 @@ defineExpose({
         :value="option.code"
         :inputId="`option-${option.code}`"
         :name="`question-${question.id}`"
+        v-if="question.options.length > 1"
       />
-      <label :for="`option-${option.code}`" class="client-option-label">
+      <label
+        :for="`option-${option.code}`"
+        class="client-option-label"
+        v-if="question.options.length > 1"
+      >
         {{ option.text }}
       </label>
       <Select
@@ -111,6 +120,7 @@ defineExpose({
         :options="option.choices"
         :placeholder="t('client-question-select-option-placeholder').value"
         class="dropdown-select"
+        :class="{ only: question.options.length <= 1 }"
       />
     </div>
   </div>

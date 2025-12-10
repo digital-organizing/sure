@@ -143,7 +143,7 @@ function onNext() {
         :key="question.id!"
         class="consultation-question"
       >
-        <h3>{{ question.question_text }}</h3>
+        <h3>{{ question.label || question.question_text }}</h3>
         <div v-for="answer in mapAnswersForConsultantQuestion(question.id!)" :key="answer.id">
           {{ answer.text }}
         </div>

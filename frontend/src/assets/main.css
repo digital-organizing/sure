@@ -33,43 +33,13 @@
   margin-left: 1.5rem;
   margin-top: 0.5rem;
 }
+.client-option-item .dropdown-select.only {
+  margin-left: 0;
+}
 
 .client-bottom-button-section {
   position: sticky;
   bottom: 0;
-}
-
-.client-phone-body {
-  color: var(--color-ahs-black);
-  font-family: 'Circular Std';
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 450;
-  line-height: 24.5px;
-}
-
-.client-phone-subtitle {
-  color: var(--color-ahs-black);
-  font-family: 'Circular Std';
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 24.5px;
-}
-
-.button-extra-large {
-  display: flex;
-  width: 207px;
-  height: 49.975px;
-  padding: 13.977px 19.568px;
-  justify-content: center;
-  align-items: center;
-  gap: 11.182px;
-  aspect-ratio: 207/49.98;
-  font-size: 24px;
-  font-weight: 700;
-  font-family: 'Circular Std';
-  line-height: normal;
 }
 
 h3 {

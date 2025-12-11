@@ -62,6 +62,7 @@ declare module 'vue' {
     InputText: typeof import('primevue/inputtext')['default']
     InternalMenuBar: typeof import('./src/components/InternalMenuBar.vue')['default']
     LocationComponent: typeof import('./src/components/LocationComponent.vue')['default']
+    Menu: typeof import('primevue/menu')['default']
     Message: typeof import('primevue/message')['default']
     MultiChoiceMultiTextQuestion: typeof import('./src/components/questions/MultiChoiceMultiTextQuestion.vue')['default']
     MultipleChoiceQuestion: typeof import('./src/components/questions/MultipleChoiceQuestion.vue')['default']

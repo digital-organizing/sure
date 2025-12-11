@@ -64,6 +64,12 @@ class Case(models.Model):
         related_name="cases",
         verbose_name=_("Location"),
     )
+    language = models.CharField(
+        max_length=10,
+        default="en",
+        verbose_name=_("Language"),
+        help_text=_("Preferred language of the client"),
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
     key = models.TextField(
@@ -354,6 +360,11 @@ class BaseQuestion(models.Model):
         default=False,
         verbose_name=_("Copy Paste"),
         help_text=_("Allow copy paste for this question"),
+    )
+    use_textarea = models.BooleanField(
+        default=False,
+        verbose_name=_("Use Textarea"),
+        help_text=_("Use a textarea instead of a single-line input for text responses"),
     )
     order = models.PositiveIntegerField(
         default=0,

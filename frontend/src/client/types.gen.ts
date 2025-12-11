@@ -165,6 +165,11 @@ export type ClientQuestionSchema = {
      */
     copy_paste?: boolean;
     /**
+     * Use Textarea
+     * Use a textarea instead of a single-line input for text responses
+     */
+    use_textarea?: boolean;
+    /**
      * Do Not Show Directly
      * Do not show this question directly to the client
      */
@@ -348,6 +353,11 @@ export type ConsultantQuestionSchema = {
      * Allow copy paste for this question
      */
     copy_paste?: boolean;
+    /**
+     * Use Textarea
+     * Use a textarea instead of a single-line input for text responses
+     */
+    use_textarea?: boolean;
 };
 
 /**
@@ -397,6 +407,10 @@ export type CaseListingSchema = {
      * Tags
      */
     tags: Array<string>;
+    /**
+     * Language
+     */
+    language: string;
     /**
      * Case
      */
@@ -1041,6 +1055,10 @@ export type CreateCaseSchema = {
      * External Id
      */
     external_id?: string | null;
+    /**
+     * Language
+     */
+    language?: string;
 };
 
 /**
@@ -1292,7 +1310,7 @@ export type BannerSchema = {
     name: string;
     /**
      * Content
-     * Content of the information banner, supports markdown or html: <a href="https://example.com/more-info">More info</a>.
+     * Content of the information banner, supports markdown or html: <a href="https://www.markdownguide.org/basic-syntax/">More info</a>.
      */
     content: string;
     /**
@@ -1868,6 +1886,28 @@ export type SureApiGetVisitResponses = {
 };
 
 export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses];
+
+export type SureApiGetCaseLanguageData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/language/';
+};
+
+export type SureApiGetCaseLanguageResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: string;
+};
+
+export type SureApiGetCaseLanguageResponse = SureApiGetCaseLanguageResponses[keyof SureApiGetCaseLanguageResponses];
 
 export type SureApiGetVisitClientAnswersData = {
     body?: never;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { userAnswersStore } from '@/stores/answers'
 import ClientQuestion from './ClientQuestion.vue'
-import { defineProps, defineEmits, ref } from 'vue'
+import { ref } from 'vue'
 import type { SectionSchema } from '@/client'
 import IconLeftArrowSmall from './icons/IconLeftArrowSmall.vue'
 import IconRightArrow from './icons/IconRightArrow.vue'

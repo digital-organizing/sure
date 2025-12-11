@@ -171,6 +171,15 @@ watch(
           <span class="label"> {{ t('status') }} </span>
           <Tag :value="labelForStatus(visit?.status!)" :class="visit?.status" rounded />
         </div>
+        <div class="case-field" v-if="visit?.external_id">
+          <span class="label">{{ t('external-id') }}</span>
+          <span class="value">{{ visit.external_id }}</span>
+        </div>
+        <div class="case-field">
+          <span class="label">{{ t('preferred-language') }}</span>
+          <span class="value">{{ visit?.language || '-' }}</span>
+        </div>
+
         <div class="case-field">
           <span class="label">{{ t('tags') }}</span>
           <div class="tags">

@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import F, Func
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
+from django.utils.translation import get_language
 from django.utils import timezone
 from ninja import File, Form, Router
 from ninja.errors import HttpError
@@ -78,6 +79,7 @@ from sure.schema import (
     TestSchema,
 )
 from tenants.models import Consultant
+from texts.translate import translate
 
 logger = logging.getLogger(__name__)
 
@@ -160,15 +162,13 @@ def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
     visit = get_case_unverified(pk)
 
     if not can_connect_case(visit.case):
-        raise HttpError(400, "Case cannot be connected")
+        raise HttpError(400, translate("case-cannot-be-connected"))
 
     if "phone_number" not in request.session:
-        raise HttpError(400, "Phone number not provided. Please request a token first.")
+        raise HttpError(400, translate("phone-number-not-in-session"))
 
     if request.session["phone_number"] != data.phone_number:
-        raise HttpError(
-            400, "Phone number does not match the one used for token request."
-        )
+        raise HttpError(400, translate("phone-number-mismatch"))
 
     try:
         contact = connect_case_service(
@@ -204,7 +204,7 @@ def get_phone_number(request, pk: str):
 
     if not hasattr(visit.case, "connection"):
         return StatusSchema(
-            success=False, message="No phone number associated with this case"
+            success=False, message=translate("no-phone-number-associated")
         )
     phone_number = visit.case.connection.client.contact.phone_number
     if phone_number:
@@ -218,7 +218,7 @@ def get_phone_number(request, pk: str):
         )
     else:
         return StatusSchema(
-            success=False, message="No phone number associated with this case"
+            success=False, message=translate("no-phone-number-associated")
         )
 
 
@@ -229,6 +229,13 @@ def get_visit(request, pk: str):
 
     visit = get_case(request, pk)
     return visit
+
+
+@router.get("/case/{pk}/language/", response=str, auth=None)
+def get_case_language(request, pk: str):
+    """Get the language for a case."""
+    case = get_object_or_404(Case.objects.all(), pk=strip_id(pk))
+    return case.language
 
 
 @router.get("/case/{pk}/visit/client-answers/", response=list[ClientAnswerSchema])
@@ -296,7 +303,7 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
     visit = get_object_or_404(Visit, case_id=pk)
     if request.user.is_authenticated:
         if not verify_access_to_location(visit.case.location, request.user):
-            raise PermissionError("User does not have access to this location")
+            raise PermissionError(translate("no-access-location"))
 
     try:
         record_client_answers(
@@ -373,7 +380,7 @@ def update_case_status(request, pk: str, status: str):
         raise ValueError(f"Invalid status: {status}")
 
     if status == VisitStatus.RESULTS_SENT.value:
-        raise ValueError("Cannot set status to RESULTS_SENT directly")
+        raise ValueError(translate("cannot-set-results-sent"))
 
     with transaction.atomic():
         visit.logs.create(
@@ -400,7 +407,9 @@ def update_case_test_results(request, pk: str, test_results: SubmitTestResultsSc
         test = test_kinds.filter(test_kind__number=nr).first()
         if not test:
             warnings.append(
-                f"No test found for test kind number {nr} in case {visit.case.human_id}."
+                translate("no-test-found-for-number").format(
+                    number=nr, case=visit.case.human_id
+                )
             )
             continue
 
@@ -560,6 +569,8 @@ def set_case_key(request, pk: str, key: Form["str"]):
     except ValidationError as e:
         print(e.messages)
         return 400, {"success": False, "message": e.messages}
+    visit.case.language = get_language()
+    visit.case.save(update_fields=["language"])
     return {"success": True}
 
 
@@ -567,7 +578,7 @@ def set_case_key(request, pk: str, key: Form["str"]):
 @inject_language
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""
-    case = create_case(data.location_id, request.user, data.external_id)
+    case = create_case(data.location_id, request.user, data.external_id, data.language)
     visit = create_visit(
         case, get_object_or_404(Questionnaire, pk=data.questionnaire_id)
     )
@@ -618,8 +629,8 @@ def list_cases(request, filters: CaseFilters):
 def get_case_status_options(request):  # pylint: disable=unused-argument
     """Get options for case status."""
     return [
-        {"label": str(label), "value": str(value)}
-        for value, label in VisitStatus.choices
+        {"label": translate(str(value)), "value": str(value)}
+        for value, _ in VisitStatus.choices
     ]
 
 
@@ -701,7 +712,7 @@ def get_case_status(request, pk: str, key: Form[str] = ""):
         if visit.status == VisitStatus.CLOSED and not auth_2fa_or_trusted(request):
             return {"label": visit.get_status_display(), "value": visit.status}
 
-        return {"label": "Results not available", "value": "not_available"}
+        return {"label": translate("results-not-available"), "value": "not_available"}
 
     return {"label": visit.get_status_display(), "value": visit.status}
 
@@ -777,15 +788,13 @@ def publish_case_results(request, pk: str):
     if visit.status != VisitStatus.RESULTS_RECORDED:
         raise HttpError(
             400,
-            "Cannot publish results for a case that is not in RESULTS_RECORDED status",
+            translate("cannot-publish-results-status"),
         )
 
     test_results = get_test_results(visit)
 
     if test_results.filter(result_option__information_by_sms=False).exists():
-        raise HttpError(
-            400, "Cannot publish results that are not marked as information_by_sms"
-        )
+        raise HttpError(400, translate("cannot-publish-non-sms-results"))
 
     with transaction.atomic():
         visit.logs.create(

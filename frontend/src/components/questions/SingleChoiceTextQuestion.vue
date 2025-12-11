@@ -33,7 +33,13 @@ const selectedChoice = computed<string | null>({
   },
 })
 
-const isConsultWish = computed(() => props.question.code === 'CONSULT-WISH')
+const useTextarea = computed(() => {
+  if (props.question.use_textarea !== undefined) {
+    return props.question.use_textarea
+  }
+  return false
+})
+
 const text = computed<string>({
   get() {
     return answer.value.choices[0]?.text || ''
@@ -80,7 +86,7 @@ defineExpose({
       </label>
       <template v-if="option.allow_text && selectedChoice === option.code">
         <Textarea
-          v-if="isConsultWish"
+          v-if="useTextarea"
           v-model="text"
           autoResize
           :rows="4"
@@ -89,6 +95,7 @@ defineExpose({
         />
         <InputText
           v-else
+          v-model="text"
           type="text"
           :placeholder="additionalTextPlaceholder(option.text || '').value"
           class="text-input"

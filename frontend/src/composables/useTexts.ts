@@ -136,5 +136,6 @@ export const useTexts = createGlobalState(() => {
     language: readonly(language),
     onLanguageChange,
     render,
+    availableLanguages: readonly(availableLanguages),
   }
 })

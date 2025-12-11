@@ -16,6 +16,7 @@ from sms.service import send_sms
 from sms.tasks import schedule_sms_sending
 from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
+from texts.translate import translate
 
 from .models import (
     Case,
@@ -80,7 +81,9 @@ def location_can_view_case(location_ids: Iterable[int], case: Case) -> bool:
     ).exists()
 
 
-def create_case(location_id: int, user, external_id: str | None = None) -> Case:
+def create_case(
+    location_id: int, user, external_id: str | None = None, language: str = "en"
+) -> Case:
     """Create a new case at the given location."""
     location = get_object_or_404(tenants.models.Location, pk=location_id)
     if not verify_access_to_location(location, user):
@@ -88,6 +91,7 @@ def create_case(location_id: int, user, external_id: str | None = None) -> Case:
     case = Case.objects.create(
         location=location,
         external_id=external_id or "",
+        language=language,
     )
     return case
 
@@ -131,7 +135,7 @@ def send_case_link(case: Case, phone_number: str):
 
     link = get_case_link(case)
 
-    msg = "Open this link to access your case: " + link
+    msg = translate("case-link-message", language=case.language).format(link=link)
 
     send_sms(contact.phone_number, msg, case.location.tenant)
 
@@ -143,7 +147,7 @@ def send_results_link(case: Case):
     contact = connection.client.contact
     link = settings.SITE_URL + "/results?case=" + case.human_id
 
-    msg = "Your test results are now available. Go to " + link
+    msg = translate("results-link-message", language=case.language).format(link=link)
 
     slot = case.location.get_next_opening(timezone.now())
     if not slot:
@@ -171,12 +175,11 @@ def send_token(phone_number: str, case: Case):
         phone_number=canonicalize_phone_number(phone_number),
     )
     if contact.has_recent_token():
-        raise ValueError(
-            "A recent token has already been sent, please wait before requesting a new one."
-        )
+        raise ValueError(translate("recent-token-error"))
 
     token = contact.generate_token(case)
-    msg = f"Your verification code for {settings.SITE_URL} is: " + token
+    msg_template = translate("verification-code-message")
+    msg = msg_template.format(site_url=settings.SITE_URL, token=token)
 
     send_sms(contact.phone_number, msg, case.location.tenant)
 
@@ -350,14 +353,14 @@ def get_case(request, pk):
         return visit
 
     if not hasattr(request.user, "consultant"):
-        raise PermissionError("User does not have access to this location")
+        raise PermissionError(translate("no-access-location"))
 
     consultant: tenants.models.Consultant = request.user.consultant
 
     if not location_can_view_case(
         consultant.locations.values_list("id", flat=True), visit.case
     ):
-        raise PermissionError("User does not have access to this location")
+        raise PermissionError(translate("no-access-location"))
 
     return visit
 
@@ -371,11 +374,9 @@ def get_case_unverified(pk, key: str = ""):
         return visit
 
     if not key:
-        raise PermissionError(
-            "Key is required for accessing a case that is not in CREATED status"
-        )
+        raise PermissionError(translate("case-key-required"))
 
     if not visit.case.check_key(key):
-        raise PermissionError("Invalid key for accessing the case")
+        raise PermissionError(translate("invalid-case-key"))
 
     return visit

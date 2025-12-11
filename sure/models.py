@@ -532,6 +532,7 @@ class ClientAnswer(BaseAnswer):
     question = models.ForeignKey(
         ClientQuestion, on_delete=models.CASCADE, related_name="answers"
     )
+    question_id: int
     visit = models.ForeignKey(
         "Visit", on_delete=models.CASCADE, related_name="client_answers"
     )

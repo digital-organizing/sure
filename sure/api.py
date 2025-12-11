@@ -261,11 +261,21 @@ def get_visit_consultant_answers(request, pk: str):
 def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
     visit = get_case(request, pk)
 
-    client_answers = visit.client_answers.all().order_by("-created_at")
-    consultant_answers = visit.consultant_answers.all().order_by("-created_at")
-    tests = visit.tests.all().order_by("-created_at")
+    client_answers = (
+        visit.client_answers.all().order_by("-created_at").select_related("question")
+    )
+    consultant_answers = (
+        visit.consultant_answers.all()
+        .order_by("-created_at")
+        .select_related("question")
+    )
+    tests = visit.tests.all().order_by("-created_at").select_related("test_kind")
 
-    results = TestResult.objects.filter(test__visit=visit).order_by("-created_at")
+    results = (
+        TestResult.objects.filter(test__visit=visit)
+        .order_by("-created_at")
+        .select_related("result_option", "test", "test__test_kind")
+    )
     log = visit.logs.all().order_by("-timestamp")
 
     return {
@@ -661,6 +671,7 @@ def list_tests(request):  # pylint: disable=unused-argument
     return TestCategory.objects.prefetch_related(
         "test_kinds",
         "test_kinds__test_bundles",
+        "test_kinds__result_options",
     ).all()
 
 

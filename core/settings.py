@@ -583,3 +583,9 @@ AXES_IPWARE_META_PRECEDENCE_ORDER = [
     "HTTP_X_FORWARDED_FOR",
     "REMOTE_ADDR",
 ]
+
+
+AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=8)
+AXES_COOLOFF_TIME = env.int("AXES_COOLOFF_TIME", default=1)  # in hours
+AXES_SENSITIVE_PARAMETERS = ["password", "new_password", "username", "sesame"]
+AXES_VERBOSE = DEBUG

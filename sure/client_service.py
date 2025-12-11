@@ -20,6 +20,7 @@ from sure.schema import AnswerSchema
 from .models import (
     Case,
     Client,
+    ClientAnswer,
     Connection,
     ConsentChoice,
     Contact,
@@ -265,7 +266,9 @@ def record_client_answers(
         .order_by("question_id", "-created_at")
         .distinct("question_id")
     )
-    current_answer_map = {ans.question.pk: ans for ans in current_answers}
+    current_answer_map = {ans.question_id: ans for ans in current_answers}
+
+    created_answers = []
 
     for answer in answers:
         choices = [int(choice.code) for choice in answer.choices]
@@ -277,14 +280,19 @@ def record_client_answers(
                 existing_answer.texts, texts
             ):
                 continue
-        visit.client_answers.create(
-            question_id=answer.questionId,
-            choices=choices,
-            texts=texts,
-            user=user,
+
+        created_answers.append(
+            ClientAnswer(
+                visit=visit,
+                question_id=answer.questionId,
+                choices=choices,
+                texts=texts,
+                user=user,
+            )
         )
 
     with transaction.atomic():
+        ClientAnswer.objects.bulk_create(created_answers)
         visit.status = VisitStatus.CLIENT_SUBMITTED
         visit.save(update_fields=["status"])
 

@@ -4,7 +4,10 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group, User
 from django.db import models
+from django.forms import Form
 from django.http.request import HttpRequest
+from django.shortcuts import redirect
+from django.urls import reverse
 from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
 from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
 from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
@@ -24,9 +27,12 @@ from modeltranslation.admin import (
 from simple_history.admin import SimpleHistoryAdmin
 from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
+from unfold.components import BaseComponent, register_component
+from unfold.decorators import action
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
+from sure.cases import case_cohort_by_location, case_cohort_by_tenants
 from sure.models import (
     ClientOption,
     ClientQuestion,
@@ -39,7 +45,9 @@ from sure.models import (
     TestCategory,
     TestKind,
     TestResultOption,
+    VisitExport,
 )
+from sure.tasks import create_export
 
 
 @admin.register(
@@ -153,6 +161,56 @@ class ConsultantQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationA
     list_filter = ("questionnaire",)
     ordering = ("order",)
     inlines = [ConsultantOptionInline]
+
+
+@admin.register(
+    VisitExport,
+)
+class VisitExportAdmin(ModelAdmin):
+    list_display = ("created_at", "user", "status", "start_date", "end_date", "file")
+    list_filter = ("status", "created_at", "start_date", "end_date", "user")
+
+    readonly_fields = (
+        "created_at",
+        "status",
+        "file",
+        "error_message",
+        "total_visits",
+        "progress",
+    )
+    exclude = ("user",)
+
+    actions_detail = ["start_export_obj"]
+
+    actions = ["start_export"]
+
+    date_hierarchy = "created_at"
+
+    @action
+    def start_export(self, request: HttpRequest, queryset):
+        for export in queryset.values_list("id", flat=True):
+            create_export(export)
+
+    @action(description="Start Export")
+    def start_export_obj(self, request, object_id):
+        create_export.delay(object_id)
+        return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet:
+        queryset = super().get_queryset(request)
+        if request.user.is_superuser:
+            return queryset
+        return queryset.filter(user__consultant__tenant=request.user.consultant.tenant)
+
+    def save_model(
+        self, request: HttpRequest, obj: VisitExport, form: Form, change: widgets.Any
+    ) -> None:
+        if not change:
+            obj.user = request.user
+        super().save_model(request, obj, form, change)
+
+        if not change:
+            create_export.delay(obj.pk)
 
 
 class TestOptionInline(TabularInline, TranslationTabularInline):
@@ -303,3 +361,15 @@ class UserAdmin(SimpleHistoryAdmin, BaseUserAdmin, ModelAdmin):
 )
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
     pass
+
+
+@register_component
+class CaseCohortComponent(BaseComponent):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_superuser:
+            context["data"] = case_cohort_by_tenants()
+        else:
+            tenant = self.request.user.consultant.tenant
+            context["data"] = case_cohort_by_location(tenant)
+        return context

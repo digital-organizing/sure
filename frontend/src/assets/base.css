@@ -41,6 +41,15 @@
 .results_sent {
   --status-color: var(--communication-color);
 }
+
+.results_seen {
+  --status-color: var(--communication-color);
+}
+
+.results_missed {
+  --status-color: var(--results-color);
+}
+
 .closed {
   --status-color: var(--communication-color);
 }
@@ -67,6 +76,7 @@ body {
 main {
   max-width: var(--container-width);
   margin: 0 auto;
+  min-height: 80vh;
 }
 
 .option-item.with-text-input.active {

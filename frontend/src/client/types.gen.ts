@@ -922,6 +922,10 @@ export type TestResultInputSchema = {
 export type DocumentSchema = {
     user: UserSchema;
     /**
+     * Link
+     */
+    link: string;
+    /**
      * ID
      */
     id?: number | null;

@@ -659,6 +659,11 @@ class DocumentSchema(ModelSchema):
         ]
 
     user: UserSchema
+    link: str
+
+    @staticmethod
+    def resolve_link(document: VisitDocument) -> str:
+        return document.document.url
 
 
 class DocumentAccessSchema(Schema):

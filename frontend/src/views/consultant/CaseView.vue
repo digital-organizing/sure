@@ -113,11 +113,13 @@ onMounted(() => {
       case 'tests_recorded':
         router.replace({ name: 'consultant-results', params: { caseId: props.caseId } })
         break
+      case 'results_seen':
       case 'closed':
         router.replace({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
         break
       case 'results_recorded':
       case 'results_sent':
+      case 'results_missed':
       case 'communication':
         router.replace({ name: 'consultant-communication', params: { caseId: props.caseId } })
         break

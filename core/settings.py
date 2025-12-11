@@ -45,10 +45,10 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # Application definition
 
 INSTALLED_APPS = [
+    "sure.apps.SureConfig",
     "unfold.apps.BasicAppConfig",
     "unfold.contrib.constance",
     "constance",
-    "sure.apps.SureConfig",
     "texts",
     "guard",
     "sms",
@@ -260,6 +260,10 @@ CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CELERY_RESULT_EXTENDED = True
+CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24 * 30
+
 
 HEALTH_CHECK = {
     "DISK_USAGE_MAX": 90,

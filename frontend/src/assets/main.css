@@ -5,6 +5,7 @@
 .client-form-view {
   max-width: 800px;
   margin: auto;
+  min-height: 80vh;
 }
 
 .client-section-element {

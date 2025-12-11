@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('../views/PrivacyView.vue'),
+    },
+    {
       path: '/client/:caseId',
       name: 'client-start',
       component: () => import('../views/ClientWelcomeView.vue'),

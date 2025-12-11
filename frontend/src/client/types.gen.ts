@@ -1203,11 +1203,12 @@ export type TestCategorySchema = {
 export type ResultInformationSchema = {
     /**
      * Option
+     * Select the result for which you want to display additional information
      */
     option: number;
     /**
      * Information Text
-     * Detailed information related to this result option
+     * Detailed information related to this result option, the information about the result is already displayed, you only need to specify additional information (booking link, ...)
      */
     information_text?: string | null;
 };
@@ -1227,11 +1228,12 @@ export type LocationSchema = {
     name: string;
     /**
      * Phone Number
+     * Phone number displayed to clients for this location.
      */
     phone_number?: string | null;
     /**
      * Opening Hours
-     * JSON field to store opening hours.
+     * JSON field to store opening hours. These are displayed to clients and used to prevent SMS sending outside opening hours.
      */
     opening_hours?: {
         [key: string]: unknown;
@@ -1248,10 +1250,12 @@ export type TenantSchema = {
     id?: number | null;
     /**
      * Name
+     * Name of the tenant organization, which will be displayed to consultants and admins
      */
     name: string;
     /**
      * Logo
+     * Upload a png with white or tranparent background resolution of 250px pixels
      */
     logo?: string | null;
 };
@@ -1288,10 +1292,12 @@ export type BannerSchema = {
     name: string;
     /**
      * Content
+     * Content of the information banner, supports markdown or html: <a href="https://example.com/more-info">More info</a>.
      */
     content: string;
     /**
      * Severity
+     * Severity level of the banner, which determines its appearance.
      */
     severity?: string;
 };
@@ -1670,6 +1676,25 @@ export type CoreApiAccountResponses = {
 };
 
 export type CoreApiAccountResponse = CoreApiAccountResponses[keyof CoreApiAccountResponses];
+
+export type CoreApiSetLanguageData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Language
+         */
+        language: string;
+    };
+    url: '/api/set-language/';
+};
+
+export type CoreApiSetLanguageResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type SureApiGetCaseQuestionnaireData = {
     body?: never;
@@ -2892,7 +2917,12 @@ export type TenantsApiGetConsultantResponse = TenantsApiGetConsultantResponses[k
 export type TenantsApiGetBannersData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/tenants/banners/';
 };
 

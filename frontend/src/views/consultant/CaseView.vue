@@ -4,7 +4,6 @@ import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useClipboard, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
-import { userAnswersStore } from '@/stores/answers'
 import { useStatus } from '@/composables/useStatus'
 import { useTexts } from '@/composables/useTexts'
 import { useToast } from 'primevue/usetoast'
@@ -98,35 +97,36 @@ function copyClientLink() {
   })
 }
 
-onMounted(() => {
-  if (props.caseId === visit.value?.case) {
+onMounted(async () => {
+  if (props.caseId !== visit.value?.case) {
+    await setCaseId(props.caseId)
+  }
+  if (router.currentRoute.value.name !== 'consultant-case') {
     return
   }
-  setCaseId(props.caseId).then(() => {
-    if (router.currentRoute.value.name !== 'consultant-case') {
-      return
-    }
-    switch (visit.value!.status) {
-      case 'consultant_submitted':
-        router.replace({ name: 'consultant-tests', params: { caseId: props.caseId } })
-        break
-      case 'tests_recorded':
-        router.replace({ name: 'consultant-results', params: { caseId: props.caseId } })
-        break
-      case 'results_seen':
-      case 'closed':
-        router.replace({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
-        break
-      case 'results_recorded':
-      case 'results_sent':
-      case 'results_missed':
-      case 'communication':
-        router.replace({ name: 'consultant-communication', params: { caseId: props.caseId } })
-        break
-      default:
-        router.replace({ name: 'consultant-client-answers', params: { caseId: props.caseId } })
-    }
-  })
+  switch (visit.value!.status) {
+    case 'client_submitted':
+      router.replace({ name: 'consultant-client-answers', params: { caseId: props.caseId } })
+      break
+    case 'consultant_submitted':
+      router.replace({ name: 'consultant-tests', params: { caseId: props.caseId } })
+      break
+    case 'tests_recorded':
+      router.replace({ name: 'consultant-results', params: { caseId: props.caseId } })
+      break
+    case 'results_seen':
+    case 'closed':
+      router.replace({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
+      break
+    case 'results_recorded':
+    case 'results_sent':
+    case 'results_missed':
+    case 'communication':
+      router.replace({ name: 'consultant-communication', params: { caseId: props.caseId } })
+      break
+    default:
+      router.replace({ name: 'consultant-client-answers', params: { caseId: props.caseId } })
+  }
 })
 
 watch(
@@ -314,6 +314,7 @@ nav a {
 .case-field .label {
   font-weight: normal;
 }
+
 .case-field .value {
   font-weight: bold;
   margin-top: 0.2rem;
@@ -344,12 +345,14 @@ nav a {
     flex: 1;
   }
 }
+
 .visits {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
   flex-wrap: wrap;
 }
+
 .visits a {
   text-decoration: underline;
   font-weight: bold;

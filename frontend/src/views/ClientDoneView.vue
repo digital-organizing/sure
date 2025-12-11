@@ -20,9 +20,6 @@ const { getText: t } = useTexts()
       <h1 class="client-h1" style="margin: 0">
         {{ t('client-done-title') }}
       </h1>
-      <p class="client-body" style="margin: 0">
-        {{ t('client-done-description') }}
-      </p>
       <p v-if="showCaseId" class="client-body" style="margin: 0">
         {{ t('client-done-note') }}
       </p>

@@ -15,6 +15,7 @@ from django.contrib.auth.password_validation import (
     validate_password,
 )
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import FileExtensionValidator
 
 from html_sanitizer import Sanitizer
 from django.db import models, transaction
@@ -624,6 +625,11 @@ class TestResultOption(models.Model):
     def __str__(self):
         return f"{self.test_kind.name} - {self.label}"
 
+    def save(self, *args, **kwargs):
+        sanitizer = Sanitizer({"keep_typographic_whitespace": True})
+        self.information_text = sanitizer.sanitize(self.information_text)
+        super().save(*args, **kwargs)
+
 
 class ResultInformation(models.Model):
     option = models.ForeignKey(
@@ -662,6 +668,11 @@ class ResultInformation(models.Model):
     def __str__(self):
         return f"Information for {self.option} @ {', '.join([loc.name for loc in self.locations.all()])}"
 
+    def save(self, *args, **kwargs):
+        sanitizer = Sanitizer({"keep_typographic_whitespace": True})
+        self.information_text = sanitizer.sanitize(self.information_text)
+        super().save(*args, **kwargs)
+
 
 class TestBundle(models.Model):
     name = models.CharField(max_length=255, verbose_name=_("Name"))
@@ -669,6 +680,11 @@ class TestBundle(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    class Meta:
+        verbose_name = _("Test Bundle")
+        verbose_name_plural = _("Test Bundles")
+        ordering = ["name"]
 
 
 class VisitStatus(models.TextChoices):
@@ -772,6 +788,11 @@ class VisitNote(models.Model):
 
     history = HistoricalRecords()
 
+    def save(self, *args, **kwargs):
+        sanitizer = Sanitizer({"keep_typographic_whitespace": True})
+        self.note = sanitizer.sanitize(self.note)
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = _("Visit Note")
         verbose_name_plural = _("Visit Notes")
@@ -807,6 +828,11 @@ class VisitDocument(models.Model):
         upload_to="visit_documents/",
         verbose_name=_("Document"),
         help_text=_("Document related to the visit"),
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["pdf", "doc", "docx", "jpg", "png"]
+            )
+        ],
     )
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Uploaded At"))
     user = models.ForeignKey(

@@ -46,7 +46,10 @@ simple_history.register(ConsultantQuestion)
 
 
 class OptionTranslationOptions(TranslationOptions):
-    fields = ("text",)
+    fields = (
+        "text",
+        "choices",
+    )
 
 
 translator.register(ClientOption, OptionTranslationOptions)

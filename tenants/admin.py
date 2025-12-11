@@ -1,5 +1,6 @@
 """Admin configuration for the tenants app."""
 
+from django.shortcuts import redirect
 from unfold.decorators import action
 from django.contrib import admin
 from django.db.models.query import QuerySet
@@ -10,6 +11,9 @@ from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
 
 from django.utils.translation import gettext_lazy as _
+from modeltranslation.admin import (
+    TabbedTranslationAdmin,
+)
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant
@@ -40,7 +44,7 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
         (
             None,
             {
-                "fields": ("name", "tenant"),
+                "fields": ("name", "tenant", "opening_hours", "phone_number"),
             },
         ),
         (
@@ -64,7 +68,13 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
 class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
     """Admin for consultants."""
 
-    list_display = ("user", "tenant")
+    list_display = (
+        "user",
+        "tenant",
+        "user__first_name",
+        "user__last_name",
+        "display_locations",
+    )
     search_fields = ("user__username", "user__email", "tenant__name")
 
     autocomplete_fields = ("user", "locations")
@@ -81,22 +91,24 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         return super().get_queryset(request).filter(tenant__admins=request.user)
 
     @action(description="Reset password")
-    def reset_password_detail(
-        self, request: HttpRequest, consultant: Consultant
-    ) -> None:
+    def reset_password_detail(self, request: HttpRequest, object_id: int):
         """Admin action to reset password for a single consultant."""
+        consultant = self.get_queryset(request).get(pk=object_id)
         user = consultant.user
         user.set_unusable_password()
         user.save()
         send_reset_mail(request, consultant)
+        return redirect("admin:tenants_consultant_change", object_id)
 
     @action(description="Reset 2FA")
-    def reset_2fa_detail(self, request: HttpRequest, consultant: Consultant) -> None:
+    def reset_2fa_detail(self, request: HttpRequest, object_id: int):
         """Admin action to reset 2FA for a single consultant."""
+        consultant = self.get_queryset(request).get(pk=object_id)
         user = consultant.user
         for device in devices_for_user(user):
             device.delete()
         send_2fa_reset_mail(request, user)
+        return redirect("admin:tenants_consultant_change", object_id)
 
     @admin.action(description="Reset passwords for selected consultants")
     def reset_password(
@@ -129,6 +141,12 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
             for path in super().get_urls()
             if path.pattern.name != "tenants_consultant_add"
         ]
+
+    def display_locations(self, obj: Consultant) -> str:
+        """Display locations as a comma-separated list."""
+        return ", ".join(location.name for location in obj.locations.all())
+
+    display_locations.short_description = "Locations"  # type: ignore[unresolved-attribute]
 
 
 class ConsultantInline(TabularInline):
@@ -180,7 +198,7 @@ class TagAdmin(ModelAdmin):
 
 
 @admin.register(InformationBanner)
-class InformationBannerAdmin(ModelAdmin):
+class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     """Admin for information banners."""
 
     list_display = ("name", "created_at", "published_at", "expires_at", "tenant")

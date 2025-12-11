@@ -8,7 +8,10 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
+
+from html_sanitizer import Sanitizer
 
 simple_history.register(User, app=__package__)
 # Create your models here.
@@ -98,6 +101,26 @@ WEEKDAYS = [
 ]
 
 
+def validate_opening_hours(value):
+    if not isinstance(value, dict):
+        raise ValidationError("Opening hours must be a dictionary.")
+    for day in WEEKDAYS:
+        if day not in value:
+            raise ValidationError(f"Opening hours must include '{day}'.")
+        hours = value[day]
+        if not isinstance(hours, list):
+            raise ValidationError(f"Opening hours for '{day}' must be a list.")
+        for period in hours:
+            if (
+                not isinstance(period, list)
+                or len(period) != 2
+                or not all(isinstance(t, str) for t in period)
+            ):
+                raise ValidationError(
+                    f"Each opening period for '{day}' must be a list of two time strings."
+                )
+
+
 class Location(models.Model):
     """A location belonging to a tenant."""
 
@@ -115,9 +138,15 @@ class Location(models.Model):
             "JSON field to store opening hours. These are displayed to clients and used to prevent SMS sending outside opening hours."
         ),
         default=default_opening_hours,
+        validators=[validate_opening_hours],
     )
 
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text=_("Phone number displayed to clients for this location."),
+    )
 
     excluded_questions = models.ManyToManyField(
         "sure.ClientQuestion",
@@ -249,7 +278,7 @@ class InformationBanner(models.Model):
     name = models.CharField(max_length=100)
     content = models.TextField(
         help_text=_(
-            'Content of the information banner, supports markdown or html. <a href="https://example.com/more-info">More info</a>.'
+            'Content of the information banner, supports markdown or html: <a href="https://www.markdownguide.org/basic-syntax/">More info</a>.'
         )
     )
     severity = models.CharField(
@@ -276,3 +305,8 @@ class InformationBanner(models.Model):
 
     def __str__(self) -> str:
         return f"Banner for {self.tenant.name} ({self.pk})"
+
+    def save(self, *args, **kwargs):
+        sanitizer = Sanitizer({"keep_typographic_whitespace": True})
+        self.content = sanitizer.sanitize(self.content)
+        super().save(*args, **kwargs)

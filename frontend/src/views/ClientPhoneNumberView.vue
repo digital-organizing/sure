@@ -85,9 +85,12 @@ async function startVerification() {
   const response = await sureApiSendToken({
     body: { phone_number: phonenumber.value },
     path: { pk: props.caseId },
+  }).catch(() => {
+    error.value = translate('client-phone-error-network')
+    return { error: { message: '' } }
   })
   if (response.error) {
-    error.value = ensureString(response.error?.message)
+    error.value = translate('client-phone-error-invalid')
     return
   }
   if (response.response.status !== 200) {
@@ -139,6 +142,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
 
 <template>
   <div class="client-form-view">
+    {{ error }}
     <div class="client-section-element" id="navi-top">
       <ClientNavigationTop
         :section-title="t('client-phone-section-title').value"
@@ -166,24 +170,11 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
       </div>
     </div>
     <div class="client-section-element client-phone-body">
-      <div v-if="verified">
-        <Message severity="info">
-          {{
-            f('client-phone-verification-success', [{ key: 'phone', value: phonenumberSent }])
-          }}</Message
-        >
-      </div>
-      <Form
-        :resolver="resolver"
-        :validate-on-blur="true"
-        v-slot="$form"
-        @submit="onSubmit"
-        v-if="!verified"
-      >
+      <Form :resolver="resolver" :validate-on-blur="true" @submit="onSubmit" v-if="!verified">
         <div class="client-phone-question">
-          <div class="client-phone-question-title">
+          <h3 class="client-phone-question-title">
             {{ t('client-phone-identification-question') }}
-          </div>
+          </h3>
           <div class="client-option-item" :class="{ active: selectedConsentOption === 'allowed' }">
             <RadioButton
               v-model="selectedConsentOption"
@@ -194,79 +185,6 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
             <label for="phone-consent-yes" class="client-option-label">
               {{ t('client-phone-consent-yes-label') }}
             </label>
-          </div>
-          <div v-if="showContactForm" class="client-phone-inputs">
-            <div class="client-phone-input">
-              <label for="client-phone-number">{{ t('client-phone-input-label') }}</label>
-              <InputGroup>
-                <InputText
-                  id="client-phone-number"
-                  v-model="phonenumber"
-                  name="phonenumber"
-                  type="tel"
-                  :placeholder="t('client-phone-input-placeholder').value"
-                  class="text-input"
-                />
-                <InputGroupAddon>
-                  <Button
-                    icon="pi pi-lock"
-                    severity="primary"
-                    @click="startVerification"
-                    :disabled="(!!phonenumber && !$form.phonenumber?.valid) || remaining > 0"
-                    :label="
-                      remaining === 0
-                        ? t('client-phone-verify-button').value
-                        : f('client-phone-countdown-label', [
-                            { key: 'seconds', value: remaining.toString() },
-                          ]).value
-                    "
-                    variant="text"
-                    size="large"
-                  >
-                  </Button>
-                </InputGroupAddon>
-              </InputGroup>
-              <Message
-                v-if="$form.phonenumber?.invalid"
-                severity="error"
-                size="small"
-                variant="simple"
-                >{{ $form.phonenumber.error.message }}</Message
-              >
-              <Message v-if="error" severity="error" size="small" variant="simple">{{
-                error
-              }}</Message>
-            </div>
-            <div v-if="showVerify" class="client-phone-input">
-              <label for="verification-code">{{
-                f('client-phone-verification-code-label', [
-                  { key: 'phone', value: phonenumberSent },
-                ])
-              }}</label>
-              <InputGroup>
-                <InputText
-                  id="verification-code"
-                  v-model="token"
-                  class="text-input"
-                  :placeholder="t('client-phone-verification-code-input').value"
-                />
-
-                <InputGroupAddon>
-                  <Button severity="primary" variant="text" icon="pi pi-send" @click="onVerify" />
-                </InputGroupAddon>
-              </InputGroup>
-              <section>
-                <span>{{ t('client-phone-no-code-text') }}</span>
-                <span v-if="remaining > 0">
-                  {{
-                    f('client-phone-resend-countdown', [
-                      { key: 'seconds', value: remaining.toString() },
-                    ])
-                  }}
-                </span>
-              </section>
-              <Message v-if="errorVerify" severity="error" size="small">{{ errorVerify }}</Message>
-            </div>
           </div>
           <div
             class="client-option-item"
@@ -290,20 +208,102 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
       </Form>
     </div>
 
-    <div class="client-section-element client-phone-body" id="finalize-button-section">
-      <Form v-if="canFinish" class="form-col" @submit="onSubmit" ref="$form">
+    <div class="client-section-element client-bottom-body" v-if="showContactForm && !verified">
+      <Form v-slot="$form" class="form-col">
+        <p>
+          {{ t('client-phone-input-description') }}
+        </p>
+        <label for="client-phone-number">{{ t('client-phone-input-label') }}</label>
+        <InputText
+          id="client-phone-number"
+          v-model="phonenumber"
+          name="phonenumber"
+          type="tel"
+          :placeholder="t('client-phone-input-placeholder').value"
+          class="text-input"
+        />
+
+        <Message v-if="$form.phonenumber?.invalid" severity="error" size="small" variant="simple">{{
+          $form.phonenumber.error.message
+        }}</Message>
+        <Message v-if="error" severity="error" size="small" variant="simple">{{ error }}</Message>
+        <Button
+          icon="pi pi-lock"
+          severity="primary"
+          class="btn-inline"
+          @click="startVerification"
+          :disabled="(!!phonenumber && !$form.phonenumber?.valid) || remaining > 0"
+          :label="
+            remaining === 0
+              ? t('client-phone-verify-button').value
+              : f('client-phone-countdown-label', [{ key: 'seconds', value: remaining.toString() }])
+                  .value
+          "
+        >
+        </Button>
+        <div v-if="showVerify" class="client-phone-input form-col">
+          <label for="verification-code">{{
+            f('client-phone-verification-code-label', [{ key: 'phone', value: phonenumberSent }])
+          }}</label>
+          <InputText
+            id="verification-code"
+            v-model="token"
+            class="text-input"
+            autocomplete="tel"
+            :placeholder="t('client-phone-verification-code-input').value"
+          />
+
+          <Button
+            severity="primary"
+            icon="pi pi-send"
+            @click="onVerify"
+            :label="t('submit').value"
+          />
+          <section>
+            <span>{{ t('client-phone-no-code-text') }}</span>
+            <span v-if="remaining > 0">
+              {{
+                f('client-phone-resend-countdown', [
+                  { key: 'seconds', value: remaining.toString() },
+                ])
+              }}
+            </span>
+          </section>
+          <Message v-if="errorVerify" severity="error" size="small">{{ errorVerify }}</Message>
+        </div>
+      </Form>
+    </div>
+
+    <div class="client-section-element client-bottom-body">
+      <Message v-if="verified" severity="success" size="small" variant="outlined" class="msg">
+        {{
+          f('client-phone-verification-success', [{ key: 'phone', value: phonenumberSent }]).value
+        }}
+      </Message>
+      <Form v-if="canFinish" class="form-col form-key" @submit="onSubmit" ref="$form">
+        <p
+          v-if="!verified"
+          v-html="f('client-phone-case-id', [{ key: 'caseId', value: caseId }], true).value"
+        ></p>
         <p>
           {{ t('client-phone-key-description') }}
         </p>
         <label for="client-key" class="client-option-label">
           {{ t('client-phone-key-label') }}
         </label>
-        <Password input-id="client-key" required name="key" :feedback="false" />
+        <InputText
+          type="password"
+          autocomplete="new-password"
+          input-id="client-key"
+          required
+          name="key"
+        />
 
         <Message v-if="errorKey" severity="error" size="small" variant="outlined">{{
           errorKey
         }}</Message>
 
+        <section v-html="r('client-phone-privacy')" class="health-info-text"></section>
         <section v-html="r('client-phone-improving-health')" class="health-info-text"></section>
 
         <Button class="button-extra-large" severity="primary" rounded type="submit"
@@ -330,6 +330,49 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   top: 0;
 }
 
+.client-option-item {
+  align-items: center;
+}
+
+.client-phone-subtitle {
+  color: var(--color-ahs-black);
+  font-family: 'Circular Std';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 24.5px;
+}
+
+.button-extra-large {
+  display: flex;
+  width: 207px;
+  height: 49.975px;
+  padding: 13.977px 19.568px;
+  justify-content: center;
+  align-items: center;
+  gap: 11.182px;
+  aspect-ratio: 207/49.98;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Circular Std';
+  line-height: normal;
+}
+
+.client-section-element {
+  font-size: 18px;
+  gap: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+p {
+  margin: 0;
+}
+
+.client-phone-body {
+  margin-bottom: 1rem;
+}
+
 .client-phone-icon {
   height: 40px;
   width: 40px;
@@ -340,50 +383,58 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   z-index: 5;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .client-phone-question {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 
 .client-phone-question-title {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 .client-phone-inputs {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
   margin-left: 1.5rem;
 }
 
 .client-phone-input {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
   min-width: 220px;
 }
 
-#finalize-button-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 50px;
+.health-info-text:first-of-type {
   margin-top: 1rem;
 }
 
-.health-info-text {
-  margin-top: 1rem;
+.health-info-text:last-of-type {
   margin-bottom: 1rem;
+}
+
+.health-info-text {
   font-size: 1rem;
   line-height: 1.2;
   color: var(--color-ahs-gray-700);
+}
+
+.client-section-element:last-child {
+  margin-bottom: 8rem;
+}
+.button {
+  margin-top: 1rem;
+}
+
+.p-inputtext {
+  min-width: 20rem;
+}
+.msg {
+  margin-bottom: 1rem;
 }
 </style>

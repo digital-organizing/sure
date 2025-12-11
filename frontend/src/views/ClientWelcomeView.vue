@@ -154,7 +154,9 @@ function toggleMenu(event: Event) {
 }
 
 #client-welcome-ahs-logo-footer {
-  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  background-color: var(--color-ahs-white);
 }
 
 #lang-btn {

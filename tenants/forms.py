@@ -14,11 +14,31 @@ from tenants.models import Location, Tenant
 from tenants.tasks import send_background_mail
 
 
+def validate_personal_email(value: str) -> None:
+    """Validator to ensure the email is not impersonal."""
+    impersonal_domains = [
+        "admin@",
+        "info@",
+        "noreply@",
+        "no-reply@",
+        "support@",
+        "contact@",
+    ]
+    if any(value.lower().startswith(domain) for domain in impersonal_domains):
+        raise forms.ValidationError(
+            _("Please provide a personal email address, not an impersonal one.")
+        )
+
+
 class ConsultantInviteForm(forms.Form):
     """Form for inviting a consultant to a tenant."""
 
     email = forms.EmailField(
-        label="Consultant Email", max_length=254, widget=UnfoldAdminEmailInputWidget()
+        label="Consultant Email",
+        max_length=254,
+        widget=UnfoldAdminEmailInputWidget(),
+        help_text="For legal reasons, impersonal profiles (such as admin@aidshilfe.ch) may not be created. A person's email address (business or private) must be provided.",
+        validators=[validate_personal_email],
     )
 
     first_name = forms.CharField(

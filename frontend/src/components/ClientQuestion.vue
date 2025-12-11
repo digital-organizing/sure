@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref, computed, type ComputedRef } from 'vue'
+import { ref, computed, type ComputedRef } from 'vue'
 import { type AnswerSchema, type ClientAnswerSchema, type ClientQuestionSchema } from '@/client'
 import { Form } from '@primevue/forms'
 import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'

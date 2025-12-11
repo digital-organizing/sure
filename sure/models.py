@@ -355,6 +355,13 @@ class BaseQuestion(models.Model):
         verbose_name=_("Copy Paste"),
         help_text=_("Allow copy paste for this question"),
     )
+    use_textarea = models.BooleanField(
+        default=False,
+        verbose_name=_("Use Textarea"),
+        help_text=_(
+            "Use a textarea instead of a single-line input for text responses"
+        ),
+    )
     order = models.PositiveIntegerField(
         default=0,
         verbose_name=_("Order"),

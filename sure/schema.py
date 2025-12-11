@@ -68,6 +68,7 @@ class ClientQuestionSchema(ModelSchema):
             "validation",
             "show_for_options",
             "copy_paste",
+            "use_textarea",
             "do_not_show_directly",
         ]
 
@@ -145,6 +146,7 @@ class ConsultantQuestionSchema(ModelSchema):
             "format",
             "validation",
             "copy_paste",
+            "use_textarea",
         ]
 
     options: list[ConsultantOptionSchema]

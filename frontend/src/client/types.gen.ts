@@ -165,6 +165,11 @@ export type ClientQuestionSchema = {
      */
     copy_paste?: boolean;
     /**
+     * Use Textarea
+     * Use a textarea instead of a single-line input for text responses
+     */
+    use_textarea?: boolean;
+    /**
      * Do Not Show Directly
      * Do not show this question directly to the client
      */
@@ -348,6 +353,11 @@ export type ConsultantQuestionSchema = {
      * Allow copy paste for this question
      */
     copy_paste?: boolean;
+    /**
+     * Use Textarea
+     * Use a textarea instead of a single-line input for text responses
+     */
+    use_textarea?: boolean;
 };
 
 /**

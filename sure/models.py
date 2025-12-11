@@ -358,9 +358,7 @@ class BaseQuestion(models.Model):
     use_textarea = models.BooleanField(
         default=False,
         verbose_name=_("Use Textarea"),
-        help_text=_(
-            "Use a textarea instead of a single-line input for text responses"
-        ),
+        help_text=_("Use a textarea instead of a single-line input for text responses"),
     )
     order = models.PositiveIntegerField(
         default=0,

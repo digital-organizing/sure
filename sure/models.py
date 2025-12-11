@@ -64,6 +64,12 @@ class Case(models.Model):
         related_name="cases",
         verbose_name=_("Location"),
     )
+    language = models.CharField(
+        max_length=10,
+        default="en",
+        verbose_name=_("Language"),
+        help_text=_("Preferred language of the client"),
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
 
     key = models.TextField(

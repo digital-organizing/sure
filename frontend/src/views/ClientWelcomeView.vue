@@ -5,7 +5,8 @@ import IconWorld from '@/components/icons/IconWorld.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import router from '@/router'
 import { useTexts } from '@/composables/useTexts'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { sureApiGetCaseLanguage } from '@/client'
 
 const props = defineProps<{
   caseId: string
@@ -36,6 +37,14 @@ async function selectLanguage(lang: string) {
   if (currentLanguage.value === lang) return
   await setLanguage(lang)
 }
+
+onMounted(() => {
+  sureApiGetCaseLanguage({ path: { pk: props.caseId } }).then((response) => {
+    if (response.data) {
+      setLanguage(response.data)
+    }
+  })
+})
 
 const langMenuItems = computed(() =>
   availableLanguages.value.map(([code, name]) => ({

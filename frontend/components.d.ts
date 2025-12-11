@@ -77,6 +77,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
+    SelectButton: typeof import('primevue/selectbutton')['default']
     SingleChoiceDropdownQuestion: typeof import('./src/components/questions/SingleChoiceDropdownQuestion.vue')['default']
     SingleChoiceQuestion: typeof import('./src/components/questions/SingleChoiceQuestion.vue')['default']
     SingleChoiceTextQuestion: typeof import('./src/components/questions/SingleChoiceTextQuestion.vue')['default']

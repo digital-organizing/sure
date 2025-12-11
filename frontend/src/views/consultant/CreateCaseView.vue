@@ -3,7 +3,7 @@ import { sureApiCreateCaseView } from '@/client'
 import { useLocations } from '@/composables/useLocations'
 import { useQuestionnaires } from '@/composables/useQuestionnaires'
 import { useTexts } from '@/composables/useTexts'
-import { useClipboard } from '@vueuse/core'
+import { get, useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue/usetoast'
 
 import { useQRCode } from '@vueuse/integrations/useQRCode'
@@ -12,12 +12,32 @@ import { onMounted, ref } from 'vue'
 
 const { locations, fetchLocations } = useLocations()
 const { questionnaires, fetchQuestionnaires } = useQuestionnaires()
-const { getText: t } = useTexts()
+const {
+  getText: t,
+  language: currentLanguage,
+  getLanguage,
+  getAvailableLanguages,
+  onLanguageChange,
+  availableLanguages,
+} = useTexts()
 
 const questionnaire = ref<number | null>(null)
 const location = ref<number | null>(null)
 const externalId = ref<string>('')
 const phone = ref<string>('')
+const language = ref<string>('en')
+
+onMounted(() => {
+  getAvailableLanguages().then((langs) => {
+    getLanguage().then((lang) => {
+      language.value = lang!
+    })
+  })
+  language.value = currentLanguage.value!
+  onLanguageChange((newLang) => {
+    language.value = newLang!
+  })
+})
 
 const link = ref<string>('')
 const caseId = ref<string>('')
@@ -36,6 +56,7 @@ async function handleSubmit() {
       location_id: location.value!,
       external_id: externalId.value,
       phone: phone.value,
+      language: language.value,
     },
   })
 
@@ -116,6 +137,14 @@ function onCopy() {
       <InputText id="phone" :label="t('mobile-phone-number').value" name="phone" v-model="phone" />
       <Message size="small" severity="secondary" variant="simple">{{
         t('phone-number-help')
+      }}</Message>
+    </div>
+    <div class="form-field">
+      <label for="language">{{ t('preferred-language') }}</label>
+      <SelectButton v-model="language" :options="availableLanguages.map((lang) => lang[0])">
+      </SelectButton>
+      <Message size="small" severity="secondary" variant="simple">{{
+        t('preferred-language-help')
       }}</Message>
     </div>
     <Button :label="t('create-case').value" type="submit" />

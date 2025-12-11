@@ -185,6 +185,7 @@ class CreateCaseSchema(Schema):
     questionnaire_id: int
     phone: Annotated[str | None, BeforeValidator(validate_phone_number)] = None
     external_id: Annotated[str | None, BeforeValidator(str.strip)] = None
+    language: str = "en"
 
 
 class CreateCaseResponse(Schema):
@@ -288,6 +289,7 @@ class VisitSchema(ModelSchema):
             "case",
         ]
 
+    language: str = Field(..., alias="case.language")
     client_answers: list[ClientAnswerSchema]
 
 
@@ -454,6 +456,7 @@ class CaseListingSchema(ModelSchema):
     last_modified_at: str
     external_id: str
     tags: list[str]
+    language: str = Field(..., alias="case.language")
 
     class Meta:
         model = Visit

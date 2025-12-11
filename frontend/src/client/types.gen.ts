@@ -408,6 +408,10 @@ export type CaseListingSchema = {
      */
     tags: Array<string>;
     /**
+     * Language
+     */
+    language: string;
+    /**
      * Case
      */
     case: string;
@@ -1051,6 +1055,10 @@ export type CreateCaseSchema = {
      * External Id
      */
     external_id?: string | null;
+    /**
+     * Language
+     */
+    language?: string;
 };
 
 /**
@@ -1302,7 +1310,7 @@ export type BannerSchema = {
     name: string;
     /**
      * Content
-     * Content of the information banner, supports markdown or html: <a href="https://example.com/more-info">More info</a>.
+     * Content of the information banner, supports markdown or html: <a href="https://www.markdownguide.org/basic-syntax/">More info</a>.
      */
     content: string;
     /**
@@ -1878,6 +1886,28 @@ export type SureApiGetVisitResponses = {
 };
 
 export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses];
+
+export type SureApiGetCaseLanguageData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/language/';
+};
+
+export type SureApiGetCaseLanguageResponses = {
+    /**
+     * Response
+     * OK
+     */
+    200: string;
+};
+
+export type SureApiGetCaseLanguageResponse = SureApiGetCaseLanguageResponses[keyof SureApiGetCaseLanguageResponses];
 
 export type SureApiGetVisitClientAnswersData = {
     body?: never;

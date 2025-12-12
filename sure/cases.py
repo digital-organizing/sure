@@ -1,7 +1,10 @@
-from django.db.models import F, OuterRef, Prefetch, Q, QuerySet, Subquery
+from typing import Any, Dict, List, Optional, Tuple
+
+from django.db.models import Count, F, OuterRef, Prefetch, Q, QuerySet, Subquery
 from django.db.models.functions import Greatest
 from django.utils.timezone import make_naive
 
+from sure.forms import CohortFilterForm
 from sure.models import (
     ClientAnswer,
     ClientOption,
@@ -309,41 +312,188 @@ def get_test_results_export(visit: Visit):
     return output
 
 
-def case_cohort_by_tenants():
+def _color_for_status(status):
+    match status:
+        case VisitStatus.CREATED:
+            return "bg-green-100"
+        case VisitStatus.CLIENT_SUBMITTED:
+            return "bg-yellow-100"
+        case VisitStatus.CONSULTANT_SUBMITTED:
+            return "bg-blue-600"
+        case VisitStatus.TESTS_RECORDED:
+            return "bg-blue-100"
+        case VisitStatus.RESULTS_RECORDED:
+            return "bg-primary-500"
+        case VisitStatus.CLOSED:
+            return "bg-gray-50"
+        case _:
+            return "bg-gray-500"
+
+
+def color_for_percentage(percentage: float) -> str:
+    return f"bg-primary-{int(percentage * 9) * 100}" + (
+        " text-white" if percentage > 0.5 else ""
+    )
+
+
+def dashboard_callback(request, context):
+    context["form"] = CohortFilterForm(request.GET or None)
+    return context
+
+
+def _get_col(count: int, total: int) -> Dict[str, Any]:
+    """Helper to format a single cell in the cohort table."""
     return {
-        "headers": [{"title": status[1]} for status in VisitStatus.choices],
-        "rows": [
-            {
-                "header": {"title": tenant.name},
-                "cols": [
-                    {
-                        "value": Visit.objects.filter(
-                            case__location__tenant=tenant, status=status[0]
-                        ).count()
-                    }
-                    for status in VisitStatus.choices
-                ],
-            }
-            for tenant in Tenant.objects.all()
-        ],
+        "value": count,
+        "subtitle": f"{(count / total * 100):.1f}%" if total > 0 else "0.0%",
+        "color": (color_for_percentage(count / total) if total > 0 else "bg-gray-500")
+        + " text-right",
     }
 
 
-def case_cohort_by_location(tenant: Tenant):
-    return {
-        "headers": [{"title": status[1]} for status in VisitStatus.choices],
-        "rows": [
+def _build_cohort_data(
+    query,
+    group_by_fields: List[str],
+    status_choices: List[Tuple],
+    all_groups: Optional[List[Dict]] = None,
+) -> Dict[str, Any]:
+    """
+    Generic cohort data builder that aggregates visits by status and a grouping field.
+
+    Args:
+        query: Base queryset of Visit objects
+        group_by_fields: List of fields to group by (e.g., ['case__location__tenant__id', 'case__location__tenant__name'])
+        status_choices: List of status choices (e.g., VisitStatus.choices)
+        all_groups: Optional list of all possible groups (for including zero-count groups)
+    """
+    # Get total count once
+    total = query.count()
+
+    # Build the grouping fields for the query
+    group_fields = group_by_fields + ["status"]
+
+    # Aggregate counts per group and status in a single query
+    grouped_counts = query.values(*group_fields).annotate(count=Count("id"))
+
+    # Get status totals
+    status_totals = query.values("status").annotate(count=Count("id"))
+    status_totals_dict = {item["status"]: item["count"] for item in status_totals}
+
+    # Organize the data by group
+    group_data = {}
+
+    for row in grouped_counts:
+        # Extract group identifier (first field) and name (second field)
+        group_id = row[group_by_fields[0]]
+        group_name = (
+            row[group_by_fields[1]] if len(group_by_fields) > 1 else str(group_id)
+        )
+        status = row["status"]
+        count = row["count"]
+
+        if group_id not in group_data:
+            group_data[group_id] = {
+                "name": group_name,
+                "counts": {s[0]: 0 for s in status_choices},
+                "total": 0,
+            }
+
+        group_data[group_id]["counts"][status] = count
+        group_data[group_id]["total"] += count
+
+    # If all_groups provided, ensure all groups are included (even with 0 counts)
+    if all_groups:
+        rows = []
+        for group in all_groups:
+            group_id = group["id"]
+            group_name = group["name"]
+
+            if group_id in group_data:
+                data = group_data[group_id]
+            else:
+                data = {
+                    "name": group_name,
+                    "counts": {s[0]: 0 for s in status_choices},
+                    "total": 0,
+                }
+
+            rows.append(
+                {
+                    "header": {
+                        "title": data["name"],
+                        "subtitle": f"Total {data['total']}",
+                    },
+                    "cols": [
+                        _get_col(data["counts"].get(status[0], 0), total) # type: ignore
+                        for status in status_choices
+                    ],
+                }
+            )
+    else:
+        # Use only groups that have data
+        rows = [
             {
-                "header": {"title": location.name},
+                "header": {
+                    "title": data["name"],
+                    "subtitle": f"Total {data['total']}",
+                },
                 "cols": [
-                    {
-                        "value": Visit.objects.filter(
-                            case__location=location, status=status[0]
-                        ).count()
-                    }
-                    for status in VisitStatus.choices
+                    _get_col(data["counts"].get(status[0], 0), total)
+                    for status in status_choices
                 ],
             }
-            for location in tenant.locations.all()
+            for _, data in group_data.items()
+        ]
+
+    return {
+        "headers": [
+            {
+                "title": status[1],
+                "subtitle": f"Total {status_totals_dict.get(status[0], 0)}",
+            }
+            for status in status_choices
         ],
+        "rows": rows,
     }
+
+
+def case_cohort_by_tenants(filter: Optional[Dict] = None) -> Dict[str, Any]:
+    """Generate cohort data grouped by tenants."""
+    if filter is None:
+        filter = {}
+
+    query = Visit.objects.filter(**filter).select_related("case__location__tenant")
+
+    # Get all tenants (optional - if you want to include tenants with 0 visits)
+    all_tenants = list(Tenant.objects.values("id", "name"))
+
+    return _build_cohort_data(
+        query=query,
+        group_by_fields=["case__location__tenant__id", "case__location__tenant__name"],
+        status_choices=VisitStatus.choices,
+        all_groups=all_tenants,  # Remove this if you only want tenants with visits
+    )
+
+
+def case_cohort_by_location(
+    tenant: Tenant, filter: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """Generate cohort data grouped by locations for a specific tenant."""
+    if filter is None:
+        filter = {}
+
+    query = (
+        Visit.objects.filter(case__location__tenant=tenant)
+        .filter(**filter)
+        .select_related("case__location")
+    )
+
+    # Get all locations for the tenant (to include those with 0 visits)
+    all_locations = list(tenant.locations.values("id", "name"))
+
+    return _build_cohort_data(
+        query=query,
+        group_by_fields=["case__location__id", "case__location__name"],
+        status_choices=VisitStatus.choices,
+        all_groups=all_locations,
+    )

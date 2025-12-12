@@ -5,8 +5,8 @@ from django.db import transaction
 from django.db.models import F, Func
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
-from django.utils.translation import get_language
 from django.utils import timezone
+from django.utils.translation import get_language
 from ninja import File, Form, Router
 from ninja.errors import HttpError
 from ninja.files import UploadedFile
@@ -19,7 +19,7 @@ from sure.cases import (
     get_test_results,
     prefetch_questionnaire,
 )
-from sure.client_service import can_connect_case, location_can_view_case
+from sure.client_service import can_connect_case
 from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
     create_case,
@@ -28,6 +28,7 @@ from sure.client_service import (
     get_case_link,
     get_case_unverified,
     human_format_phone_number,
+    location_can_view_case,
     record_client_answers,
     record_consultant_answers,
     send_case_link,

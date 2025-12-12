@@ -1,6 +1,5 @@
-from modeltranslation.translator import TranslationOptions, translator
 import simple_history
-
+from modeltranslation.translator import TranslationOptions, translator
 
 from .models import InformationBanner
 

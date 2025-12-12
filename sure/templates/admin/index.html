@@ -1,6 +1,6 @@
 {% extends 'admin/base.html' %}
 
-{% load i18n unfold %}
+{% load i18n unfold crispy_forms_tags %}
 
 {% block title %}
     {% if subtitle %}
@@ -10,12 +10,27 @@
     {{ title }} | {{ site_title|default:_('Django site admin') }}
 {% endblock %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% url 'admin:jsi18n' %}"></script>
+    {{ form.media }}
+{% endblock %}
+
 {% block branding %}
     {% include "unfold/helpers/site_branding.html" %}
 {% endblock %}
 
 {% block content %}
-    <h2>Case Cohort</h2>
+<h3 class="text-2xl font-semibold mb-8">SURE Dashboard</h3>
+
     {% component "unfold/components/chart/cohort.html" with component_class="CaseCohortComponent" %}
+
 {% endcomponent %}
+
+<div class="mt-10">
+{% component  "unfold/components/card.html" with title="Filter" %}
+    {% crispy form %}
+{% endcomponent %}
+</div>
+
 {% endblock %}

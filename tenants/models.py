@@ -4,14 +4,13 @@ import datetime
 
 import simple_history
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
-from simple_history.models import HistoricalRecords
-
 from html_sanitizer import Sanitizer
+from simple_history.models import HistoricalRecords
 
 simple_history.register(User, app=__package__)
 # Create your models here.

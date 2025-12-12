@@ -1,19 +1,16 @@
 """Admin configuration for the tenants app."""
 
-from django.shortcuts import redirect
-from unfold.decorators import action
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
+from django.shortcuts import redirect
 from django.urls import URLPattern, path
+from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
+from modeltranslation.admin import TabbedTranslationAdmin
 from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
-
-from django.utils.translation import gettext_lazy as _
-from modeltranslation.admin import (
-    TabbedTranslationAdmin,
-)
+from unfold.decorators import action
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant

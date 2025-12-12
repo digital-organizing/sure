@@ -1,4 +1,5 @@
-from django.utils.translation import get_language, activate
+from django.utils.translation import activate, get_language
+
 from .models import Text
 
 

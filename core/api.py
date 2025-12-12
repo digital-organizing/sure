@@ -1,11 +1,11 @@
 import django_agent_trust
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.utils import translation
-from django.http import HttpResponse
-from django.conf import settings
 from django.db import transaction
+from django.http import HttpResponse
+from django.utils import translation
 from django.views.decorators.csrf import csrf_exempt
 from django_otp import devices_for_user
 from django_otp import login as otp_login

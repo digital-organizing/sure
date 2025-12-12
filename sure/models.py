@@ -16,15 +16,13 @@ from django.contrib.auth.password_validation import (
 )
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import FileExtensionValidator
-
-from html_sanitizer import Sanitizer
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-from simple_history.models import HistoricalRecords
 from django.utils.safestring import mark_safe
-
+from django.utils.translation import gettext_lazy as _
+from html_sanitizer import Sanitizer
 from markdown import markdown
+from simple_history.models import HistoricalRecords
 
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
@@ -743,6 +741,8 @@ class Visit(models.Model):
         verbose_name=_("Status"),
     )
 
+    tags = ArrayField(models.CharField(max_length=50), blank=True, default=list)
+
     @property
     def results_visible_for_client(self) -> bool:
         return self.status in [VisitStatus.RESULTS_SENT, VisitStatus.RESULTS_SEEN]
@@ -762,8 +762,6 @@ class Visit(models.Model):
                 kwargs["update_fields"].append("published_at")
 
         return super().save(*args, **kwargs)
-
-    tags = ArrayField(models.CharField(max_length=50), blank=True, default=list)
 
     client_answers: models.QuerySet[ClientAnswer]
     consultant_answers: models.QuerySet[ConsultantAnswer]

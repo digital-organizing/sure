@@ -33,6 +33,7 @@ from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationFo
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
 from sure.cases import case_cohort_by_location, case_cohort_by_tenants
+from sure.forms import CohortFilterForm
 from sure.models import (
     ClientOption,
     ClientQuestion,
@@ -378,9 +379,14 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 class CaseCohortComponent(BaseComponent):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        form = CohortFilterForm(self.request.GET or None)
+        filter = None
+        if form.is_valid():
+            filter = form.get_filter_dict()
+
         if self.request.user.is_superuser:
-            context["data"] = case_cohort_by_tenants()
+            context["data"] = case_cohort_by_tenants(filter)
         else:
             tenant = self.request.user.consultant.tenant
-            context["data"] = case_cohort_by_location(tenant)
+            context["data"] = case_cohort_by_location(tenant, filter)
         return context

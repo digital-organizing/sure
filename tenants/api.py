@@ -4,9 +4,9 @@ from django.utils import timezone
 from ninja import Router
 
 from sure.client_service import strip_id
-from sure.models import Case
 from sure.lang import inject_language
-from tenants.models import InformationBanner, Tag, Consultant
+from sure.models import Case
+from tenants.models import Consultant, InformationBanner, Tag
 from tenants.schema import (
     BannerSchema,
     LocationSchema,

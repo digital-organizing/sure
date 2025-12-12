@@ -59,6 +59,13 @@ async function cancelLogin() {
 </script>
 
 <template>
+  <div>
+    <Button as-child v-slot="slotProps" severity="primary">
+      <RouterLink :to="{ name: 'results' }" :class="slotProps.class">
+        {{ t('check-your-results') }}
+      </RouterLink>
+    </Button>
+  </div>
   <h2>{{ t('login') }}</h2>
   <Form @submit="onSubmit" v-if="showLogin" class="form-col">
     <FloatLabel variant="in">
@@ -73,6 +80,7 @@ async function cancelLogin() {
     <Button type="submit" :label="t('login').value" />
     <Message severity="error" v-if="error">{{ error }}</Message>
   </Form>
+
   <Form @submit="on2FaSubmit" v-if="showOtp" class="form-col">
     <FloatLabel variant="in" v-if="twoFaDevices.length >= 2">
       <Select

@@ -64,7 +64,7 @@ function makeCall(number: string) {
   <div class="case-row">
     <section class="client-preview">
       <section class="notes">
-        <Message severity="info">
+        <Message severity="info" v-if="caseStatus?.value != 'not_available'">
           {{ t('client-preview-info') }}
         </Message>
         <Message severity="warn" v-if="caseStatus?.value == 'not_available'">

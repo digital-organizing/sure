@@ -5,7 +5,7 @@ import ProgressBar from '@/components/ProgressBar.vue'
 import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import { useScroll } from '@/composables/useScroll'
 import { userAnswersStore } from '@/stores/answers'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ClientRecap from '@/components/ClientRecap.vue'
 import { useTexts } from '@/composables/useTexts'
@@ -110,9 +110,9 @@ watch(formIndex, (newIndex) => {
 function nextQuestion() {
   if (formIndex.value < totalSections.value) {
     formIndex.value++
-    nextTick(() => {
+    setTimeout(() => {
       scrollToTop()
-    })
+    }, 5)
   }
 }
 
@@ -124,9 +124,9 @@ function previousQuestion() {
 
 function goToSection(index: number) {
   formIndex.value = index
-  nextTick(() => {
+  setTimeout(() => {
     scrollToTop()
-  })
+  }, 5)
 }
 
 function onSubmit() {
@@ -155,13 +155,13 @@ function onSubmit() {
         />
         <ProgressBar :total="formStructure?.sections.length" :value="progressValue" />
       </div>
-      <div id="client-sections" v-if="formIndex < (formStructure?.sections.length ?? 0)">
+      <div id="client-sections" v-if="formIndex <= (formStructure?.sections.length ?? 0)">
         <ClientSection
           @next="nextQuestion"
           @previous="previousQuestion"
           @submit="onSubmit"
           :section="formStructure?.sections[formIndex]!"
-          :has-next="formIndex < (formStructure?.sections.length ?? 0)"
+          :has-next="formIndex + 1 < (formStructure?.sections.length ?? 0)"
           :has-previous="formIndex > 0"
         />
       </div>

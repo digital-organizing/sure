@@ -2,13 +2,18 @@
 import { type SectionSchema } from '@/client'
 import ClientQuestion from './ClientQuestion.vue'
 import { userAnswersStore } from '@/stores/answers'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import ClientBottomNavButtons from './ClientBottomNavButtons.vue'
+import { useElementVisibility } from '@vueuse/core'
 
 const props = defineProps<{ section: SectionSchema; hasNext: boolean; hasPrevious: boolean }>()
 
 const answersStore = userAnswersStore()
 const questions = ref<(typeof ClientQuestion)[]>([])
+const bottomSpacer = useTemplateRef('bottomSpacer')
+const bottomVisible = useElementVisibility(bottomSpacer, {
+  rootMargin: '0px 0px -90px 0px',
+})
 
 const emits = defineEmits<{
   (e: 'next'): void
@@ -29,6 +34,16 @@ const visibleQuestions = computed(() => {
     return false
   })
 })
+
+const bottomWasVisible = ref<boolean>(false)
+watch(bottomVisible, () => {
+  bottomWasVisible.value = bottomVisible.value || bottomWasVisible.value
+})
+watch(props, () => {
+  setTimeout(() => {
+    bottomWasVisible.value = bottomVisible.value
+  }, 200)
+})
 </script>
 
 <template>
@@ -42,6 +57,7 @@ const visibleQuestions = computed(() => {
       ref="questions"
       :hide-title="false"
     />
+    <div class="bottom-spacer" ref="bottomSpacer"></div>
     <div class="client-bottom-button-section">
       <ClientBottomNavButtons
         @next="emits('next')"
@@ -50,6 +66,7 @@ const visibleQuestions = computed(() => {
         :section="props.section"
         :hasNext="props.hasNext"
         :hasPrevious="props.hasPrevious"
+        :active="bottomWasVisible"
         ref="questions"
       />
     </div>

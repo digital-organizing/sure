@@ -3,7 +3,7 @@ import { sureApiCreateCaseView } from '@/client'
 import { useLocations } from '@/composables/useLocations'
 import { useQuestionnaires } from '@/composables/useQuestionnaires'
 import { useTexts } from '@/composables/useTexts'
-import { get, useClipboard } from '@vueuse/core'
+import { useClipboard } from '@vueuse/core'
 import { useToast } from 'primevue/usetoast'
 
 import { useQRCode } from '@vueuse/integrations/useQRCode'
@@ -28,7 +28,7 @@ const phone = ref<string>('')
 const language = ref<string>('en')
 
 onMounted(() => {
-  getAvailableLanguages().then((langs) => {
+  getAvailableLanguages().then(() => {
     getLanguage().then((lang) => {
       language.value = lang!
     })

@@ -11,6 +11,7 @@ const props = defineProps<{
   section: SectionSchema
   hasNext: boolean
   hasPrevious: boolean
+  active?: boolean
 }>()
 
 const questions = ref<(typeof ClientQuestion)[]>([])
@@ -57,11 +58,12 @@ function onSubmit() {
       id="next"
       v-if="props.hasNext"
       @click="onNext"
-      severity="primary"
+      :severity="props.active ? 'primary' : 'secondary'"
       rounded
       :aria-label="t('client-form-next-button').value"
     >
-      {{ t('client-form-next-button') }} <IconRightArrow />
+      {{ t('client-form-next-button') }}
+      <IconRightArrow :color="props.active ? 'white' : '#848484'" />
     </Button>
     <Button
       id="submit"

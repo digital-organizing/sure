@@ -1,5 +1,6 @@
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from django.conf import settings
 from django.http import HttpRequest

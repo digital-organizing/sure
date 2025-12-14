@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "texts",
     "guard",
     "sms",
+    "django_clamd",
     "colorfield",
     "modeltranslation",
     "unfold.contrib.inlines",  # optional, if special inlines are needed
@@ -626,3 +627,11 @@ AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=8)
 AXES_COOLOFF_TIME = env.int("AXES_COOLOFF_TIME", default=1)  # in hours
 AXES_SENSITIVE_PARAMETERS = ["password", "new_password", "username", "sesame"]
 AXES_VERBOSE = DEBUG
+
+
+CLAMD_SOCKET = ""
+CLAMD_USE_TCP = True
+CLAMD_TCP_SOCKET = env.int("CLAMD_TCP_SOCKET", default=3310)
+CLAMD_TCP_ADDR = env.str("CLAMD_TCP_ADDR", default="127.0.0.1")
+
+CLAMD_FAIL_BY_DEFAULT = True

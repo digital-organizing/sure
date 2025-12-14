@@ -47,6 +47,7 @@ from sure.models import (
     TestKind,
     TestResult,
     Visit,
+    VisitDocument,
     VisitLog,
     VisitStatus,
 )
@@ -454,17 +455,28 @@ def update_case_test_results(request, pk: str, test_results: SubmitTestResultsSc
     return {"success": True, "warnings": warnings}
 
 
-@router.post("/case/{pk}/documents/create", response=StatusSchema)
+@router.post(
+    "/case/{pk}/documents/create", response={400: StatusSchema, 200: StatusSchema}
+)
 @inject_language
 def upload_document(request, pk: str, file: File[UploadedFile], name: Form[str]):
     """Update documents for a case."""
     visit = get_case(request, pk)
-    visit.documents.create(
+    document = VisitDocument(
+        visit=visit,
         document=file,
         name=name,
         user=request.user,
         hidden=False,
     )
+    try:
+        document.full_clean()
+    except ValidationError as e:
+        return 400, {
+            "success": False,
+            "message": " ".join(e.messages),
+        }
+    document.save()
     return {"success": True}
 
 

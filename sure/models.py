@@ -24,6 +24,8 @@ from html_sanitizer import Sanitizer
 from markdown import markdown
 from simple_history.models import HistoricalRecords
 
+from django_clamd.validators import validate_file_infection
+
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
 
@@ -841,7 +843,8 @@ class VisitDocument(models.Model):
         validators=[
             FileExtensionValidator(
                 allowed_extensions=["pdf", "doc", "docx", "jpg", "png"]
-            )
+            ),
+            validate_file_infection,
         ],
     )
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Uploaded At"))

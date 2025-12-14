@@ -17,6 +17,7 @@ dependencies = [
   "django-axes[ipware]>=8.0.0",
   "django-celery-beat>=2.8.1",
   "django-celery-results>=2.6.0",
+  "django-clamd>=1.0.0",
   "django-colorfield>=0.14.0",
   "django-constance[redis]>=4.3.4",
   "django-cors-headers>=4.8.0",

@@ -424,7 +424,7 @@ def _build_cohort_data(
                         "subtitle": f"Total {data['total']}",
                     },
                     "cols": [
-                        _get_col(data["counts"].get(status[0], 0), total) # type: ignore
+                        _get_col(data["counts"].get(status[0], 0), total)  # type: ignore
                         for status in status_choices
                     ],
                 }

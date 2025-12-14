@@ -429,6 +429,15 @@ wheels = [
 ]
 
 [[package]]
+name = "clamd"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/8b/55332f1f79f28a5ccc50f66364087e64fae8e4ed62e52007ca82b3072221/clamd-1.0.2.tar.gz", hash = "sha256:d82a2fd814684a35a1b31feadafb2e69c8ebde9403613f6bdaa5d877c0f29560", size = 8218, upload-time = "2014-08-21T14:58:18.562Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3d/d0/84614de2a53ad52370adc9f9260bea420e53e0c228a248ec0eacfa65ccbb/clamd-1.0.2-py2.py3-none-any.whl", hash = "sha256:5c32546b7d1eb00fd6be00a889d79e00fbf980ed082826ccfa369bce3dcff5e7", size = 6684, upload-time = "2014-08-21T14:58:22.946Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -604,6 +613,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a6/b5/9966c28e31014c228305e09d48b19b35522a8f941fe5af5f81f40dc8fa80/django_celery_results-2.6.0.tar.gz", hash = "sha256:9abcd836ae6b61063779244d8887a88fe80bbfaba143df36d3cb07034671277c", size = 83985, upload-time = "2025-04-10T08:23:52.677Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/da/70f0f3c5364735344c4bc89e53413bcaae95b4fc1de4e98a7a3b9fb70c88/django_celery_results-2.6.0-py3-none-any.whl", hash = "sha256:b9ccdca2695b98c7cbbb8dea742311ba9a92773d71d7b4944a676e69a7df1c73", size = 38351, upload-time = "2025-04-10T08:23:49.965Z" },
+]
+
+[[package]]
+name = "django-clamd"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "clamd" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/21/a9/b99c82906edb502eed580c1b8d93ce6efd540e48f7d5eb757921885c9b11/django_clamd-1.0.0.tar.gz", hash = "sha256:106429a71db571b570c88493115891a5472623263d25ebe7f92bead6c2f04e81", size = 7589, upload-time = "2024-06-19T21:52:48.253Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/99/4c/369fc0bae4ba3da0fcfd41f5e43a6929b119d8d4211c7ae36ac5453706ec/django_clamd-1.0.0-py3-none-any.whl", hash = "sha256:ee2d46ed535355aa0840f93dd8468bf9e2236e2a54ea2affa956e5c9326e328a", size = 9719, upload-time = "2024-06-19T21:52:38.755Z" },
 ]
 
 [[package]]
@@ -2519,6 +2541,7 @@ dependencies = [
     { name = "django-axes", extra = ["ipware"] },
     { name = "django-celery-beat" },
     { name = "django-celery-results" },
+    { name = "django-clamd" },
     { name = "django-colorfield" },
     { name = "django-constance", extra = ["redis"] },
     { name = "django-cors-headers" },
@@ -2582,6 +2605,7 @@ requires-dist = [
     { name = "django-axes", extras = ["ipware"], specifier = ">=8.0.0" },
     { name = "django-celery-beat", specifier = ">=2.8.1" },
     { name = "django-celery-results", specifier = ">=2.6.0" },
+    { name = "django-clamd", specifier = ">=1.0.0" },
     { name = "django-colorfield", specifier = ">=0.14.0" },
     { name = "django-constance", extras = ["redis"], specifier = ">=4.3.4" },
     { name = "django-cors-headers", specifier = ">=4.8.0" },

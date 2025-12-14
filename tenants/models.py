@@ -12,6 +12,8 @@ from django.utils.translation import gettext_lazy as _
 from html_sanitizer import Sanitizer
 from simple_history.models import HistoricalRecords
 
+from django_clamd.validators import validate_file_infection
+
 simple_history.register(User, app=__package__)
 # Create your models here.
 
@@ -64,6 +66,9 @@ class Tenant(models.Model):
         help_text=_(
             "Upload a png with white or tranparent background resolution of 250px pixels"
         ),
+        validators=[
+            validate_file_infection,
+        ],
     )
 
     history = HistoricalRecords()

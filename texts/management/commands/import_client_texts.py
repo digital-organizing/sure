@@ -68,8 +68,12 @@ class Command(BaseCommand):
                 english_text = (row.get("English Text") or "").strip()
 
                 context_parts = [part for part in (page, note) if part]
-                context = " - ".join(context_parts)[
-                    : Text._meta.get_field("context").max_length
+                context = " - ".join(
+                    context_parts
+                )[
+                    : Text._meta.get_field(
+                        "context"
+                    ).max_length  # type: ignore
                 ]
 
                 defaults = {

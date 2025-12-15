@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "texts",
     "guard",
     "sms",
+    "ninja",
     "django_clamd",
     "colorfield",
     "modeltranslation",

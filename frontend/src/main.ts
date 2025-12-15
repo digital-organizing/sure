@@ -39,6 +39,8 @@ function getCookie(name: string) {
 }
 let token = (document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement)?.value || ''
 
+let user: { username: string } | null = null
+
 // Add CSRF token to all requests
 client.interceptors.request.use(async (request) => {
   const url = new URL(request.url)
@@ -46,7 +48,28 @@ client.interceptors.request.use(async (request) => {
     return request
   }
   request.headers.append('X-CSRFToken', token)
+  Sentry.setUser(user)
   return request
+})
+
+client.interceptors.response.use(async (response) => {
+  const url = new URL(response.url)
+
+  if (url.pathname === '/api/auth/account') {
+    const data = await response
+      .clone()
+      .json()
+      .catch(() => null)
+    if (data && data.username) {
+      user = {
+        username: data.username,
+      }
+    } else {
+      user = null
+    }
+  }
+
+  return response
 })
 
 client.interceptors.response.use(async (response) => {

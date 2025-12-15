@@ -251,6 +251,7 @@ async function selectCase(event: { data: { case: string } }) {
           option-value="id"
           type="text"
           :placeholder="t('search-location').value"
+          :max-selected-labels="1"
         />
       </template>
     </Column>
@@ -270,6 +271,7 @@ async function selectCase(event: { data: { case: string } }) {
           :option-label="'label'"
           :option-value="'value'"
           :show-toggle-all="false"
+          :max-selected-labels="1"
         >
           <template #option="slotProps">
             <StatusTag class="status" :value="slotProps.option.value" rounded />

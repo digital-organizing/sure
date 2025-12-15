@@ -103,8 +103,9 @@ function styleForOption(optionColor: string) {
 }
 const confirmMissing = () => {
   confirm.require({
-    message: `There are ${missingResults.value.length} tests without results. Are you sure you want to proceed without completing all test results?`,
-    header: 'Confirmation',
+    message: f('missing-tests-confirm', [{ key: 'total', value: '' + missingResults.value.length }])
+      .value,
+    header: t('confirmation').value,
     icon: 'pi pi-exclamation-triangle',
     rejectProps: {
       label: 'Cancel',

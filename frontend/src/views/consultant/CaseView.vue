@@ -8,6 +8,8 @@ import { useStatus } from '@/composables/useStatus'
 import { useTexts } from '@/composables/useTexts'
 import { useToast } from 'primevue/usetoast'
 
+import { useConfirm } from 'primevue/useconfirm'
+
 const router = useRouter()
 const { getText: t } = useTexts()
 
@@ -63,7 +65,7 @@ function formatTimestamp(timestamp: string | null | undefined): string {
   return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
 }
 
-const { visit, setCaseId, relatedCases, loading } = useCase()
+const { visit, setCaseId, relatedCases, loading, setCaseStatus } = useCase()
 
 function isStatusDone(status: string): boolean {
   const caseStatusIndex = indexForStatus(visit.value?.status || '')
@@ -94,6 +96,22 @@ function copyClientLink() {
     summary: t('client-link-copied').value,
     detail: t('client-link-copied-detail').value,
     life: 3000,
+  })
+}
+
+const confirm = useConfirm()
+
+const confirmCancel = () => {
+  confirm.require({
+    message: t('confirm-cancel-case-message').value,
+    header: t('confirm-cancel-case-header').value,
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      setCaseStatus('canceled')
+    },
+    reject: () => {
+      /* no action */
+    },
   })
 }
 
@@ -211,6 +229,21 @@ watch(
       </Panel>
       <Panel :header="t('history').value" v-if="!inHistoryView">
         <HistoryComponent :caseId="props.caseId" />
+      </Panel>
+      <Panel :header="t('actions').value">
+        <div class="actions">
+          <Button
+            :label="t('cancel-case').value"
+            severity="secondary"
+            @click="confirmCancel()"
+            v-if="visit?.status != 'canceled' && visit?.status != 'closed'"
+          ></Button>
+          <Button
+            :label="t('back').value"
+            severity="secondary"
+            @click="router.push({ name: 'consultant-dashboard' })"
+          />
+        </div>
       </Panel>
     </aside>
     <section class="case-main">
@@ -366,5 +399,11 @@ nav a {
   text-decoration: underline;
   font-weight: bold;
   color: var(--text-color);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
 }
 </style>

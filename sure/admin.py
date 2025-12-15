@@ -203,13 +203,18 @@ class VisitExportAdmin(ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:
         queryset = super().get_queryset(request)
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return queryset
-        return queryset.filter(user__consultant__tenant=request.user.consultant.tenant)
+        consultant = getattr(request.user, "consultant", None)
+        if not consultant:
+            return queryset.none()
+        return queryset.filter(user__consultant__tenant=consultant.tenant)
 
     def save_model(
-        self, request: HttpRequest, obj: VisitExport, form: Form, change: widgets.Any
+        self, request: HttpRequest, obj: models.Model, form: Form, change: widgets.Any
     ) -> None:
+        if not isinstance(obj, VisitExport):
+            raise ValueError("obj must be an instance of VisitExport")
         if not change:
             obj.user = request.user
         super().save_model(request, obj, form, change)
@@ -236,12 +241,6 @@ class TestKindAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name", "name_en")
     ordering = ("name",)
     inlines = [TestOptionInline]
-
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet:
-        print(request.user.is_superuser)
-        queryset = super().get_queryset(request)
-        print(queryset.count())
-        return queryset
 
 
 class TestKindInline(TabularInline, TranslationTabularInline):
@@ -360,11 +359,14 @@ class UserAdmin(SimpleHistoryAdmin, BaseUserAdmin, ModelAdmin):
     change_password_form = AdminPasswordChangeForm
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
-        if not request.user.is_staff:
+        if not getattr(request.user, "is_staff", False):
             return User.objects.filter(pk=request.user.pk)
-        tenant = request.user.consultant.tenant
+        consultant = getattr(request.user, "consultant", None)
+        if not consultant:
+            return User.objects.filter(pk=request.user.pk)
+        tenant = consultant.tenant
         return super().get_queryset(request).filter(consultant__tenant=tenant)
 
 
@@ -384,9 +386,13 @@ class CaseCohortComponent(BaseComponent):
         if form.is_valid():
             filter = form.get_filter_dict()
 
-        if self.request.user.is_superuser:
+        if getattr(self.request.user, "is_superuser", False):
             context["data"] = case_cohort_by_tenants(filter)
         else:
-            tenant = self.request.user.consultant.tenant
+            consultant = getattr(self.request.user, "consultant", None)
+            if not consultant:
+                context["data"] = []
+                return context
+            tenant = consultant.tenant
             context["data"] = case_cohort_by_location(tenant, filter)
         return context

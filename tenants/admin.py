@@ -54,7 +54,7 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
     )
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Location]:
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
 
@@ -83,7 +83,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
     actions_detail = ["reset_password_detail", "reset_2fa_detail"]
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Consultant]:
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
 
@@ -136,7 +136,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         ] + [
             path
             for path in super().get_urls()
-            if path.pattern.name != "tenants_consultant_add"
+            if getattr(path.pattern, "name", None) != "tenants_consultant_add"
         ]
 
     def display_locations(self, obj: Consultant) -> str:
@@ -171,7 +171,7 @@ class TenantAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(admins=request.user)
 
@@ -189,7 +189,7 @@ class TagAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(owner=request.user)
 
@@ -205,6 +205,6 @@ class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)

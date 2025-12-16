@@ -418,6 +418,11 @@ UNFOLD = {
                         "link": reverse_lazy("admin:tenants_tag_changelist"),
                     },
                     {
+                        "title": "API Tokens",
+                        "icon": "vpn_key",
+                        "link": reverse_lazy("admin:tenants_apitoken_changelist"),
+                    },
+                    {
                         "title": "SMS Logs",
                         "icon": "sms",
                         "link": reverse_lazy("admin:sms_smsmessage_changelist"),

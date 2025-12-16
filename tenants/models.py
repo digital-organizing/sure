@@ -1,5 +1,7 @@
 """Models for tenants (organizations) using the service."""
 
+import secrets
+
 import datetime
 
 import simple_history
@@ -314,3 +316,31 @@ class InformationBanner(models.Model):
         sanitizer = Sanitizer({"keep_typographic_whitespace": True})
         self.content = sanitizer.sanitize(self.content)
         super().save(*args, **kwargs)
+
+
+def generate_name():
+    return secrets.token_hex(10)
+
+
+def generate_token():
+    return secrets.token_hex(25)
+
+
+class APIToken(models.Model):
+    """API Token for a tenant."""
+
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name="api_tokens"
+    )
+    name = models.CharField(max_length=30, default=generate_name)
+    token = models.CharField(max_length=80, default=generate_token)
+
+    owner = models.ForeignKey(
+        "auth.User", on_delete=models.CASCADE, related_name="owned_api_tokens"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"API Token '{self.name}' for {self.tenant.name}"

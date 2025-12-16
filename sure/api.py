@@ -6,6 +6,7 @@ from django.db.models import F, Func
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import get_language
 from ninja import File, Form, Router
 from ninja.errors import HttpError
@@ -80,6 +81,7 @@ from sure.schema import (
     TestResultOptionSchema,
     TestSchema,
 )
+import tenants.auth
 from tenants.models import Consultant
 from texts.translate import translate
 
@@ -587,7 +589,15 @@ def set_case_key(request, pk: str, key: Form["str"]):
     return {"success": True}
 
 
-@router.post("/case/create/", response=CreateCaseResponse)
+@router.post(
+    "/case/create/",
+    response=CreateCaseResponse,
+    auth=[
+        auth_2fa_or_trusted,
+        tenants.auth.auth_tenant_api_token,
+    ],
+)
+@csrf_exempt
 @inject_language
 def create_case_view(request, data: CreateCaseSchema):
     """Create a new case from a questionnaire."""

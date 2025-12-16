@@ -13,7 +13,14 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
-from tenants.models import Consultant, InformationBanner, Location, Tag, Tenant
+from tenants.models import (
+    APIToken,
+    Consultant,
+    InformationBanner,
+    Location,
+    Tag,
+    Tenant,
+)
 from tenants.views import ConsultantInviteView
 
 
@@ -202,6 +209,31 @@ class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
     search_fields = ("content", "tenant__name")
 
     autocomplete_fields = ("tenant", "locations")
+
+    def get_queryset(self, request):
+        """Limit queryset based on user permissions."""
+        if getattr(request.user, "is_superuser", False):
+            return super().get_queryset(request)
+        return super().get_queryset(request).filter(tenant__admins=request.user)
+
+
+@admin.register(APIToken)
+class APITokenAdmin(ModelAdmin):
+    """Admin for API tokens."""
+
+    list_display = ("name", "tenant", "owner", "revoked", "created_at")
+    search_fields = ("name", "tenant__name", "owner__username", "owner__email")
+
+    autocomplete_fields = ("tenant", "owner")
+    exclude = ("token",)
+
+    readonly_fields = ("created_at", "header")
+
+    def header(self, obj: APIToken) -> str:
+        """Display the full API token header."""
+        return f"{obj.name}:{obj.token}"
+
+    header.short_description = "X-Tenant-Token"  # type: ignore[unresolved-attribute]
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""

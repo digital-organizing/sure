@@ -603,7 +603,6 @@ class FlatTestResultSchema(ModelSchema):
             "id",
             "result_option",
             "test",
-            "note",
             "user",
             "created_at",
         ]

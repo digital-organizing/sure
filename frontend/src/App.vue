@@ -23,7 +23,7 @@ useTitle(getText('sure_app_title'))
 function setupPrimeVue() {
   if (primevue.config.locale) {
     Object.keys(primevue.config.locale).forEach((key) => {
-      if (key in texts.value && primevue.config.locale) {
+      if (key in texts.value && primevue.config.locale && texts.value[key] !== undefined) {
         ;(primevue.config.locale as unknown as Record<string, string>)[key] = texts.value[key]
       }
     })

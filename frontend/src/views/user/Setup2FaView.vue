@@ -48,7 +48,7 @@ async function onVerify2FaSetup(e: { values: Record<string, string>; valid: bool
     return
   }
 
-  const authCode = e.values['auth_code']
+  const authCode = e.values['auth_code']!
   await verifyOtp(authCode, device.value.id)
   toast.add({
     severity: 'success',

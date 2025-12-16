@@ -2,7 +2,6 @@
 import type { QuestionnaireSchema } from '@/client'
 import ClientBottomNavButtons from './ClientBottomNavButtons.vue'
 
-import { defineProps, defineEmits } from 'vue'
 import ClientRecapSection from './ClientRecapSection.vue'
 
 const props = defineProps<{
@@ -38,7 +37,7 @@ const emits = defineEmits<{
         @next="emits('next')"
         @previous="emits('previous')"
         @submit="emits('submit')"
-        :section="props.form.sections[props.formIndex]"
+        :section="props.form.sections[props.formIndex]!"
         :has-next="props.hasNext"
         :has-previous="props.hasPrevious"
       />

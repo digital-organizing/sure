@@ -13,7 +13,7 @@ const fileupload = ref()
 const hasFile = ref(false)
 
 async function onUpload(event: unknown) {
-  const file = (event as { files: File[] }).files[0]
+  const file = (event as { files: File[] }).files[0]!
   await uploadDocument(file, fileName.value)
   fileName.value = ''
   fileupload.value.clear()
@@ -37,6 +37,7 @@ function onSelect(event: unknown) {
   hasFile.value = true
   if (fileName.value.length === 0) {
     const file = (event as { files: File[] }).files[0]
+    if (!file) return
     fileName.value = file.name
   }
 }

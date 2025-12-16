@@ -62,10 +62,10 @@ const { getText: t, formatText: f } = useTexts()
       </div>
       <div v-for="test in testsWithResults" :key="test.id!" class="test-result">
         <TestResultItem
-          :result="test.results[0]"
-          :resultOption="getResult(test, test.results[0].result_option)!"
+          :result="test.results[0]!"
+          :resultOption="getResult(test, test.results[0]!.result_option)!"
           :test="test"
-          :infoText="infoForOption(test.results[0].result_option)?.information_text"
+          :infoText="infoForOption(test.results[0]!.result_option)?.information_text"
         />
       </div>
       <div v-for="test in freeFormTests" :key="test.id!" class="test-result">

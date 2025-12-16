@@ -84,7 +84,7 @@ function makeCall(number: string) {
         :style="{
           '--result-color': test.results[0]
             ? test.test_kind.result_options.find(
-                (option) => option.id === test.results[0].result_option,
+                (option) => option.id === test.results[0]!.result_option,
               )?.color || '#000'
             : '#000',
         }"
@@ -97,7 +97,7 @@ function makeCall(number: string) {
         <span class="result">
           {{
             test.test_kind.result_options.find(
-              (option) => option.id === test.results[0].result_option,
+              (option) => option.id === test.results[0]!.result_option,
             )?.label
           }}
         </span>

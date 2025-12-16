@@ -27,6 +27,9 @@ function formatInformationText(text: string): string {
 
 function getBackgroundColor(color: string): string {
   const scale = chroma.scale(['#ffffff', color]).mode('lab').colors(10)
+  if (!scale[4]) {
+    return '#aaa'
+  }
   return scale[4]
 }
 </script>

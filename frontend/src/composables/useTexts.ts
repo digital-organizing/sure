@@ -96,7 +96,7 @@ export const useTexts = createGlobalState(() => {
       let text = texts.value[slug]
       args.forEach(({ key, value }) => {
         const regex = new RegExp(`{${key}}`, 'g')
-        text = text.replace(regex, value)
+        text = text.replace(regex, value!)
       })
       if (markdown) {
         text = md(text)

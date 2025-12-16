@@ -49,8 +49,8 @@ const textInputs = computed<Record<string, string>>({
     if (answer.value.choices && answer.value.choices.length > 0) {
       selectedChoices.value.forEach((choiceId, index) => {
         const option = props.question.options?.find((opt) => opt.code === choiceId)
-        if (option?.allow_text && answer.value.choices[index].text) {
-          texts[choiceId] = answer.value.choices[index].text
+        if (option?.allow_text && answer.value.choices[index]!.text) {
+          texts[choiceId] = answer.value.choices[index]!.text
         }
       })
     }

@@ -35,7 +35,7 @@ watch([showLogin, showOtp, hasOtpDevices], ([newShowLogin, newShowOtp, newHasOtp
 
 async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
   if (e.valid) {
-    await login(e.values['username'], e.values['password'])
+    await login(e.values['username']!, e.values['password']!)
   }
 }
 
@@ -45,7 +45,7 @@ async function on2FaSubmit(e: { values: Record<string, string>; valid: boolean }
     const token = e.values['token']
     const remember = !!e.values['remember']
 
-    await login2fa(token, deviceId, remember)
+    await login2fa(token!, deviceId, remember)
 
     if (account.value.username && account.value.verified) {
       const next = router.currentRoute.value.query.next as string | undefined
@@ -85,7 +85,7 @@ async function cancelLogin() {
     <FloatLabel variant="in" v-if="twoFaDevices.length >= 2">
       <Select
         :options="twoFaDevices"
-        :default-value="twoFaDevices[0].id"
+        :default-value="twoFaDevices[0]!.id"
         option-label="name"
         option-value="id"
         name="device"

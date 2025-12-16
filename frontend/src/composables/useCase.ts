@@ -519,7 +519,7 @@ export const useCase = createGlobalState(() => {
             choices: answer.choices
               ? answer.choices.map((code, idx) => ({
                   code: '' + code,
-                  text: answer.texts[idx],
+                  text: answer.texts[idx]!,
                 }))
               : [],
           }))

@@ -43,8 +43,8 @@ const dropdownSelections = computed<Record<string, string>>({
   get() {
     const selections: Record<string, string> = {}
     if (answer.value.choices && answer.value.choices.length > 0) {
-      const selectedCode = answer.value.choices[0].code
-      const selectedText = answer.value.choices[0].text
+      const selectedCode = answer.value.choices[0]!.code
+      const selectedText = answer.value.choices[0]!.text
       const selectedOption = props.question.options?.find((opt) => opt.code === selectedCode)
 
       // Only return dropdown selection if it differs from the default option text
@@ -61,7 +61,7 @@ const dropdownSelections = computed<Record<string, string>>({
 
       // Use dropdown selection if available
       if (option?.choices && newSelections[selectedChoice.value]) {
-        text = newSelections[selectedChoice.value]
+        text = newSelections[selectedChoice.value]!
       }
 
       updateAnswer([selectedChoice.value], [text])
@@ -80,7 +80,7 @@ function getAnswer() {
 
 if (props.question.options.length === 1) {
   // Preselect the only available option
-  selectedChoice.value = props.question.options[0].code || null
+  selectedChoice.value = props.question.options[0]!.code || null
 }
 defineExpose({
   getAnswer,

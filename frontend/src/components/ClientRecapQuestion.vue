@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+import { computed } from 'vue'
 import { type ClientQuestionSchema } from '@/client'
 import { userAnswersStore } from '@/stores/answers'
 import { useTexts } from '@/composables/useTexts'

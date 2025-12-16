@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { type ConsultantAnswerSchema, type ConsultantQuestionSchema } from '@/client'
 import SingleChoiceQuestion from './questions/SingleChoiceQuestion.vue'
 import MultipleChoiceQuestion from './questions/MultipleChoiceQuestion.vue'

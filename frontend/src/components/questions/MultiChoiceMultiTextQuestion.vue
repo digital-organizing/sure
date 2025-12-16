@@ -68,7 +68,7 @@ const textInputs = computed<Record<string, string[]>>({
         if (inputs[choice.code] === undefined) {
           inputs[choice.code] = []
         }
-        inputs[choice.code].push(answer.value.choices[idx].text)
+        inputs[choice.code]!.push(answer.value.choices[idx]!.text)
       }
     })
     return inputs
@@ -81,8 +81,8 @@ const textInputs = computed<Record<string, string[]>>({
       const option = props.question.options?.find((opt) => opt.code === choiceId)
 
       // Use custom text if option allows it and text is provided
-      if (option?.allow_text && newInputs[choiceId].length > 0) {
-        for (const text of newInputs[choiceId]) {
+      if (option?.allow_text && newInputs[choiceId]!.length > 0) {
+        for (const text of newInputs[choiceId]!) {
           texts.push(text)
           codes.push(choiceId)
         }
@@ -157,7 +157,7 @@ defineExpose({
           <InputGroup class="text-input">
             <InputText
               :inputId="`option-${option.id}-text-${index}`"
-              v-model="textInputs[option.code!][index]"
+              v-model="textInputs[option.code!]![index]"
               @input="triggerTextUpdate()"
               type="text"
               :placeholder="additionalTextPlaceholder(option.text || '').value"
@@ -174,7 +174,7 @@ defineExpose({
           </InputGroup>
         </div>
         <Button
-          v-if="textInputs[option.code!].at(-1) != '' || textInputs[option.code!].length === 0"
+          v-if="textInputs[option.code!]!.at(-1) != '' || textInputs[option.code!]!.length === 0"
           type="button"
           icon="pi pi-plus"
           severity="secondary"

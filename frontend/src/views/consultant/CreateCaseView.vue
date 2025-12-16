@@ -71,12 +71,12 @@ async function handleSubmit() {
 onMounted(() => {
   fetchLocations().then(() => {
     if (locations.value.length > 0) {
-      location.value = locations.value[0].id!
+      location.value = locations.value[0]!.id!
     }
   })
   fetchQuestionnaires().then(() => {
     if (questionnaires.value.length > 0) {
-      questionnaire.value = questionnaires.value[0].id!
+      questionnaire.value = questionnaires.value[0]!.id!
     }
   })
 })

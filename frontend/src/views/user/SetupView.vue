@@ -17,8 +17,8 @@ const { setInitialPassword, error, account, fetchAccount, fetchTwoFaDevices, two
 
 onMounted(() => {
   const params = useUrlSearchParams()
-  email.value = Array.isArray(params.email) ? params.email[0] : params.email || null
-  token.value = Array.isArray(params.sesame) ? params.sesame[0] : params.sesame || null
+  email.value = Array.isArray(params.email) ? params.email[0]! : params.email || null
+  token.value = Array.isArray(params.sesame) ? params.sesame[0]! : params.sesame || null
 
   if (!email.value || !token.value) {
     // Handle missing parameters
@@ -31,7 +31,7 @@ async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
     return
   }
 
-  const password = e.values['password']
+  const password = e.values['password']!
 
   const result = await setInitialPassword(password, token.value, email.value)
   if (result?.error) {

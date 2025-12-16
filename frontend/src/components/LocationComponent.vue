@@ -48,7 +48,7 @@ function formatHours(hours: string[][]) {
 const isOpen = computed(() => {
   const today = new Date().getDay() // 0 (Sun) to 6 (Sat)
   const index = today === 0 ? 6 : today - 1 // Adjust to 0 (Mon) to 6 (Sun)
-  const dayKey = DAYS[index].key
+  const dayKey = DAYS[index]!.key
 
   const hours = (
     props.location.opening_hours ? props.location.opening_hours[dayKey] : []
@@ -60,7 +60,7 @@ const isOpen = computed(() => {
     }
     const [openTime, closeTime] = range
     const currentTime = formatDate(new Date(), 'HH:mm')
-    if (currentTime >= openTime && currentTime <= closeTime) {
+    if (currentTime >= openTime! && currentTime <= closeTime!) {
       return true
     }
   }

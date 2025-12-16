@@ -19,7 +19,6 @@ const emit = defineEmits<{
 const menu = ref()
 const { getText: t, getAvailableLanguages, setLanguage, language: selectedLanguage } = useTexts()
 const sectionsLabel = t('client-navigation-sections-label')
-const summaryLabel = t('client-form-summary-title')
 const languagesLabel = t('client-navigation-languages-label')
 const availableLanguages = ref<[string, string][]>([])
 const currentLanguage = computed(() => selectedLanguage.value)
@@ -54,10 +53,10 @@ const menuItems = computed(() => {
       command: () => emit('select-section', index),
     }))
 
-    sectionItems.push({
-      label: summaryLabel.value,
-      command: () => emit('select-section', props.sections.length),
-    })
+    // sectionItems.push({
+    //   label: summaryLabel.value,
+    //   command: () => emit('select-section', props.sections.length),
+    // })
 
     items.push({
       label: sectionsLabel.value,

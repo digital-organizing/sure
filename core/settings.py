@@ -634,6 +634,8 @@ AXES_COOLOFF_TIME = env.int("AXES_COOLOFF_TIME", default=1)  # in hours
 AXES_SENSITIVE_PARAMETERS = ["password", "new_password", "username", "sesame"]
 AXES_VERBOSE = DEBUG
 
+AXES_LOCKOUT_PARAMETERS = ["username"]
+
 
 CLAMD_SOCKET = ""
 CLAMD_USE_TCP = True

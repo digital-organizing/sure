@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import Group
 from html_sanitizer import Sanitizer
 from simple_history.models import HistoricalRecords
 
@@ -80,6 +81,13 @@ class Tenant(models.Model):
 
     class Meta:
         ordering = ["name"]
+        
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        for admin in self.admins.all():
+            admin.is_staff = True
+            admin.groups.add(Group.objects.get_or_create(name="Tenant Admins")[0])
+            admin.save()
 
 
 def default_opening_hours():

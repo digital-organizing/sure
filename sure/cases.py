@@ -143,7 +143,8 @@ def get_case_tests_with_latest_results(
         filter_client is True
     ):  # Clients are only allowed to see results if all results are information_by_sms=True
         if test_latest_result_ids.filter(
-            result_option__information_by_sms=False
+            result_option__information_by_sms=False,
+            test__test_kind__rapid=False,
         ).exists():
             return Test.objects.none()
     if filter_client is False:  # Return only results that are not information_by_sms
@@ -152,13 +153,16 @@ def get_case_tests_with_latest_results(
         )
 
     test_latest_result_ids = test_latest_result_ids.values_list("id", flat=True)
+    tests = Test.objects.all()
+    if filter_client:
+        tests = tests.filter(test_kind__rapid=False)
 
     visit_with_latest = (
         Visit.objects.filter(pk=visit.pk)
         .prefetch_related(
             Prefetch(
                 "tests",
-                queryset=Test.objects.prefetch_related(
+                queryset=tests.prefetch_related(
                     Prefetch(
                         "results",
                         queryset=TestResult.objects.filter(

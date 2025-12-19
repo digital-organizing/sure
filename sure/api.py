@@ -731,6 +731,7 @@ def get_case_status(request, pk: str, key: Form[str] = ""):
 
     if test_results.filter(
         result_option__information_by_sms=False,
+        test__test_kind__rapid=False,
     ).exists():
         if visit.status == VisitStatus.CLOSED and not auth_2fa_or_trusted(request):
             return {"label": visit.get_status_display(), "value": visit.status}
@@ -808,7 +809,7 @@ def get_result_info(request, pk: str, key: Form[str] = ""):
 def publish_case_results(request, pk: str):
     """Publish case results to the client."""
     visit = get_case(request, pk)
-    if visit.status != VisitStatus.RESULTS_RECORDED:
+    if visit.status not in [VisitStatus.RESULTS_RECORDED, VisitStatus.TESTS_RECORDED]:
         raise HttpError(
             400,
             translate("cannot-publish-results-status"),
@@ -816,7 +817,9 @@ def publish_case_results(request, pk: str):
 
     test_results = get_test_results(visit)
 
-    if test_results.filter(result_option__information_by_sms=False).exists():
+    if test_results.filter(
+        result_option__information_by_sms=False, test__test_kind__rapid=False
+    ).exists():
         raise HttpError(400, translate("cannot-publish-non-sms-results"))
 
     with transaction.atomic():

@@ -649,4 +649,3 @@ CLAMD_TCP_SOCKET = env.int("CLAMD_TCP_SOCKET", default=3310)
 CLAMD_TCP_ADDR = env.str("CLAMD_TCP_ADDR", default="127.0.0.1")
 
 CLAMD_FAIL_BY_DEFAULT = True
-

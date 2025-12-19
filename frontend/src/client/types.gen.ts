@@ -1250,6 +1250,10 @@ export type LocationSchema = {
      */
     phone_number?: string | null;
     /**
+     * Address
+     */
+    address?: string | null;
+    /**
      * Opening Hours
      * JSON field to store opening hours. These are displayed to clients and used to prevent SMS sending outside opening hours.
      */
@@ -2203,6 +2207,15 @@ export type SureApiUploadDocumentData = {
     };
     url: '/api/sure/case/{pk}/documents/create';
 };
+
+export type SureApiUploadDocumentErrors = {
+    /**
+     * Bad Request
+     */
+    400: StatusSchema;
+};
+
+export type SureApiUploadDocumentError = SureApiUploadDocumentErrors[keyof SureApiUploadDocumentErrors];
 
 export type SureApiUploadDocumentResponses = {
     /**

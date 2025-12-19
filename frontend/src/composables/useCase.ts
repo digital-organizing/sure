@@ -657,6 +657,8 @@ export const useCase = createGlobalState(() => {
     if (selectedVisitId.value) {
       await fetchClientSchema()
       await fetchConsultantSchema()
+      await fetchClientAnswers()
+      await fetchConsultantAnswers()
     }
   })
 

@@ -160,7 +160,7 @@ function makeCall(number: string) {
       ></Button>
       <Button
         :label="t('publish-results').value"
-        v-if="['results_recorded', 'tests_recorded'].includes(caseStatus?.value||'')"
+        v-if="['results_recorded', 'tests_recorded'].includes(caseStatus?.value || '')"
         severity="primary"
         @click="onPublishResults"
       ></Button>

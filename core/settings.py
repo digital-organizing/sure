@@ -202,7 +202,13 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static/"
 
 
-STATICFILES_DIRS = [BASE_DIR / "frontend/dist", BASE_DIR / "frontend/public"]
+STATICFILES_DIRS = [
+    BASE_DIR / "frontend/dist",
+    BASE_DIR / "frontend/public",
+]
+
+if env.bool("VITE_DEV_MODE", default=DEBUG):
+    STATICFILES_DIRS.insert(0, BASE_DIR / "frontend")
 
 DJANGO_VITE = {
     "default": {
@@ -641,3 +647,6 @@ CLAMD_TCP_SOCKET = env.int("CLAMD_TCP_SOCKET", default=3310)
 CLAMD_TCP_ADDR = env.str("CLAMD_TCP_ADDR", default="127.0.0.1")
 
 CLAMD_FAIL_BY_DEFAULT = True
+
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

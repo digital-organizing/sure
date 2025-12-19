@@ -19,6 +19,10 @@
   --communication-color: #646464;
 }
 
+body {
+  --p-button-border-radius: 26px;
+}
+
 .created {
   --status-color: var(--created-color);
 }

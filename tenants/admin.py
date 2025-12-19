@@ -198,7 +198,11 @@ class TagAdmin(ModelAdmin):
         """Limit queryset based on user permissions."""
         if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
-        return super().get_queryset(request).filter(owner=request.user)
+        return (
+            super()
+            .get_queryset(request)
+            .filter(owner__consultant__tenant__admins=request.user)
+        )
 
 
 @admin.register(InformationBanner)

@@ -16,3 +16,4 @@ node_modules/
 agent_runs/
 
 static/
+staticfiles/

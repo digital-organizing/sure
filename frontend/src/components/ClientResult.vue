@@ -46,11 +46,18 @@ const testCreationDate = computed(() => {
 })
 
 const { getText: t, formatText: f } = useTexts()
+
+function prefixedId(id: string) {
+  if (id.startsWith('SUF-')) {
+    return id
+  }
+  return `SUF-${id}`
+}
 </script>
 
 <template>
   <section class="client-result">
-    <h3>{{ t('your-results') }} ({{ props.caseId }})</h3>
+    <h3>{{ t('your-results') }} ({{ prefixedId(props.caseId) }})</h3>
     <!-- Display case results here -->
     <section v-if="!displayResults">
       {{ t('results-available-message') }}

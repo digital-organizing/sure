@@ -337,7 +337,7 @@ def color_for_percentage(percentage: float) -> str:
 
 
 def dashboard_callback(request, context):
-    context["form"] = CohortFilterForm(request.GET or None)
+    context["form"] = CohortFilterForm(request.GET or None, request=request)
     return context
 
 

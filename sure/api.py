@@ -624,7 +624,11 @@ def create_case_view(request, data: CreateCaseSchema):
     return CreateCaseResponse(link=link, case_id=case.human_id)
 
 
-@router.post("/cases/", response=list[CaseListingSchema])
+@router.post(
+    "/cases/",
+    response=list[CaseListingSchema],
+    auth=[auth_2fa_or_trusted, tenants.auth.auth_tenant_api_token],
+)
 @inject_language
 @paginate(PageNumberPagination, page_size=20)
 def list_cases(request, filters: CaseFilters):

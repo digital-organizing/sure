@@ -13,9 +13,7 @@ const { getText: t, render: r } = useTexts()
       <p>
         {{ t('imprint-text') }}
       </p>
-      <p>
-        {{ r('imprint-contact') }}
-      </p>
+      <p :v-html="r('imprint-contact')"></p>
     </section>
   </main>
 </template>

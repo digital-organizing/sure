@@ -50,7 +50,16 @@ class CohortFilterForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
+        if self.request.user.is_superuser:
+            self.fields["tag"].queryset = Tag.objects.all()  # type: ignore
+        else:
+            tenant = getattr(self.request.user, "consultant").tenant
+            self.fields["tag"].queryset = Tag.objects.filter(  # type: ignore
+                available_in__tenant=tenant
+            )
+
         self.helper = FormHelper()
         self.helper.form_method = "get"
         self.helper.form_show_labels = True

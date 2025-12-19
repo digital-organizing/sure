@@ -53,11 +53,12 @@ export const userAnswersStore = defineStore('answers', () => {
   }
 
   const saveAnswers = () => {
-    localStorage.setItem('userAnswers', JSON.stringify(answers.value))
+    // localStorage.setItem('userAnswers', JSON.stringify(answers.value))
   }
 
   const loadAnswers = () => {
-    const stored = localStorage.getItem('userAnswers')
+    // const stored = localStorage.getItem('userAnswers')
+    const stored = null
     if (stored) {
       const parsed = JSON.parse(stored)
       if (parsed && Array.isArray(parsed.answers)) {

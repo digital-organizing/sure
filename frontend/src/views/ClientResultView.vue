@@ -9,7 +9,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const { getText: t } = useTexts()
+const { getText: t, onLanguageChange } = useTexts()
 
 const key = ref('')
 const caseId = ref('')
@@ -31,6 +31,12 @@ onMounted(() => {
       key.value = storedCaseKey
       fetchCase(storedCaseId, storedCaseKey)
     }
+  }
+})
+
+onLanguageChange(() => {
+  if (caseFetched.value) {
+    fetchCase(caseId.value, key.value)
   }
 })
 

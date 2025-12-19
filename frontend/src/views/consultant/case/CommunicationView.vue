@@ -10,7 +10,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{ caseId: string }>()
-const { getText: t } = useTexts()
+const { getText: t, onLanguageChange } = useTexts()
 
 const { publishResults, setCaseStatus, onCaseRefresh, visit } = useCase()
 const phoneNumber = ref<string>('')
@@ -41,6 +41,9 @@ onMounted(async () => {
   })
   onCaseRefresh(async () => {
     await fetchCase(props.caseId, '', false)
+  })
+  onLanguageChange(() => {
+    fetchCase(props.caseId, '', false)
   })
 })
 
@@ -157,7 +160,7 @@ function makeCall(number: string) {
       ></Button>
       <Button
         :label="t('publish-results').value"
-        v-if="caseStatus?.value == 'results_recorded'"
+        v-if="['results_recorded', 'tests_recorded'].includes(caseStatus?.value||'')"
         severity="primary"
         @click="onPublishResults"
       ></Button>

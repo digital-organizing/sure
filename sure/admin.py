@@ -205,10 +205,7 @@ class VisitExportAdmin(ModelAdmin):
         queryset = super().get_queryset(request)
         if getattr(request.user, "is_superuser", False):
             return queryset
-        consultant = getattr(request.user, "consultant", None)
-        if not consultant:
-            return queryset.none()
-        return queryset.filter(user__consultant__tenant=consultant.tenant)
+        return queryset.filter(user__consultant__tenant__admins=request.user)
 
     def save_model(
         self, request: HttpRequest, obj: models.Model, form: Form, change: widgets.Any
@@ -221,6 +218,12 @@ class VisitExportAdmin(ModelAdmin):
 
         if not change:
             create_export.delay(obj.pk)
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request: HttpRequest, obj=None) -> bool:
+        return False
 
 
 class TestOptionInline(TabularInline, TranslationTabularInline):
@@ -381,7 +384,7 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 class CaseCohortComponent(BaseComponent):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        form = CohortFilterForm(self.request.GET or None)
+        form = CohortFilterForm(self.request.GET or None, request=self.request)
         filter = None
         if form.is_valid():
             filter = form.get_filter_dict()

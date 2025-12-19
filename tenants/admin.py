@@ -1,9 +1,11 @@
 """Admin configuration for the tenants app."""
 
+from typing import Any
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.shortcuts import redirect
+from django.contrib.auth.models import Group
 from django.urls import URLPattern, path
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
@@ -182,6 +184,16 @@ class TenantAdmin(SimpleHistoryAdmin, ModelAdmin):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(admins=request.user)
 
+    def save_related(
+        self, request: HttpRequest, form: Any, formsets: Any, change: Any
+    ) -> None:
+        ret = super().save_related(request, form, formsets, change)
+        for user in form.instance.admins.all():
+            user.is_staff = True
+            user.groups.add(Group.objects.get_or_create(name="Tenant Admins")[0])
+            user.save()
+        return ret
+
 
 @admin.register(
     Tag,
@@ -198,7 +210,11 @@ class TagAdmin(ModelAdmin):
         """Limit queryset based on user permissions."""
         if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
-        return super().get_queryset(request).filter(owner=request.user)
+        return (
+            super()
+            .get_queryset(request)
+            .filter(owner__consultant__tenant__admins=request.user)
+        )
 
 
 @admin.register(InformationBanner)

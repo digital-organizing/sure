@@ -1,0 +1,12 @@
+{% extends "error.html" %}
+
+{% block message %}
+<p>You do not have permission to access this page.</p>
+
+<p>Please return to the <a href="/">homepage</a>.</p>
+
+    <details>
+        <summary>Debug Info (for admins)</summary>
+        <pre>{{ exception }}</pre>
+    </details>
+{% endblock %}

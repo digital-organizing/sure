@@ -43,6 +43,21 @@ onMounted(() => {
   <Toast />
   <ConfirmDialog></ConfirmDialog>
   <RouterView :key="$route.fullPath" />
+  <footer>
+    <div class="container">
+      <div class="left">
+        <nav>
+          <a :href="getText('privacy-url').value">{{ getText('privacy-policy') }}</a>
+          <a href="/about">{{ getText('about') }}</a>
+        </nav>
+      </div>
+      <div class="right">
+        <span
+          ><a href="https://aids.ch">{{ getText('aids-hilfe-schweiz') }}</a></span
+        >
+      </div>
+    </div>
+  </footer>
 </template>
 
 <style scoped>

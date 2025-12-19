@@ -15,6 +15,7 @@
   --consultant-color: #0391ce;
   --tests-color: #0247fe;
   --results-color: #8601af;
+  --results-missed-color: #b4045f;
   --summary-color: #3d01a4;
   --communication-color: #646464;
 }
@@ -51,7 +52,7 @@ body {
 }
 
 .results_missed {
-  --status-color: var(--results-color);
+  --status-color: var(--results-missed-color);
 }
 
 .closed {

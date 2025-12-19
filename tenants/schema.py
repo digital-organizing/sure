@@ -13,7 +13,7 @@ class TenantSchema(ModelSchema):
 class LocationSchema(ModelSchema):
     class Meta:
         model = Location
-        fields = ["id", "name", "tenant", "phone_number", "opening_hours"]
+        fields = ["id", "name", "tenant", "phone_number", "address", "opening_hours"]
 
     tenant: TenantSchema
 

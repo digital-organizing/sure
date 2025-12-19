@@ -8,7 +8,7 @@ const props = defineProps<{
   location: LocationSchema
 }>()
 
-const { getText: t } = useTexts()
+const { getText: t, render: r } = useTexts()
 
 const DAYS = [
   {
@@ -86,6 +86,10 @@ function onPhoneClick() {
         severity="success"
         @click="onPhoneClick"
       />
+    </div>
+    <div>
+      <strong>{{ t('address') }}:</strong>
+      <div v-html="r(location.address || '')"></div>
     </div>
     <section class="opening-hours">
       <h4>{{ t('opening-hours') }}</h4>

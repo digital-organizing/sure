@@ -284,7 +284,7 @@ class InformationBanner(models.Model):
     name = models.CharField(max_length=100)
     content = models.TextField(
         help_text=_(
-            'Content of the information banner, supports markdown or html: <a href="https://www.markdownguide.org/basic-syntax/">More info</a>.'
+            'Content of the information banner, supports markdown or html: <a target="_blank" href="https://www.markdownguide.org/basic-syntax/">More info</a>.'
         )
     )
     severity = models.CharField(

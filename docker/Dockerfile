@@ -1,7 +1,12 @@
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONHASHSEED=random \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    DEBUG=False
 
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   && apt-get -y install --no-install-recommends \
@@ -13,7 +18,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 
 RUN --mount=type=cache,target=/root/.cache pip install --upgrade uv
 
-RUN useradd -ms /bin/bash app
+RUN useradd -ms /sbin/nologin -c "App user" app
 
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web

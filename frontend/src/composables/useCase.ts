@@ -356,14 +356,23 @@ export const useCase = createGlobalState(() => {
       error.value = 'No visit selected.'
       return
     }
-    await sureApiUploadDocument({ path: { pk: visit.value.case }, body: { file, name } })
-      .catch((error) => {
-        console.error('Failed to upload document:', error)
-        error.value = 'Failed to upload document: ' + error.message
-      })
-      .then(async () => {
-        await fetchDocuments()
-      })
+    const response = await sureApiUploadDocument({
+      path: { pk: visit.value.case },
+      body: { file, name },
+    }).catch((error) => {
+      console.error('Failed to upload document:', error)
+      error.value = 'Failed to upload document: ' + error.message
+    })
+    console.log('Upload document response:', response)
+
+    if (!response || !response.error) {
+      return
+    }
+    if (!response.error.success) {
+      error.value = 'Failed to upload document: ' + (response.error.message || 'Unknown error')
+      return
+    }
+    await fetchDocuments()
   }
 
   async function setDocumentHidden(documentId: number, hidden: boolean) {

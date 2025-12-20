@@ -5,7 +5,7 @@ import { useTexts } from '@/composables/useTexts'
 import { formatDate } from '@vueuse/core'
 import { ref } from 'vue'
 
-const { documents, uploadDocument, setDocumentHidden, visit } = useCase()
+const { documents, uploadDocument, setDocumentHidden, visit, error } = useCase()
 const { getText: t } = useTexts()
 
 const fileName = ref('')
@@ -97,6 +97,9 @@ function onSelect(event: unknown) {
         :disabled="fileName.length == 0 || !hasFile"
       />
     </div>
+    <Message severity="error" v-if="error" size="small" variant="simple">
+      {{ error }}
+    </Message>
     <Message severity="info" variant="simple" size="small">
       {{ t('document-upload-info') }}
     </Message>
@@ -147,5 +150,9 @@ function onSelect(event: unknown) {
 .info {
   display: flex;
   flex-direction: column;
+}
+
+.p-message {
+  margin-top: 0.6rem;
 }
 </style>

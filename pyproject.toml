@@ -36,6 +36,7 @@ dependencies = [
   "django-unfold>=0.67.0",
   "django-vite>=3.1.0",
   "fastexcel>=0.18.0",
+  "granian>=2.6.0",
   "gunicorn>=23.0.0",
   "html-sanitizer>=2.6.0",
   "markdown>=3.10",

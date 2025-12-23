@@ -176,14 +176,16 @@ function toggleMenu(event: Event) {
 }
 
 #client-welcome-ahs-logo-footer {
-  position: sticky;
+  margin-top: 2rem;
   bottom: 0;
   background-color: var(--color-ahs-white);
 }
 
 #lang-btn {
-  height: 28.5px;
+  margin-bottom: 4rem;
   padding: 5.25px 8.75px;
+  aspect-ratio: 1;
+  border-radius: 100%;
   /* margin-bottom: 20px; */
 }
 </style>

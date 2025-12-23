@@ -242,7 +242,7 @@ class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     note = models.TextField(blank=True, null=True)
 
-    available_in = models.ManyToManyField(Location, related_name="tags")
+    available_in = models.ManyToManyField(Location, related_name="tags", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     owner = models.ForeignKey(
@@ -277,6 +277,7 @@ class InformationBanner(models.Model):
 
     locations = models.ManyToManyField(
         Location,
+        blank=True,
         related_name="information_banners",
         help_text=_("Locations for which this banner is displayed."),
     )

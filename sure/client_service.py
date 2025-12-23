@@ -135,7 +135,9 @@ def send_case_link(case: Case, phone_number: str):
 
     link = get_case_link(case)
 
-    msg = translate("case-link-message", language=case.language).format(link=link)
+    msg = translate("case-link-message", language=case.language).format(
+        link=link, case_id=case.human_id
+    )
 
     send_sms(contact.phone_number, msg, case.location.tenant)
 

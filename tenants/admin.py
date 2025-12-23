@@ -1,5 +1,9 @@
 """Admin configuration for the tenants app."""
 
+import io
+from django.http import HttpResponse
+import polars as pl
+
 from typing import Any
 from django.contrib import admin
 from django.db.models.query import QuerySet
@@ -93,7 +97,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     readonly_fields = ("tenant", "user")
 
-    actions = ["reset_password", "reset_2fa"]
+    actions = ["reset_password", "reset_2fa", "download_consultants"]
 
     actions_detail = ["reset_password_detail", "reset_2fa_detail"]
 
@@ -141,6 +145,38 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
             for device in devices_for_user(user):
                 device.delete()
             send_2fa_reset_mail(request, user)
+
+    @admin.action(description="Download consultants")
+    def download_consultants(
+        self, request: HttpRequest, queryset: QuerySet[Consultant]
+    ) -> HttpResponse:
+        """Admin action to download consultants."""
+
+        records = []
+        for consultant in queryset:
+            records.append(
+                {
+                    "email": consultant.user.email,
+                    "first_name": consultant.user.first_name,
+                    "last_name": consultant.user.last_name,
+                    "tenant": consultant.tenant.name,
+                    "locations": ", ".join(
+                        location.name for location in consultant.locations.all()
+                    ),
+                }
+            )
+        df = pl.DataFrame(records)
+        buffer = io.BytesIO()
+        df.write_excel(buffer)
+        buffer.seek(0)
+
+        filename = "consultants.xlsx"
+        response = HttpResponse(
+            buffer.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f"attachment; filename={filename}"
+        return response
 
     def get_urls(self) -> list[URLPattern]:
         invite_view = self.admin_site.admin_view(
@@ -210,7 +246,31 @@ class TagAdmin(ModelAdmin):
     list_display = ("name", "owner")
     search_fields = ("name", "owner__username", "owner__email")
 
+    actions_detail = ["clear_locations", "select_all_locations"]
+
     autocomplete_fields = ("owner", "available_in")
+
+    @action(description="Clear locations")
+    def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
+        """Admin action to clear locations for selected tags."""
+        tag = self.get_queryset(request).get(pk=object_id)
+        tag.available_in.clear()
+
+        return redirect("admin:tenants_tag_change", object_id)
+
+    @action(description="Select all locations")
+    def select_all_locations(
+        self, request: HttpRequest, object_id: int
+    ) -> HttpResponse:
+        """Admin action to select all locations for selected tags."""
+        if getattr(request.user, "is_superuser", False):
+            locations = Location.objects.all()
+        else:
+            locations = Location.objects.filter(tenant__admins=request.user)
+        tag = self.get_queryset(request).get(pk=object_id)
+        tag.available_in.set(locations)
+
+        return redirect("admin:tenants_tag_change", object_id)
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""
@@ -230,7 +290,31 @@ class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
     list_display = ("name", "created_at", "published_at", "expires_at", "tenant")
     search_fields = ("content", "tenant__name")
 
+    actions_detail = ["clear_locations", "select_all_locations"]
+
     autocomplete_fields = ("tenant", "locations")
+
+    @action(description="Clear locations")
+    def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
+        """Admin action to clear locations for selected information banners."""
+        banner = self.get_queryset(request).get(pk=object_id)
+        banner.locations.clear()
+
+        return redirect("admin:tenants_informationbanner_change", object_id)
+
+    @action(description="Select all locations")
+    def select_all_locations(
+        self, request: HttpRequest, object_id: int
+    ) -> HttpResponse:
+        """Admin action to select all locations for selected information banners."""
+        if getattr(request.user, "is_superuser", False):
+            locations = Location.objects.all()
+        else:
+            locations = Location.objects.filter(tenant__admins=request.user)
+        banner = self.get_queryset(request).get(pk=object_id)
+        banner.locations.set(locations)
+
+        return redirect("admin:tenants_informationbanner_change", object_id)
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""

@@ -116,6 +116,10 @@ function nextQuestion() {
   }
 }
 
+onMounted(() => {
+  scrollToTop()
+})
+
 function previousQuestion() {
   if (formIndex.value > 0) {
     formIndex.value--

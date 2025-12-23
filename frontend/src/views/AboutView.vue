@@ -7,13 +7,13 @@ const { getText: t, render: r } = useTexts()
   <main>
     <h1>{{ t('imprint') }}</h1>
     <section>
+      <p v-html="r('imprint-contact')"></p>
       <p class="lead">
         {{ t('imprint-lead') }}
       </p>
       <p>
         {{ t('imprint-text') }}
       </p>
-      <p :v-html="r('imprint-contact')"></p>
     </section>
   </main>
 </template>

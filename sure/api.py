@@ -749,7 +749,9 @@ def get_case_status(request, pk: str, key: Form[str] = ""):
 def get_non_sms_results(request, pk: str):
     visit = get_case(request, pk)
 
-    return get_case_tests_with_latest_results(visit, filter_client=True)
+    return get_case_tests_with_latest_results(visit, filter_client=False).filter(
+        test_kind__rapid=False
+    )
 
 
 @router.post("/results/{pk}/client/", auth=None, response=list[TestSchema])

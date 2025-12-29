@@ -28,6 +28,7 @@ class SectionTranslationOptions(TranslationOptions):
     fields = (
         "title",
         "description",
+        "label",
     )
 
 
@@ -52,7 +53,15 @@ class OptionTranslationOptions(TranslationOptions):
     )
 
 
-translator.register(ClientOption, OptionTranslationOptions)
+class ClientOptionTranslationOptions(TranslationOptions):
+    fields = (
+        "text",
+        "choices",
+        "text_for_consultant",
+    )
+
+
+translator.register(ClientOption, ClientOptionTranslationOptions)
 translator.register(ConsultantOption, OptionTranslationOptions)
 simple_history.register(ClientOption)
 simple_history.register(ConsultantOption)

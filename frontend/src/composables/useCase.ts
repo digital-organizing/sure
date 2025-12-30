@@ -233,8 +233,6 @@ export const useCase = createGlobalState(() => {
       query: { lang: language.value },
     })
       .then((response) => {
-        console.log(response)
-        console.log('Fetched client questionnaire:', response.data)
         if (response.data) {
           clientQuestionnaire.value = response.data!
           store.setSchema(response.data!)
@@ -363,7 +361,6 @@ export const useCase = createGlobalState(() => {
       console.error('Failed to upload document:', error)
       error.value = 'Failed to upload document: ' + error.message
     })
-    console.log('Upload document response:', response)
 
     if (!response || !response.error) {
       return

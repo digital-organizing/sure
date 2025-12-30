@@ -2,9 +2,13 @@ import { sureApiListTests, type TestCategorySchema } from '@/client'
 import { createGlobalState } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
+import { useTexts } from './useTexts'
+
 export const useTests = createGlobalState(() => {
   const testCategories = ref<TestCategorySchema[]>([])
   const error = ref<string | null>(null)
+  
+  const { onLanguageChange, language } = useTexts()
 
   const testBundles = computed(() => {
     return testCategories.value
@@ -18,11 +22,15 @@ export const useTests = createGlobalState(() => {
   })
 
   async function fetchTestCategories() {
-    await sureApiListTests().then((response) => {
+    await sureApiListTests({query: {lang: language.value}}).then((response) => {
       if (response.data) testCategories.value = response.data
       else error.value = 'Failed to fetch test categories.'
     })
   }
+  
+  onLanguageChange(() => {
+    fetchTestCategories()
+  })
 
   fetchTestCategories()
 

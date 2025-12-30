@@ -41,7 +41,7 @@ export const useResults = createGlobalState(() => {
       error.value = response.error['detail'] || 'An error occurred while fetching the case status.'
     }
     if (error.value) {
-      console.log('Error fetching case status, aborting further data fetch.')
+      console.error('Error fetching case status, aborting further data fetch.')
       return
     }
 

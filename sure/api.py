@@ -363,12 +363,14 @@ def update_case_tests(request, pk: str, data: SubmitTestsSchema):
 
 
 @router.get("/case/{pk}/tests/", response=list[TestSchema])
+@inject_language
 def get_case_tests(request, pk: str):
     visit = get_case(request, pk)
     return get_case_tests_with_latest_results(visit)
 
 
 @router.get("/case/{pk}/free-form-tests/", response=list[FreeFormTestSchema])
+@inject_language
 def get_case_free_form_tests(request, pk: str):
     visit = get_case(request, pk)
     free_form_tests = visit.free_form_tests.all()
@@ -507,6 +509,7 @@ def set_document_hidden(request, pk: str, doc_pk: int, hidden: Form[bool]):
 @router.post(
     "/case/{pk}/documents/{doc_pk}/link/", response=DocumentAccessSchema, auth=None
 )
+@inject_language
 def get_document_link(request, pk: str, doc_pk: int, key: Form[str] = ""):
     """Get a download link for a document."""
     authenticted = auth_2fa_or_trusted(request)
@@ -559,6 +562,7 @@ def list_case_notes(request, pk: str, key: Form[str] = "", as_staff=False):
 
 
 @router.post("/case/{pk}/notes/{note_pk}/set-hidden/", response=StatusSchema)
+@inject_language
 def set_case_note_hidden(request, pk: str, note_pk: int, hidden: Form[bool]):
     """Set note hidden status for a case."""
     visit = get_case(request, pk)
@@ -571,6 +575,7 @@ def set_case_note_hidden(request, pk: str, note_pk: int, hidden: Form[bool]):
 @router.post(
     "/case/{pk}/set-key/", response={200: StatusSchema, 400: StatusSchema}, auth=None
 )
+@inject_language
 def set_case_key(request, pk: str, key: Form["str"]):
     visit = get_case_unverified(pk)
 
@@ -746,6 +751,7 @@ def get_case_status(request, pk: str, key: Form[str] = ""):
 
 
 @router.get("/results/{pk}/non-sms/", response=list[TestSchema])
+@inject_language
 def get_non_sms_results(request, pk: str):
     visit = get_case(request, pk)
 

@@ -6,7 +6,7 @@ import { useTexts } from './useTexts'
 export const useStatus = createGlobalState(() => {
   const statusChoices = ref<OptionSchema[]>([])
   const error = ref<string | null>(null)
-  
+
   const { onLanguageChange } = useTexts()
 
   function fetchStatusChoices() {
@@ -29,7 +29,7 @@ export const useStatus = createGlobalState(() => {
   function indexForStatus(value: string): number {
     return statusChoices.value.findIndex((status) => status.value === value)
   }
-  
+
   onLanguageChange(() => {
     fetchStatusChoices()
   })

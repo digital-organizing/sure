@@ -13,7 +13,6 @@ from django.utils import timezone
 
 import tenants.models
 from sms.service import send_sms
-from sms.tasks import schedule_sms_sending
 from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
 from texts.translate import translate
@@ -151,23 +150,7 @@ def send_results_link(case: Case):
 
     msg = translate("results-link-message", language=case.language).format(link=link)
 
-    slot = case.location.get_next_opening(timezone.now())
-    if not slot:
-        slot = timezone.now() + timedelta(minutes=10)
-        logger.warning(
-            f"No opening hours found for location {case.location.id}, scheduling SMS immediately."
-        )
-
-    logger.info(
-        f"Scheduling SMS sending for {contact.phone_number} at {slot + timedelta(minutes=5)}"
-    )
-    print(
-        f"Scheduling SMS sending for {contact.phone_number} at {slot + timedelta(minutes=5)}"
-    )
-    schedule_sms_sending.apply_async(
-        args=(contact.phone_number, msg, case.location.tenant.id),
-        eta=slot + timedelta(minutes=5),
-    )
+    send_sms(contact.phone_number, msg, case.location.tenant)
 
 
 def send_token(phone_number: str, case: Case):

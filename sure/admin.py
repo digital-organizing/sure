@@ -294,6 +294,13 @@ class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
     fields = ("option", "preview", "information_text", "locations")
     readonly_fields = ("preview",)
 
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet:
+        if getattr(request.user, "is_superuser", False):
+            return super().get_queryset(request)
+        return (
+            super().get_queryset(request).filter(locations__tenant__admins=request.user)
+        )
+
 
 admin.site.unregister(PeriodicTask)
 admin.site.unregister(IntervalSchedule)

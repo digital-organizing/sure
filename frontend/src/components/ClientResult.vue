@@ -59,6 +59,9 @@ function prefixedId(id: string) {
   <section class="client-result">
     <h3>{{ t('your-results') }} ({{ prefixedId(props.caseId) }})</h3>
     <!-- Display case results here -->
+    <section v-if="!displayResults">
+      {{ t('results-available-message') }}
+    </section>
     <section class="results" v-if="testsWithResults.length > 0 && displayResults">
       <div class="test-date">
         {{ f('tests-conducted-on', [{ key: 'date', value: testCreationDate }]) }}
@@ -101,7 +104,6 @@ function prefixedId(id: string) {
       </div>
     </Panel>
     <section>
-      {{ t('results-available-message') }}
       <LocationComponent :location="location" v-if="location" />
     </section>
   </section>

@@ -21,13 +21,12 @@ simple_history.register(User, app=__package__)
 
 INVITIATION_MAIL_TEMPLATE = """Hello {{ first_name }},
 
-A new account has been created for you for {{ tentant.name }} on SURE by {{ user.get_full_name }}.
+A new account has been created for you for {{ tenant.name }} on SURE by {{ user.get_full_name }}.
 
 To set your password and activate your account, please click the following link:
 {{ activation_link }}
 
-If you did not expect this email, please ignore it.
-
+Important: This link is only valid for creating an account. Afterwards, you must always log in via www.stay-sure.ch/login. If you did not expect this email, please ignore it.
 """
 
 INVITATION_MAIL_SUBJECT = "Your new account on SURE"

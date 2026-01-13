@@ -1,6 +1,11 @@
 name: Code Analysis
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  # 1. Add the schedule trigger (runs at 04:30 UTC every day)
+  schedule:
+    - cron: '30 4 * * *'
 
 env:
   REGISTRY: ghcr.io
@@ -21,16 +26,20 @@ jobs:
           uv sync
 
       - name: Run format check
+        if: github.event_name != 'schedule'
         run: uv run ruff check
 
       - name: Run type checks
+        if: github.event_name != 'schedule'
         run: uv run ty check
+
       - name: Run pylint
+        if: github.event_name != 'schedule'
         run: uv run pylint . --ignore=migrations,tests,./.venv/ --enable-all-extensions --fail-under=8
 
       - name: Run bandit security checker
         run: uv run bandit -r . -x migrations,tests,./.venv/
-      
+       
       - name: Run vulnerability check
         run: uv run uv-secure --ignore-pkgs django-timezone-field
 
@@ -49,7 +58,13 @@ jobs:
           cd frontend/
           npm install
 
-      - name: Run npm audit
+      - name: Run npm lint
+        if: github.event_name != 'schedule'
         run: |
           cd frontend/
           npm run lint
+
+      - name: Run npm audit
+        run: |
+          cd frontend/
+          npm audit --audit-level=high

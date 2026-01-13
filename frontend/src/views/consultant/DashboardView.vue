@@ -159,24 +159,6 @@ async function selectCase(event: { data: { case: string } }) {
       </template>
     </Column>
     <Column
-      field="client_id"
-      :header="t('client').value"
-      :show-filter-match-modes="false"
-      :show-apply-button="false"
-    >
-      <template #body="{ data }">
-        {{ data.client }}
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <InputText
-          @input="filterCallback()"
-          v-model="filterModel.value"
-          type="text"
-          :placeholder="t('search-client-id').value"
-        />
-      </template>
-    </Column>
-    <Column
       field="tags"
       :header="t('tags').value"
       :show-filter-match-modes="false"

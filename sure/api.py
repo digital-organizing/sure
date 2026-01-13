@@ -398,6 +398,20 @@ def update_case_status(request, pk: str, status: str):
     return {"success": True}
 
 
+@router.post("/case/{pk}/update-internal-id/", response=StatusSchema)
+@inject_language
+def update_case_internal_id(request, pk: str, internal_id: Form[str]):
+    visit = get_case(request, pk)
+    old_id = visit.case.external_id
+    visit.case.external_id = internal_id
+    visit.case.save(update_fields=["external_id"])
+    visit.logs.create(
+        action=f"Internal ID updated from  {old_id} to {internal_id}",
+        user=request.user,
+    )
+    return {"success": True}
+
+
 @router.post("/case/{pk}/tests/results/", response=SubmitCaseResponse)
 @inject_language
 def update_case_test_results(request, pk: str, test_results: SubmitTestResultsSchema):

@@ -33,6 +33,7 @@ import {
   sureApiSetCaseNoteHidden,
   sureApiPublishCaseResults,
   sureApiUpdateCaseStatus,
+  sureApiUpdateCaseInternalId,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -363,13 +364,13 @@ export const useCase = createGlobalState(() => {
     })
 
     if (!response || !response.error) {
+      await fetchDocuments()
       return
     }
     if (!response.error.success) {
       error.value = 'Failed to upload document: ' + (response.error.message || 'Unknown error')
       return
     }
-    await fetchDocuments()
   }
 
   async function setDocumentHidden(documentId: number, hidden: boolean) {
@@ -659,6 +660,26 @@ export const useCase = createGlobalState(() => {
     await Promise.all([fetchVisitDetails(), fetchCaseHistory()])
   }
 
+  async function updateInternalId(internalId: string) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    if ('EXT-' + internalId == visit.value!.external_id) {
+      return
+    }
+    sureApiUpdateCaseInternalId({
+      body: { internal_id: internalId },
+      path: { pk: visit.value!.case },
+    })
+      .then(() => {
+        Promise.all([fetchCaseHistory(), fetchVisitDetails()])
+      })
+      .catch((error) => {
+        error.value = 'Failed to update internal ID: ' + error.message
+      })
+  }
+
   onLanguageChange(async () => {
     if (selectedVisitId.value) {
       await fetchClientSchema()
@@ -709,5 +730,6 @@ export const useCase = createGlobalState(() => {
     setCaseStatus,
     publishResults,
     onCaseRefresh,
+    updateInternalId,
   }
 })

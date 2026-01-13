@@ -229,6 +229,20 @@ class Consultant(models.Model):
 
     history = HistoricalRecords()
 
+    inactive = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Designates whether this consultant should be treated as inactive."
+        ),
+    )
+
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+        if self.inactive:
+            self.user.is_active = False
+            self.user.set_unusable_password()
+            self.user.save()
+
     def __str__(self) -> str:
         return f"{self.user.get_full_name()} ({self.tenant.name})"
 

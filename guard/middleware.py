@@ -3,14 +3,8 @@ from collections.abc import Callable
 
 from django.http import JsonResponse
 
-from .guard import (
-    block_identifier,
-    check_block,
-    check_blocked,
-    check_hit,
-    get_identifier,
-    track_hit,
-)
+from .guard import (block_identifier, check_block, check_blocked, check_hit,
+                    get_identifier, track_hit)
 
 logger = logging.getLogger(__name__)
 

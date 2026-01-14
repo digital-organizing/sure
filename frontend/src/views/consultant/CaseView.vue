@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCase } from '@/composables/useCase'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useClipboard, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
@@ -52,6 +52,9 @@ const navItems = computed(() => [
 
 const title = computed(() => 'Case ' + props.caseId + ' - Case View')
 
+const editExternalId = ref(false)
+const newExternalId = ref('')
+
 useTitle(title)
 
 const toast = useToast()
@@ -65,7 +68,7 @@ function formatTimestamp(timestamp: string | null | undefined): string {
   return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
 }
 
-const { visit, setCaseId, relatedCases, loading, setCaseStatus } = useCase()
+const { visit, setCaseId, relatedCases, loading, setCaseStatus, updateInternalId } = useCase()
 
 function isStatusDone(status: string): boolean {
   const caseStatusIndex = indexForStatus(visit.value?.status || '')
@@ -115,6 +118,27 @@ const confirmCancel = () => {
   })
 }
 
+const confirmClose = () => {
+  confirm.require({
+    message: t('confirm-close-case-message').value,
+    header: t('confirm-close-case-header').value,
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      setCaseStatus('closed')
+    },
+    reject: () => {
+      /* no action */
+    },
+  })
+}
+
+function cleanId(id: string): string {
+  if (id.startsWith('EXT-')) {
+    return id.slice(4)
+  }
+  return id
+}
+
 onMounted(async () => {
   if (props.caseId !== visit.value?.case) {
     await setCaseId(props.caseId)
@@ -122,6 +146,8 @@ onMounted(async () => {
   if (router.currentRoute.value.name !== 'consultant-case') {
     return
   }
+  newExternalId.value = cleanId(visit.value?.external_id || '')
+  console.log(visit.value?.external_id)
   switch (visit.value!.status) {
     case 'client_submitted':
       router.replace({ name: 'consultant-client-answers', params: { caseId: props.caseId } })
@@ -169,6 +195,10 @@ watch(
           <span class="value">{{ visit?.client || '-' }}</span>
         </div>
         <div class="case-field">
+          <span class="label">{{ t('phone') }}</span>
+          <span class="value">{{ visit?.client ? t('yes') : t('no') }}</span>
+        </div>
+        <div class="case-field">
           <span class="label">{{ t('case-id') }}</span>
           <span class="value">{{ visit?.case }}</span>
         </div>
@@ -189,9 +219,34 @@ watch(
           <span class="label"> {{ t('status') }} </span>
           <Tag :value="labelForStatus(visit?.status!)" :class="visit?.status" rounded />
         </div>
-        <div class="case-field" v-if="visit?.external_id">
+        <div class="case-field">
           <span class="label">{{ t('external-id') }}</span>
-          <span class="value">{{ visit.external_id }}</span>
+          <div class="external-edit">
+            <span class="value" v-if="!editExternalId">{{ visit?.external_id }}</span>
+            <Button
+              v-if="!editExternalId"
+              icon="pi pi-pencil"
+              severity="secondary"
+              size="small"
+              @click="
+                ((editExternalId = true),
+                (newExternalId = visit?.external_id ? cleanId(visit.external_id) : ''))
+              "
+            />
+            <InputText
+              v-if="editExternalId"
+              v-model="newExternalId"
+              type="text"
+              class="text-input"
+            />
+            <Button
+              v-if="editExternalId"
+              icon="pi pi-check"
+              severity="success"
+              size="small"
+              @click="updateInternalId(newExternalId).then(() => (editExternalId = false))"
+            />
+          </div>
         </div>
         <div class="case-field">
           <span class="label">{{ t('preferred-language') }}</span>
@@ -239,6 +294,12 @@ watch(
             v-if="visit?.status != 'canceled' && visit?.status != 'closed'"
           ></Button>
           <Button
+            :label="t('close-case').value"
+            severity="secondary"
+            @click="confirmClose()"
+            v-if="visit?.status != 'closed' && visit?.status != 'canceled'"
+          ></Button>
+          <Button
             :label="t('back').value"
             severity="secondary"
             @click="router.push({ name: 'consultant-dashboard' })"
@@ -283,6 +344,19 @@ article {
   padding-left: 1rem;
   padding-right: 1rem;
   gap: 1rem;
+}
+
+.external-edit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.external-edit .p-inputtext {
+  flex: 1 1 auto;
+  width: 0;
 }
 
 .nav-pill {

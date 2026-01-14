@@ -4,7 +4,8 @@ from django.test import TestCase
 
 from sure.api import prefetch_questionnaire
 from sure.models import ClientQuestion, Questionnaire
-from sure.questionnaire import import_client_questions, import_consultant_questions
+from sure.questionnaire import (import_client_questions,
+                                import_consultant_questions)
 from tenants.models import Location, Tenant
 
 

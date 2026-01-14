@@ -1,4 +1,5 @@
 from typing import Any, Optional
+
 from ninja.security.apikey import APIKeyHeader
 
 from .models import APIToken

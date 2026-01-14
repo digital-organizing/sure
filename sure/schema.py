@@ -9,29 +9,12 @@ from django.utils.timezone import localtime, make_aware
 from ninja import Field, ModelSchema, Schema
 from pydantic import BeforeValidator
 
-from sure.models import (
-    Case,
-    ClientAnswer,
-    ClientOption,
-    ClientQuestion,
-    ConsultantAnswer,
-    ConsultantOption,
-    ConsultantQuestion,
-    FreeFormTest,
-    Questionnaire,
-    ResultInformation,
-    Section,
-    Test,
-    TestBundle,
-    TestCategory,
-    TestKind,
-    TestResult,
-    TestResultOption,
-    Visit,
-    VisitDocument,
-    VisitLog,
-    VisitNote,
-)
+from sure.models import (Case, ClientAnswer, ClientOption, ClientQuestion,
+                         ConsultantAnswer, ConsultantOption,
+                         ConsultantQuestion, FreeFormTest, Questionnaire,
+                         ResultInformation, Section, Test, TestBundle,
+                         TestCategory, TestKind, TestResult, TestResultOption,
+                         Visit, VisitDocument, VisitLog, VisitNote)
 from tenants.schema import UserSchema
 
 

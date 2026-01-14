@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "tenants.apps.TenantsConfig",
     "simple_history",
     # "django.contrib.admin",
+    "django_agent_trust",
     "sure.apps.SureAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -90,7 +91,6 @@ INSTALLED_APPS = [
     "health_check.contrib.psutil",
     "crispy_forms",
     "django_otp",
-    "django_agent_trust",
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_hotp",
     "django_otp.plugins.otp_static",
@@ -651,4 +651,4 @@ CLAMD_USE_TCP = True
 CLAMD_TCP_SOCKET = env.int("CLAMD_TCP_SOCKET", default=3310)
 CLAMD_TCP_ADDR = env.str("CLAMD_TCP_ADDR", default="127.0.0.1")
 
-CLAMD_FAIL_BY_DEFAULT = True
+CLAMD_FAIL_BY_DEFAULT = not DEBUG

@@ -1,25 +1,15 @@
 from typing import Any, Dict, List, Optional, Tuple
 
-from django.db.models import Count, F, OuterRef, Prefetch, Q, QuerySet, Subquery
+from django.db.models import (Count, F, OuterRef, Prefetch, Q, QuerySet,
+                              Subquery)
 from django.db.models.functions import Greatest
 from django.utils.timezone import make_naive
 
 from sure.forms import CohortFilterForm
-from sure.models import (
-    ClientAnswer,
-    ClientOption,
-    ClientQuestion,
-    ConsultantAnswer,
-    ConsultantOption,
-    ConsultantQuestion,
-    Questionnaire,
-    Section,
-    Test,
-    TestKind,
-    TestResult,
-    Visit,
-    VisitStatus,
-)
+from sure.models import (ClientAnswer, ClientOption, ClientQuestion,
+                         ConsultantAnswer, ConsultantOption,
+                         ConsultantQuestion, Questionnaire, Section, Test,
+                         TestKind, TestResult, Visit, VisitStatus)
 from tenants.models import Location, Tenant
 
 

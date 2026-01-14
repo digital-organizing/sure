@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useAccount } from '@/composables/useAccount'
 import { useTexts } from '@/composables/useTexts'
-import { watch } from 'vue'
+import { onMounted } from 'vue'
 import { InputText } from 'primevue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -9,7 +9,8 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const { getText: t } = useTexts()
 
-const { login, account, login2fa, error, twoFaDevices, logout } = useAccount()
+const { login, account, login2fa, error, twoFaDevices, logout, fetchAccount, fetchTwoFaDevices } =
+  useAccount()
 
 const showLogin = computed(() => {
   return account.value.username === null
@@ -23,19 +24,39 @@ const hasOtpDevices = computed(() => {
   return twoFaDevices.value.length > 0
 })
 
-watch([showLogin, showOtp, hasOtpDevices], ([newShowLogin, newShowOtp, newHasOtpDevices]) => {
-  if (!newShowLogin && !newShowOtp && newHasOtpDevices) {
+onMounted(async () => {
+  if (!account.value.username) {
+    await fetchAccount()
+  }
+
+  if (!account.value.username) {
+    return
+  }
+
+  if (account.value.username && account.value.verified) {
     const next = router.currentRoute.value.query.next as string | undefined
     router.push(next || { name: 'home' })
+    return
   }
-  if (!newShowLogin && !newShowOtp && !newHasOtpDevices) {
+
+  await fetchTwoFaDevices()
+
+  if (!hasOtpDevices.value) {
     router.push({ name: 'setup-2fa' })
+    return
   }
 })
 
 async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
   if (e.valid) {
     await login(e.values['username']!, e.values['password']!)
+    if (!showLogin.value && !showOtp.value && hasOtpDevices.value) {
+      const next = router.currentRoute.value.query.next as string | undefined
+      router.push(next || { name: 'home' })
+    }
+    if (!showLogin.value && !showOtp.value && !hasOtpDevices.value) {
+      router.push({ name: 'setup-2fa' })
+    }
   }
 }
 

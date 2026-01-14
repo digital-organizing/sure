@@ -10,21 +10,18 @@ import phonenumbers
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.auth.password_validation import (
-    get_password_validators,
-    validate_password,
-)
+from django.contrib.auth.password_validation import (get_password_validators,
+                                                     validate_password)
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from django_clamd.validators import validate_file_infection
 from html_sanitizer import Sanitizer
 from markdown import markdown
 from simple_history.models import HistoricalRecords
-
-from django_clamd.validators import validate_file_infection
 
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
@@ -521,7 +518,7 @@ class BaseAnswer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -786,7 +783,7 @@ class VisitNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -821,7 +818,7 @@ class VisitLog(models.Model):
     )
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -850,7 +847,7 @@ class VisitDocument(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Uploaded At"))
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -886,7 +883,7 @@ class Test(models.Model):
 
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -920,7 +917,7 @@ class FreeFormTest(models.Model):
 
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -951,7 +948,7 @@ class TestResult(models.Model):
     )
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name=_("User"),
@@ -972,7 +969,7 @@ class ExportStatus(models.TextChoices):
 class VisitExport(models.Model):
     user = models.ForeignKey(
         "auth.User",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="visit_exports",
     )
 

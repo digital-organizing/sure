@@ -92,9 +92,10 @@ def login_view(request, username: Form[str], password: Form[str]):
 @api.post("/auth/logout", auth=django_auth)
 @csrf_exempt
 def logout_view(request, forget: Form[bool] = False):
-    logout(request)
     if forget:
+        print("Revoking trusted agent")
         django_agent_trust.revoke_agent(request)
+    logout(request)
     return {"success": True}
 
 

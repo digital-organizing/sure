@@ -1,8 +1,7 @@
 """Models for tenants (organizations) using the service."""
 
-import secrets
-
 import datetime
+import secrets
 
 import simple_history
 from django.contrib.auth.models import User
@@ -11,23 +10,21 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
+from django_clamd.validators import validate_file_infection
 from html_sanitizer import Sanitizer
 from simple_history.models import HistoricalRecords
-
-from django_clamd.validators import validate_file_infection
 
 simple_history.register(User, app=__package__)
 # Create your models here.
 
 INVITIATION_MAIL_TEMPLATE = """Hello {{ first_name }},
 
-A new account has been created for you for {{ tentant.name }} on SURE by {{ user.get_full_name }}.
+A new account has been created for you for {{ tenant.name }} on SURE by {{ user.get_full_name }}.
 
 To set your password and activate your account, please click the following link:
 {{ activation_link }}
 
-If you did not expect this email, please ignore it.
-
+Important: This link is only valid for creating an account. Afterwards, you must always log in via www.stay-sure.ch/login. If you did not expect this email, please ignore it.
 """
 
 INVITATION_MAIL_SUBJECT = "Your new account on SURE"
@@ -228,6 +225,20 @@ class Consultant(models.Model):
     locations = models.ManyToManyField(Location, related_name="consultants")
 
     history = HistoricalRecords()
+
+    inactive = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Designates whether this consultant should be treated as inactive."
+        ),
+    )
+
+    def save(self, *args, **kwargs) -> None:
+        super().save(*args, **kwargs)
+        if self.inactive:
+            self.user.is_active = False
+            self.user.set_unusable_password()
+            self.user.save()
 
     def __str__(self) -> str:
         return f"{self.user.get_full_name()} ({self.tenant.name})"

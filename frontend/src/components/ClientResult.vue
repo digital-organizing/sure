@@ -45,7 +45,7 @@ const testCreationDate = computed(() => {
   return formatDate(date, 'DD.MM.YYYY')
 })
 
-const { getText: t, formatText: f } = useTexts()
+const { getText: t, formatText: f, render: r } = useTexts()
 
 function prefixedId(id: string) {
   if (id.startsWith('SUF-')) {
@@ -105,6 +105,9 @@ function prefixedId(id: string) {
     </Panel>
     <section>
       <LocationComponent :location="location" v-if="location" />
+    </section>
+    <section>
+      <p v-html="r('case-privacy-note')"></p>
     </section>
   </section>
 </template>

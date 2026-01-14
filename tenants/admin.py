@@ -1,15 +1,15 @@
 """Admin configuration for the tenants app."""
 
 import io
-from django.http import HttpResponse
-import polars as pl
-
 from typing import Any
+
+import polars as pl
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.db.models.query import QuerySet
+from django.http import HttpResponse
 from django.http.request import HttpRequest
 from django.shortcuts import redirect
-from django.contrib.auth.models import Group
 from django.urls import URLPattern, path
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
@@ -19,14 +19,8 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
-from tenants.models import (
-    APIToken,
-    Consultant,
-    InformationBanner,
-    Location,
-    Tag,
-    Tenant,
-)
+from tenants.models import (APIToken, Consultant, InformationBanner, Location,
+                            Tag, Tenant)
 from tenants.views import ConsultantInviteView
 
 
@@ -34,6 +28,7 @@ class LocationInline(TabularInline):
     """Inline admin for locations."""
 
     model = Location
+    fields = ["name", "phone_number", "address"]
     extra = 0
 
 
@@ -90,16 +85,19 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         "user__first_name",
         "user__last_name",
         "display_locations",
+        "inactive",
     )
     search_fields = ("user__username", "user__email", "tenant__name")
 
     autocomplete_fields = ("user", "locations")
 
-    readonly_fields = ("tenant", "user")
+    readonly_fields = ("tenant", "user", "inactive")
+
+    list_filter = ("inactive", "tenant")
 
     actions = ["reset_password", "reset_2fa", "download_consultants"]
 
-    actions_detail = ["reset_password_detail", "reset_2fa_detail"]
+    actions_detail = ["reset_password_detail", "reset_2fa_detail", "deactivate_detail"]
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Consultant]:
         if getattr(request.user, "is_superuser", False):
@@ -121,9 +119,17 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
         user = consultant.user
-        for device in devices_for_user(user):
+        for device in devices_for_user(user, confirmed=None):  # type: ignore
             device.delete()
         send_2fa_reset_mail(request, user)
+        return redirect("admin:tenants_consultant_change", object_id)
+
+    @action(description="Deactivate consultant")
+    def deactivate_detail(self, request: HttpRequest, object_id: int):
+        """Admin action to deactivate a single consultant."""
+        consultant = self.get_queryset(request).get(pk=object_id)
+        consultant.inactive = True
+        consultant.save()
         return redirect("admin:tenants_consultant_change", object_id)
 
     @admin.action(description="Reset passwords for selected consultants")
@@ -142,7 +148,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for selected consultants."""
         for consultant in queryset:
             user = consultant.user
-            for device in devices_for_user(user):
+            for device in devices_for_user(user, confirmed=None):  # type: ignore
                 device.delete()
             send_2fa_reset_mail(request, user)
 

@@ -6,82 +6,45 @@ from django.db.models import F, Func
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import get_language
+from django.views.decorators.csrf import csrf_exempt
 from ninja import File, Form, Router
 from ninja.errors import HttpError
 from ninja.files import UploadedFile
 from ninja.pagination import PageNumberPagination, paginate
 
+import tenants.auth
 from core.auth import auth_2fa_or_trusted
-from sure.cases import (
-    annotate_last_modified,
-    get_case_tests_with_latest_results,
-    get_test_results,
-    prefetch_questionnaire,
-)
+from sure.cases import (annotate_last_modified,
+                        get_case_tests_with_latest_results, get_test_results,
+                        prefetch_questionnaire)
 from sure.client_service import can_connect_case
 from sure.client_service import connect_case as connect_case_service
-from sure.client_service import (
-    create_case,
-    create_visit,
-    get_case,
-    get_case_link,
-    get_case_unverified,
-    human_format_phone_number,
-    location_can_view_case,
-    record_client_answers,
-    record_consultant_answers,
-    send_case_link,
-    send_results_link,
-)
+from sure.client_service import (create_case, create_visit, get_case,
+                                 get_case_link, get_case_unverified,
+                                 human_format_phone_number,
+                                 location_can_view_case, record_client_answers,
+                                 record_consultant_answers, send_case_link,
+                                 send_results_link)
 from sure.client_service import send_token as send_token_service
 from sure.client_service import strip_id, verify_access_to_location
 from sure.lang import inject_language
-from sure.models import (
-    Case,
-    FreeFormTest,
-    Questionnaire,
-    ResultInformation,
-    Test,
-    TestCategory,
-    TestKind,
-    TestResult,
-    Visit,
-    VisitDocument,
-    VisitLog,
-    VisitStatus,
-)
-from sure.schema import (
-    CaseFilters,
-    CaseHistory,
-    CaseListingSchema,
-    ClientAnswerSchema,
-    ConnectSchema,
-    ConsultantAnswerSchema,
-    CreateCaseResponse,
-    CreateCaseSchema,
-    DocumentAccessSchema,
-    DocumentSchema,
-    FreeFormTestSchema,
-    InternalQuestionnaireSchema,
-    NoteSchema,
-    OptionSchema,
-    PhoneNumberSchema,
-    QuestionnaireListingSchema,
-    QuestionnaireSchema,
-    RelatedCaseSchema,
-    ResultInformationSchema,
-    StatusSchema,
-    SubmitCaseResponse,
-    SubmitCaseSchema,
-    SubmitTestResultsSchema,
-    SubmitTestsSchema,
-    TestCategorySchema,
-    TestResultOptionSchema,
-    TestSchema,
-)
-import tenants.auth
+from sure.models import (Case, FreeFormTest, Questionnaire, ResultInformation,
+                         Test, TestCategory, TestKind, TestResult, Visit,
+                         VisitDocument, VisitLog, VisitStatus)
+from sure.schema import (CaseFilters, CaseHistory, CaseListingSchema,
+                         ClientAnswerSchema, ConnectSchema,
+                         ConsultantAnswerSchema, CreateCaseResponse,
+                         CreateCaseSchema, DocumentAccessSchema,
+                         DocumentSchema, FreeFormTestSchema,
+                         InternalQuestionnaireSchema, NoteSchema, OptionSchema,
+                         PhoneNumberSchema, QuestionnaireListingSchema,
+                         QuestionnaireSchema, RelatedCaseSchema,
+                         ResultInformationSchema, StatusSchema,
+                         SubmitCaseResponse, SubmitCaseSchema,
+                         SubmitTestResultsSchema, SubmitTestsSchema,
+                         TestCategorySchema, TestResultOptionSchema,
+                         TestSchema)
 from tenants.models import Consultant
 from texts.translate import translate
 
@@ -395,6 +358,20 @@ def update_case_status(request, pk: str, status: str):
         )
         visit.status = status
         visit.save(update_fields=["status"])
+    return {"success": True}
+
+
+@router.post("/case/{pk}/update-internal-id/", response=StatusSchema)
+@inject_language
+def update_case_internal_id(request, pk: str, internal_id: Form[str]):
+    visit = get_case(request, pk)
+    old_id = visit.case.external_id
+    visit.case.external_id = internal_id
+    visit.case.save(update_fields=["external_id"])
+    visit.logs.create(
+        action=f"Internal ID updated from  {old_id} to {internal_id}",
+        user=request.user,
+    )
     return {"success": True}
 
 

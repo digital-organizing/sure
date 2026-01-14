@@ -2235,6 +2235,40 @@ export type SureApiUpdateCaseStatusResponses = {
 
 export type SureApiUpdateCaseStatusResponse = SureApiUpdateCaseStatusResponses[keyof SureApiUpdateCaseStatusResponses];
 
+export type SureApiUpdateCaseInternalIdData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Internal Id
+         */
+        internal_id: string;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/update-internal-id/';
+};
+
+export type SureApiUpdateCaseInternalIdResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiUpdateCaseInternalIdResponse = SureApiUpdateCaseInternalIdResponses[keyof SureApiUpdateCaseInternalIdResponses];
+
 export type SureApiUpdateCaseTestResultsData = {
     body: SubmitTestResultsSchema;
     path: {

@@ -19,8 +19,14 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
-from tenants.models import (APIToken, Consultant, InformationBanner, Location,
-                            Tag, Tenant)
+from tenants.models import (
+    APIToken,
+    Consultant,
+    InformationBanner,
+    Location,
+    Tag,
+    Tenant,
+)
 from tenants.views import ConsultantInviteView
 
 

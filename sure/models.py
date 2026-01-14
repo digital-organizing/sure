@@ -10,8 +10,10 @@ import phonenumbers
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.auth.password_validation import (get_password_validators,
-                                                     validate_password)
+from django.contrib.auth.password_validation import (
+    get_password_validators,
+    validate_password,
+)
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
@@ -754,6 +756,7 @@ class Visit(models.Model):
 
         if self.published_at is not None and self.status not in [
             VisitStatus.RESULTS_SENT,
+            VisitStatus.RESULTS_SEEN,
             VisitStatus.CLOSED,
         ]:
             self.published_at = None

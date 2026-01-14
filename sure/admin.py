@@ -13,44 +13,56 @@ from django.http.request import HttpRequest
 from django.shortcuts import redirect
 from django.urls import reverse
 from django_agent_trust.admin import AgentSettings
-from django_celery_beat.admin import \
-    ClockedScheduleAdmin as BaseClockedScheduleAdmin
-from django_celery_beat.admin import \
-    CrontabScheduleAdmin as BaseCrontabScheduleAdmin
+from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
+from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
 from django_celery_beat.admin import PeriodicTaskAdmin as BasePeriodicTaskAdmin
 from django_celery_beat.admin import PeriodicTaskForm, TaskSelectWidget
-from django_celery_beat.models import (ClockedSchedule, CrontabSchedule,
-                                       IntervalSchedule, PeriodicTask,
-                                       SolarSchedule)
+from django_celery_beat.models import (
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule,
+)
 from django_celery_results.admin import TaskResultAdmin as BaseTaskResultAdmin
 from django_celery_results.models import TaskResult
-from django_otp.plugins.otp_hotp.admin import \
-    HOTPDeviceAdmin as BaseHOTPDeviceAdmin
+from django_otp.plugins.otp_hotp.admin import HOTPDeviceAdmin as BaseHOTPDeviceAdmin
 from django_otp.plugins.otp_hotp.models import HOTPDevice
-from django_otp.plugins.otp_static.admin import \
-    StaticDeviceAdmin as BaseStaticDeviceAdmin
+from django_otp.plugins.otp_static.admin import (
+    StaticDeviceAdmin as BaseStaticDeviceAdmin,
+)
 from django_otp.plugins.otp_static.models import StaticDevice
-from django_otp.plugins.otp_totp.admin import \
-    TOTPDeviceAdmin as BaseTOTPDeviceAdmin
+from django_otp.plugins.otp_totp.admin import TOTPDeviceAdmin as BaseTOTPDeviceAdmin
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from modeltranslation.admin import (TabbedTranslationAdmin,
-                                    TranslationStackedInline,
-                                    TranslationTabularInline)
+from modeltranslation.admin import (
+    TabbedTranslationAdmin,
+    TranslationStackedInline,
+    TranslationTabularInline,
+)
 from simple_history.admin import SimpleHistoryAdmin
 from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
 from unfold.components import BaseComponent, register_component
 from unfold.decorators import action
-from unfold.forms import (AdminPasswordChangeForm, UserChangeForm,
-                          UserCreationForm)
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
 from sure.cases import case_cohort_by_location, case_cohort_by_tenants
 from sure.forms import CohortFilterForm
-from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
-                         ConsultantQuestion, Questionnaire, ResultInformation,
-                         Section, TestBundle, TestCategory, TestKind,
-                         TestResultOption, VisitExport)
+from sure.models import (
+    ClientOption,
+    ClientQuestion,
+    ConsultantOption,
+    ConsultantQuestion,
+    Questionnaire,
+    ResultInformation,
+    Section,
+    TestBundle,
+    TestCategory,
+    TestKind,
+    TestResultOption,
+    VisitExport,
+)
 from sure.tasks import create_export
 
 
@@ -390,7 +402,6 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
     pass
 
 
-
 admin.site.unregister(StaticDevice)
 admin.site.unregister(HOTPDevice)
 admin.site.unregister(TOTPDevice)
@@ -415,7 +426,6 @@ class StaticDeviceAdmin(BaseStaticDeviceAdmin, ModelAdmin):
 )
 class HOTPDeviceAdmin(BaseHOTPDeviceAdmin, ModelAdmin):
     pass
-
 
 
 admin.site.unregister(AccessAttempt)
@@ -448,7 +458,6 @@ class AccessFailureLogAdmin(BaseAccessFailureLogAdmin, ModelAdmin):
     pass
 
 
-
 admin.site.unregister(TaskResult)
 
 
@@ -457,7 +466,6 @@ admin.site.unregister(TaskResult)
 )
 class TaskResultAdmin(BaseTaskResultAdmin, ModelAdmin):
     pass
-
 
 
 admin.site.unregister(AgentSettings)

@@ -1,13 +1,29 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from sure.client_service import (canonicalize_phone_number, connect_case,
-                                 create_case, create_visit, generate_token,
-                                 get_case_link, get_cases, get_client_by_id,
-                                 location_can_view_case, record_client_answers,
-                                 verify_access_to_location)
-from sure.models import (Client, ClientQuestion, ConsentChoice, Contact,
-                         Questionnaire, Section, Token, VisitStatus)
+from sure.client_service import (
+    canonicalize_phone_number,
+    connect_case,
+    create_case,
+    create_visit,
+    generate_token,
+    get_case_link,
+    get_cases,
+    get_client_by_id,
+    location_can_view_case,
+    record_client_answers,
+    verify_access_to_location,
+)
+from sure.models import (
+    Client,
+    ClientQuestion,
+    ConsentChoice,
+    Contact,
+    Questionnaire,
+    Section,
+    Token,
+    VisitStatus,
+)
 from sure.schema import AnswerSchema, ChoiceSchema
 from tenants.models import Consultant, Tenant
 

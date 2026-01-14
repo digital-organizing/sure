@@ -749,7 +749,10 @@ class Visit(models.Model):
         return self.status in [VisitStatus.RESULTS_SENT, VisitStatus.RESULTS_SEEN]
 
     def save(self, *args, **kwargs):
-        if self.status == VisitStatus.RESULTS_SENT and self.published_at is None:
+        if (
+            self.status in [VisitStatus.RESULTS_SENT, VisitStatus.RESULTS_SEEN]
+            and self.published_at is None
+        ):
             self.published_at = timezone.now()
             if "update_fields" in kwargs:
                 kwargs["update_fields"].append("published_at")

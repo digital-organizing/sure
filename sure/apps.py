@@ -8,13 +8,10 @@ class SureConfig(AppConfig):
     verbose_name = "Sure"
 
     def ready(self) -> None:
-        from django.contrib import \
-            admin  # pylint: disable=import-outside-toplevel
-        from django.contrib.admin import \
-            sites  # pylint: disable=import-outside-toplevel
+        from django.contrib import admin  # pylint: disable=import-outside-toplevel
+        from django.contrib.admin import sites  # pylint: disable=import-outside-toplevel
 
-        from core.admin import \
-            admin_site  # pylint: disable=import-outside-toplevel
+        from core.admin import admin_site  # pylint: disable=import-outside-toplevel
 
         admin.site = admin_site
         sites.site = admin_site

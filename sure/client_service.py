@@ -17,17 +17,8 @@ from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
 from texts.translate import translate
 
-from .models import (
-    Case,
-    Client,
-    ClientAnswer,
-    Connection,
-    ConsentChoice,
-    Contact,
-    Questionnaire,
-    Visit,
-    VisitStatus,
-)
+from .models import (Case, Client, ClientAnswer, Connection, ConsentChoice,
+                     Contact, Questionnaire, Visit, VisitStatus)
 
 logger = logging.getLogger(__name__)
 

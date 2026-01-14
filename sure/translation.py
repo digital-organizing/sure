@@ -1,19 +1,10 @@
 import simple_history
 from modeltranslation.translator import TranslationOptions, translator
 
-from sure.models import (
-    ClientOption,
-    ClientQuestion,
-    ConsultantOption,
-    ConsultantQuestion,
-    Questionnaire,
-    ResultInformation,
-    Section,
-    TestBundle,
-    TestCategory,
-    TestKind,
-    TestResultOption,
-)
+from sure.models import (ClientOption, ClientQuestion, ConsultantOption,
+                         ConsultantQuestion, Questionnaire, ResultInformation,
+                         Section, TestBundle, TestCategory, TestKind,
+                         TestResultOption)
 
 
 class QuestionaireTranslationOptions(TranslationOptions):

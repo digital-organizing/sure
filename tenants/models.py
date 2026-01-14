@@ -1,8 +1,7 @@
 """Models for tenants (organizations) using the service."""
 
-import secrets
-
 import datetime
+import secrets
 
 import simple_history
 from django.contrib.auth.models import User
@@ -11,10 +10,9 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
+from django_clamd.validators import validate_file_infection
 from html_sanitizer import Sanitizer
 from simple_history.models import HistoricalRecords
-
-from django_clamd.validators import validate_file_infection
 
 simple_history.register(User, app=__package__)
 # Create your models here.

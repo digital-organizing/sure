@@ -195,6 +195,10 @@ watch(
           <span class="value">{{ visit?.client || '-' }}</span>
         </div>
         <div class="case-field">
+          <span class="label">{{ t('phone') }}</span>
+          <span class="value">{{ visit?.client ? t('yes') : t('no') }}</span>
+        </div>
+        <div class="case-field">
           <span class="label">{{ t('case-id') }}</span>
           <span class="value">{{ visit?.case }}</span>
         </div>

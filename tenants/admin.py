@@ -1,15 +1,15 @@
 """Admin configuration for the tenants app."""
 
 import io
-from django.http import HttpResponse
-import polars as pl
-
 from typing import Any
+
+import polars as pl
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.db.models.query import QuerySet
+from django.http import HttpResponse
 from django.http.request import HttpRequest
 from django.shortcuts import redirect
-from django.contrib.auth.models import Group
 from django.urls import URLPattern, path
 from django.utils.translation import gettext_lazy as _
 from django_otp import devices_for_user
@@ -19,14 +19,8 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
 from tenants.account import send_2fa_reset_mail, send_reset_mail
-from tenants.models import (
-    APIToken,
-    Consultant,
-    InformationBanner,
-    Location,
-    Tag,
-    Tenant,
-)
+from tenants.models import (APIToken, Consultant, InformationBanner, Location,
+                            Tag, Tenant)
 from tenants.views import ConsultantInviteView
 
 

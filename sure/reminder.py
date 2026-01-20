@@ -65,7 +65,6 @@ def get_reminder_date(visit: Visit) -> datetime | None:
 
 
 def send_reminder(visit: Visit):
-    assert visit.reminder_sent_at is None
     activate(visit.case.language)
     base_text = translate("reminder-notification")
     location_text = visit.case.location.reminder_text

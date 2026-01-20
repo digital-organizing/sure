@@ -61,6 +61,7 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
                     "opening_hours",
                     "address",
                     "phone_number",
+                    "reminder_text",
                 ),
             },
         ),

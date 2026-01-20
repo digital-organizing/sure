@@ -16,3 +16,4 @@ translator.register(InformationBanner, InformationBannerTranslationOptions)
 simple_history.register(InformationBanner)
 
 translator.register(Location, LocationTranslationOptions)
+simple_history.register(Location)

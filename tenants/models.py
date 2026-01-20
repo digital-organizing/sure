@@ -213,8 +213,6 @@ class Location(models.Model):
                     return opening_datetime
         return None
 
-    history = HistoricalRecords()
-
     def __str__(self) -> str:
         return f"{self.name} ({self.tenant.name}, {self.pk})"
 

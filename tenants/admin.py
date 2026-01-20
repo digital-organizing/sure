@@ -41,7 +41,7 @@ class LocationInline(TabularInline):
 @admin.register(
     Location,
 )
-class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
+class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     """Admin for locations."""
 
     list_display = ("name", "tenant")

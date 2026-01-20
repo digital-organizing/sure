@@ -179,9 +179,9 @@ def validate_phone_number(value: Any) -> str | None:
         if not phonenumbers.is_valid_number(phone_number):
             raise ValueError("Invalid phone number")
 
-    if value.country_code not in settings.SUPPORTED_SMS_CODES:
+    if str(phone_number.country_code) not in settings.SUPPORTED_SMS_CODES:
         raise ValueError(
-            f"Phone number country code not supported ({value.country_code})"
+            f"Phone number country code not supported ({phone_number.country_code})"
         )
     return phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.E164)
 

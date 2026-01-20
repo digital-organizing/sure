@@ -268,6 +268,30 @@ class Questionnaire(models.Model):
     sections: models.QuerySet["Section"]
     consultant_questions: models.QuerySet["ConsultantQuestion"]
 
+    client_pdf = models.FileField(
+        upload_to="questionnaire_pdfs/",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf"]),
+            validate_file_infection,
+        ],
+        verbose_name=_("Client PDF"),
+        help_text=_("PDF file for the client questionnaire"),
+    )
+
+    consultant_pdf = models.FileField(
+        upload_to="questionnaire_pdfs/",
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf"]),
+            validate_file_infection,
+        ],
+        verbose_name=_("Consultant PDF"),
+        help_text=_("PDF file for the consultant questionnaire"),
+    )
+
     class Meta:
         verbose_name = _("Questionnaire")
         verbose_name_plural = _("Questionnaires")
@@ -740,6 +764,19 @@ class Visit(models.Model):
         choices=VisitStatus.choices,
         default=VisitStatus.CREATED,
         verbose_name=_("Status"),
+    )
+
+    reminder_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Reminder Sent At"),
+        help_text=_("Timestamp when the reminder was sent"),
+    )
+
+    no_reminder = models.BooleanField(
+        default=False,
+        verbose_name=_("No Reminder"),
+        help_text=_("Whether to skip sending reminders for this visit"),
     )
 
     tags = ArrayField(models.CharField(max_length=50), blank=True, default=list)

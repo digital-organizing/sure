@@ -63,7 +63,7 @@ from sure.models import (
     TestResultOption,
     VisitExport,
 )
-from sure.tasks import create_export
+from sure.tasks import create_export, generate_pdf_task
 
 
 @admin.register(
@@ -145,6 +145,33 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name", "name_en")
     inlines = [SectionInline, ConsultantQuestionInline]
     ordering = ("name",)
+
+    readonly_fields = ("client_pdf", "consultant_pdf")
+
+    actions_detail = ["generate_pdf_action"]
+
+    fieldsets = (
+        (
+            "Questionnaire Information",
+            {"classes": ["tab"], "fields": ("name",)},
+        ),
+        (
+            "Questionnaire PDFs",
+            {
+                "classes": ["tab"],
+                "fields": (
+                    "client_pdf",
+                    "consultant_pdf",
+                ),
+            },
+        ),
+    )
+
+    @action(description="Generate PDFs")
+    def generate_pdf_action(self, request, object_id):
+        generate_pdf_task.delay(object_id)
+
+        return redirect(reverse("admin:sure_questionnaire_change", args=[object_id]))
 
 
 @admin.register(

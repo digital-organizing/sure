@@ -125,7 +125,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
         user = consultant.user
-        for device in devices_for_user(user, confirmed=None):  # type: ignore
+        for device in devices_for_user(user, confirmed=None):  
             device.delete()
         send_2fa_reset_mail(request, user)
         return redirect("admin:tenants_consultant_change", object_id)
@@ -154,7 +154,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for selected consultants."""
         for consultant in queryset:
             user = consultant.user
-            for device in devices_for_user(user, confirmed=None):  # type: ignore
+            for device in devices_for_user(user, confirmed=None):  
                 device.delete()
             send_2fa_reset_mail(request, user)
 

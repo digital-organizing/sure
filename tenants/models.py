@@ -144,6 +144,14 @@ class Location(models.Model):
         validators=[validate_opening_hours],
     )
 
+    reminder_text = models.TextField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Additional text to include in reminder notifications sent to clients."
+        ),
+    )
+
     phone_number = models.CharField(
         max_length=20,
         blank=True,

@@ -1,5 +1,6 @@
 import logging
 
+import phonenumbers
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Func
@@ -146,6 +147,8 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
 def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
     """Send a token to the given phone number for accessing the case."""
     visit = get_case_unverified(pk)
+    if not phone_number.phone_number:
+        return 400, StatusSchema(success=False, message="Phone number is required")
     request.session["phone_number"] = phone_number.phone_number
 
     if not can_connect_case(visit.case):
@@ -153,8 +156,9 @@ def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
 
     try:
         send_token_service(phone_number.phone_number, visit.case)
-    except ValueError as e:
+    except (ValueError, phonenumbers.NumberParseException) as e:
         return 400, StatusSchema(success=False, message=str(e))
+
     return StatusSchema(success=True, message=phone_number.phone_number)
 
 

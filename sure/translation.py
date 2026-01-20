@@ -17,7 +17,7 @@ from sure.models import (
 
 
 class QuestionaireTranslationOptions(TranslationOptions):
-    fields = ("name",)
+    fields = ("name", "client_pdf", "consultant_pdf")
 
 
 translator.register(Questionnaire, QuestionaireTranslationOptions)

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from django.utils import timezone
@@ -6,6 +7,8 @@ from django.utils.translation import activate
 from sms.service import send_sms
 from sure.models import Visit
 from texts.translate import translate
+
+logger = logging.getLogger(__name__)
 
 REMINDER_QUESTION_LABEL = "REMINDER"
 
@@ -45,17 +48,24 @@ def get_reminder_date(visit: Visit) -> datetime | None:
         return None
 
     choice = reminder_answer.choices[0]
-    option = reminder_answer.question.options.filter(code=choice).first() 
+    option = reminder_answer.question.options.filter(code=choice).first()
 
     if not option:
         return None
 
-    duration = parse_duration_string(option.text_en)
+    try:
+        duration = parse_duration_string(option.text_en)
+    except ValueError:
+        logger.warning(
+            f"Invalid duration string for reminder option {option.id}: {option.text_en}"
+        )
+        return None
 
     return reminder_answer.created_at + duration
 
 
 def send_reminder(visit: Visit):
+    assert visit.reminder_sent_at is None
     activate(visit.case.language)
     base_text = translate("reminder-notification")
     location_text = visit.case.location.reminder_text

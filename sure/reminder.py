@@ -92,6 +92,18 @@ def send_reminders():
     sent = 0
 
     for visit in visits:
+        client = visit.case.connection.client
+        newer_visits = Visit.objects.filter(
+            case__connection__client=client,
+            created_at__gt=visit.created_at,
+        )
+
+        if newer_visits.exists():
+            # There is a newer visit for this client, skip sending reminder
+            visit.no_reminder = True
+            visit.save()
+            continue
+
         reminder_date = get_reminder_date(visit)
         if reminder_date is None:
             visit.no_reminder = True

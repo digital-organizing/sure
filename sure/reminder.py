@@ -109,7 +109,7 @@ def send_reminders():
             visit.no_reminder = True
             visit.save()
             continue
-        if reminder_date <= timezone.now():
+        if reminder_date.date() <= timezone.now().date():
             send_reminder(visit)
             visit.reminder_sent_at = timezone.now()
             visit.save()

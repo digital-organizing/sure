@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCase } from '@/composables/useCase'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useClipboard, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'
@@ -140,6 +140,11 @@ function cleanId(id: string): string {
 }
 
 onMounted(async () => {
+  // If scrolled down, scroll to top when changing case
+  if (window.scrollY > 200) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   if (props.caseId !== visit.value?.case) {
     await setCaseId(props.caseId)
   }

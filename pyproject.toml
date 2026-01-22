@@ -38,6 +38,7 @@ dependencies = [
   "fastexcel>=0.18.0",
   "granian>=2.6.0",
   "gunicorn>=23.0.0",
+  "hl7>=0.4.5",
   "html-sanitizer>=2.6.0",
   "markdown>=3.10",
   "markdown-pdf>=1.10",

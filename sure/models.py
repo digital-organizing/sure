@@ -57,6 +57,14 @@ class Case(models.Model):
         verbose_name=_("External ID"),
         help_text=_("An optional external ID for the case"),
     )
+
+    # pid = models.CharField(
+    #     max_length=255,
+    #     blank=True,
+    #     verbose_name=_("PID"),
+    #     help_text=_("An optional PID for the case"),
+    # )
+
     location = models.ForeignKey(
         "tenants.Location",
         on_delete=models.CASCADE,
@@ -622,6 +630,13 @@ class TestKind(models.Model):
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test"),
     )
+
+    # lab_code = models.CharField(
+    #     max_length=100,
+    #     blank=True,
+    #     verbose_name=_("Lab Code"),
+    #     help_text=_("Laboratory code for the test kind"),
+    # )
 
     test_bundles: models.QuerySet["TestBundle"]
     result_options: models.QuerySet["TestResultOption"]

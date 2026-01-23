@@ -41,7 +41,7 @@ class LocationInline(TabularInline):
 @admin.register(
     Location,
 )
-class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
+class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     """Admin for locations."""
 
     list_display = ("name", "tenant")
@@ -61,6 +61,7 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
                     "opening_hours",
                     "address",
                     "phone_number",
+                    "reminder_text",
                 ),
             },
         ),
@@ -77,6 +78,25 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin):
         if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
+
+
+class AdminFilter(admin.SimpleListFilter):
+    """Filter to show only objects related to the admin's tenant."""
+
+    title = "Tenant Admin"
+    parameter_name = "admin"
+
+    def lookups(self, request, model_admin):
+        """Return a list of tuples for the filter options."""
+        return [("1", "Yes"), ("0", "No")]
+
+    def queryset(self, request, queryset):
+        """Filter the queryset based on the selected tenant."""
+        if self.value() == "1":
+            return queryset.filter(user__tenants__isnull=False).distinct()
+        if self.value() == "0":
+            return queryset.filter(user__tenants__isnull=True).distinct()
+        return queryset
 
 
 @admin.register(
@@ -99,7 +119,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     readonly_fields = ("tenant", "user", "inactive")
 
-    list_filter = ("inactive", "tenant")
+    list_filter = ("inactive", "tenant", AdminFilter)
 
     actions = ["reset_password", "reset_2fa", "download_consultants"]
 
@@ -125,7 +145,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
         user = consultant.user
-        for device in devices_for_user(user, confirmed=None):  # type: ignore
+        for device in devices_for_user(user, confirmed=None):
             device.delete()
         send_2fa_reset_mail(request, user)
         return redirect("admin:tenants_consultant_change", object_id)
@@ -154,7 +174,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for selected consultants."""
         for consultant in queryset:
             user = consultant.user
-            for device in devices_for_user(user, confirmed=None):  # type: ignore
+            for device in devices_for_user(user, confirmed=None):
                 device.delete()
             send_2fa_reset_mail(request, user)
 

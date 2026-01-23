@@ -144,6 +144,14 @@ class Location(models.Model):
         validators=[validate_opening_hours],
     )
 
+    reminder_text = models.TextField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Additional text to include in reminder notifications sent to clients."
+        ),
+    )
+
     phone_number = models.CharField(
         max_length=20,
         blank=True,
@@ -204,8 +212,6 @@ class Location(models.Model):
                 if opening_datetime > from_datetime:
                     return opening_datetime
         return None
-
-    history = HistoricalRecords()
 
     def __str__(self) -> str:
         return f"{self.name} ({self.tenant.name}, {self.pk})"

@@ -9,13 +9,21 @@ export const useBanner = createGlobalState(() => {
   const dismissed = ref<Array<number>>([])
 
   const loadDismissed = () => {
-    const dismissedBanners = localStorage.getItem('dismissedBanners')
-    if (dismissedBanners) {
-      dismissed.value = JSON.parse(dismissedBanners)
+    try {
+      const dismissedBanners = localStorage.getItem('dismissedBanners')
+      if (dismissedBanners) {
+        dismissed.value = JSON.parse(dismissedBanners)
+      }
+    } catch (e) {
+      console.error('Failed to load dismissed banners from localStorage:', e)
     }
   }
   const saveDismissed = () => {
-    localStorage.setItem('dismissedBanners', JSON.stringify(dismissed.value))
+    try {
+      localStorage.setItem('dismissedBanners', JSON.stringify(dismissed.value))
+    } catch (e) {
+      console.error('Failed to save dismissed banners to localStorage:', e)
+    }
   }
 
   loadDismissed()

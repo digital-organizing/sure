@@ -9,6 +9,9 @@ from django.core.mail import send_mail
 from django.utils import timezone
 
 from sure.cases import get_export_dict
+from sure.export import generate_pdfs
+from sure.models import Questionnaire
+from sure.reminder import send_reminders
 
 from .models import ExportStatus, Visit, VisitExport, VisitStatus
 
@@ -91,3 +94,16 @@ def create_export(export_id: int) -> None:
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[export.user.email],
         )
+
+
+@shared_task
+def send_reminder_task() -> str:
+    sent, total = send_reminders()
+
+    return f"Sent {sent} reminders out of {total} visits."
+
+
+@shared_task
+def generate_pdf_task(questionnaire_id: int) -> None:
+    questionnaire = Questionnaire.objects.get(id=questionnaire_id)
+    generate_pdfs(questionnaire)

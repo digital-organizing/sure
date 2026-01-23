@@ -14,7 +14,7 @@ const props = defineProps<{
   caseId: string
 }>()
 
-const { getText: t, formatText: f, render: r } = useTexts()
+const { getText: t, language, formatText: f, render: r } = useTexts()
 const translate = (slug: string) => t(slug).value
 
 const router = useRouter()
@@ -23,6 +23,8 @@ const selectedConsentOption = ref<'allowed' | 'not_allowed' | null>(null)
 const error = ref<string | null>(null)
 const errorVerify = ref<string | null>(null)
 const errorKey = ref<string | null>(null)
+
+const showPassword = ref<boolean>(false)
 
 const phonenumber = ref<string>('')
 const phonenumberSent = ref<string>('')
@@ -126,7 +128,11 @@ async function onVerify() {
 async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) {
   if (!e.valid) return
   const key = e.values.key as string
-  const response = await sureApiSetCaseKey({ path: { pk: props.caseId }, body: { key } })
+  const response = await sureApiSetCaseKey({
+    path: { pk: props.caseId },
+    body: { key },
+    query: { lang: language.value },
+  })
   if (response.error && !response.error?.success) {
     errorKey.value = ensureString(response.error?.message) || translate('client-phone-error-key')
     return
@@ -291,13 +297,23 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         <label for="client-key" class="client-option-label">
           {{ t('client-phone-key-label') }}
         </label>
-        <InputText
-          type="password"
-          autocomplete="new-password"
-          input-id="client-key"
-          required
-          name="key"
-        />
+        <InputGroup>
+          <InputText
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="new-password"
+            input-id="client-key"
+            required
+            name="key"
+          />
+          <InputGroupAddon>
+            <Button
+              :icon="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+              :severity="'secondary'"
+              variant="text"
+              @click="showPassword = !showPassword"
+            />
+          </InputGroupAddon>
+        </InputGroup>
 
         <Message v-if="errorKey" severity="error" size="small" variant="outlined">{{
           errorKey
@@ -316,6 +332,10 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
 </template>
 
 <style scoped>
+.p-inputgroup {
+  width: 20rem;
+}
+
 #navi-top {
   display: flex;
   width: 100%;

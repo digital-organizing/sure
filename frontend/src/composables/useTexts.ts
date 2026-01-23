@@ -26,7 +26,10 @@ export const useTexts = createGlobalState(() => {
   }
 
   loadAvailableLanguages().then(() => {
-    const storedLang = localStorage.getItem('preferredLanguage')
+    let storedLang: string | null = null
+    try {
+      storedLang = localStorage.getItem('preferredLanguage')
+    } catch {}
     if (storedLang) {
       setLanguage(storedLang)
       return
@@ -39,7 +42,11 @@ export const useTexts = createGlobalState(() => {
 
   async function setLanguage(lang?: string) {
     if (!lang) {
-      lang = localStorage.getItem('preferredLanguage') || 'en'
+      try {
+        lang = localStorage.getItem('preferredLanguage') || 'en'
+      } catch {
+        lang = 'en'
+      }
     }
     if (language.value === lang) return
     if (loadingAvailableLanguagesPromise.value) {
@@ -53,7 +60,9 @@ export const useTexts = createGlobalState(() => {
       console.warn(`Language ${lang} is not available.`)
       return
     }
-    localStorage.setItem('preferredLanguage', lang)
+    try {
+      localStorage.setItem('preferredLanguage', lang)
+    } catch {}
     loadingPromise.value = textsApiListTexts({ query: { lang } })
       .then((response) => {
         if (!response.data) return

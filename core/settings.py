@@ -613,6 +613,10 @@ SMSUP_API_TOKEN = env.str("SMSUP_API_TOKEN", default="")
 
 SIMULATE_SMS = env.bool("SIMULATE_SMS", default=False)
 
+SUPPORTED_SMS_CODES = env.list(
+    "SMS_AVAILABLE_CODES", default=["41", "43", "32", "33", "39", "34", "351"]
+)
+
 TOKEN_RESEND_INTERVAL_MINUTES = env.int(
     "TOKEN_RESEND_INTERVAL_MINUTES", default=0 if DEBUG else 3
 )

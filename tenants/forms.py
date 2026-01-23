@@ -112,7 +112,7 @@ class ConsultantInviteForm(forms.Form):
             tenant__admins=request.user
         )
         self.fields["tenant"].queryset = Tenant.objects.filter(admins=request.user)  # type: ignore
-        self.fields["tenant"].initial = Tenant.objects.filter(  #    type: ignore
+        self.fields["tenant"].initial = Tenant.objects.filter(
             admins=request.user
         ).first()
 

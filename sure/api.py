@@ -1,5 +1,6 @@
 import logging
 
+import phonenumbers
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Func
@@ -146,6 +147,8 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
 def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
     """Send a token to the given phone number for accessing the case."""
     visit = get_case_unverified(pk)
+    if not phone_number.phone_number:
+        return 400, StatusSchema(success=False, message="Phone number is required")
     request.session["phone_number"] = phone_number.phone_number
 
     if not can_connect_case(visit.case):
@@ -153,8 +156,9 @@ def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
 
     try:
         send_token_service(phone_number.phone_number, visit.case)
-    except ValueError as e:
+    except (ValueError, phonenumbers.NumberParseException) as e:
         return 400, StatusSchema(success=False, message=str(e))
+
     return StatusSchema(success=True, message=phone_number.phone_number)
 
 
@@ -340,6 +344,7 @@ def update_case_tests(request, pk: str, data: SubmitTestsSchema):
 
     existing = set(visit.tests.values_list("test_kind_id", flat=True))
     new = set(test_pks) - existing
+    removed = existing - set(test_pks)
 
     tests = [
         Test(visit=visit, test_kind_id=test_kind_id, user=request.user)
@@ -347,12 +352,41 @@ def update_case_tests(request, pk: str, data: SubmitTestsSchema):
     ]
     Test.objects.bulk_create(tests)
 
+    to_remove = (
+        Test.objects.filter(visit=visit, test_kind_id__in=removed).exclude(
+            results__isnull=False
+        )
+        if removed
+        else Test.objects.none()
+    )
+
+    if to_remove.exists():
+        names = list(to_remove.values_list("test_kind__name", flat=True))
+        to_remove.delete()
+        visit.logs.create(
+            action=f"Removed tests: {', '.join(map(str, names))}",
+            user=request.user,
+        )
+
     free_form_tests = data.free_form_tests
     for test_name in free_form_tests:
         if test_name.strip() == "":
             continue
         FreeFormTest.objects.get_or_create(
             visit=visit, name=test_name, user=request.user
+        )
+
+    to_delete = (
+        FreeFormTest.objects.filter(visit=visit)
+        .exclude(name__in=free_form_tests)
+        .filter(result="")
+    )
+    if to_delete.exists():
+        deleted_names = ", ".join(to_delete.values_list("name", flat=True))
+        to_delete.delete()
+        visit.logs.create(
+            action=f"Removed free form tests: {deleted_names}",
+            user=request.user,
         )
 
     with transaction.atomic():

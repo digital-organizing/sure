@@ -1,6 +1,5 @@
-import ftplib
-import tempfile
 from django.conf import settings
+from fabric import Connection
 import hl7
 
 from sure.models import Test, TestKind, Visit
@@ -8,7 +7,7 @@ from sure.models import Test, TestKind, Visit
 """
 Interface for labor
 
-Upload HL7 files via FTP for ordering tests.
+Upload HL7 files via SFTP for ordering tests.
 
 Results are placed in a specified directory, from which they can be retrieved.
 
@@ -33,6 +32,15 @@ NTE|1||(<20.0), (20.0-40.0) Grenzwert|RE
 OBX|7|NM|LACT7^Lactose nach 120 min^LX||108|ppm||HH|||F|||20250902072659|
 NTE|1||(<20.0), (20.0-40.0) Grenzwertig|R
 """
+
+
+def _get_connection() -> Connection:
+    """Create an SFTP connection to the lab server."""
+    return Connection(
+        host=settings.LAB_SFTP_HOST,
+        user=settings.LAB_SFTP_USER,
+        connect_kwargs={"password": settings.LAB_SFTP_PASSWORD},
+    )
 
 
 def upload_tests(pid: str, visit: Visit):
@@ -64,51 +72,40 @@ def upload_tests(pid: str, visit: Visit):
 
     content = str(message)
 
-    with tempfile.NamedTemporaryFile("w+") as tmpfile:
-        tmpfile.write(content)
-        tmpfile.flush()
-
-        ftp = ftplib.FTP(
-            host=settings.LAB_FTP_HOST,
-            user=settings.LAB_FTP_USER,
-            passwd=settings.LAB_FTP_PASSWORD,
-        )
-        ftp.cwd(settings.LAB_FTP_UPLOAD_DIR)
-
-        with open(tmpfile.name, "rb") as file:
-            ftp.storbinary(f"STOR {pid}.hl7", file)
-
-        ftp.quit()
+    with _get_connection() as conn:
+        sftp = conn.sftp()
+        remote_path = f"{settings.LAB_SFTP_UPLOAD_DIR}/{pid}.hl7"
+        with sftp.file(remote_path, "w") as remote_file:
+            remote_file.write(content)
 
 
 def retrieve_results() -> list[hl7.Message]:
-    with ftplib.FTP(
-        host=settings.LAB_FTP_HOST,
-        user=settings.LAB_FTP_USER,
-        passwd=settings.LAB_FTP_PASSWORD,
-    ) as ftp:
-        ftp.cwd(settings.LAB_FTP_RESULTS_DIR)
-        filenames = ftp.nlst()
+    messages = []
+    filenames = []
 
-        messages = []
-        names = []
+    with _get_connection() as conn:
+        sftp = conn.sftp()
+        sftp.chdir(settings.LAB_SFTP_RESULTS_DIR)
 
+        # List all files in the results directory
+        for entry in sftp.listdir_attr():
+            if entry.st_mode is not None and not (
+                entry.st_mode & 0o40000
+            ):  # Not a directory
+                filenames.append(entry.filename)
+
+        # Read each file
         for filename in filenames:
-            with tempfile.NamedTemporaryFile("wb+") as tmpfile:
-                with open(tmpfile.name, "wb+") as file:
-                    ftp.retrbinary(f"RETR {filename}", file.write)
-
-                with open(tmpfile.name, "r") as file:
-                    content = file.read()
-                    message = hl7.Message(content)
-                    messages.append(message)
-                names.append(filename)
+            with sftp.file(filename, "r") as remote_file:
+                content = remote_file.read().decode("utf-8")
+                message = hl7.Message(content)
+                messages.append(message)
 
         # Delete after successful retrieval
         for filename in filenames:
-            ftp.delete(filename)
+            sftp.remove(filename)
 
-        return messages
+    return messages
 
 
 def read_result(message: hl7.Message):

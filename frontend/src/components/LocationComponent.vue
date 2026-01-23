@@ -93,10 +93,10 @@ function onPhoneClick() {
     </div>
     <section class="opening-hours">
       <h4>{{ t('opening-hours') }}</h4>
-      <ul>
+      <ul v-if="location.opening_hours">
         <li v-for="day in DAYS" :key="day.key">
           <strong>{{ day.label }}:</strong>
-          {{ formatHours((location.opening_hours![day.key] as string[][]) || []) }}
+          {{ location.opening_hours[day.key] ? formatHours((location.opening_hours[day.key] as string[][]) || []) : '-' }}
         </li>
       </ul>
     </section>

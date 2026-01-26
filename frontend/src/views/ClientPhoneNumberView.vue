@@ -160,61 +160,60 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
       <div class="client-phone-body">
         <p v-html="r('client-phone-lead-text')"></p>
       </div>
-      <div class="client-phone-icon">
-        <IconPhone />
-      </div>
-      <div class="client-phone-subtitle">{{ t('client-phone-sms-header') }}</div>
-      <div class="client-phone-body">
-        {{ t('client-phone-sms-text') }}
-      </div>
-      <div class="client-phone-icon">
-        <IconPen />
-      </div>
-      <div class="client-phone-subtitle">{{ t('client-phone-id-header') }}</div>
-      <div class="client-phone-body">
-        {{ t('client-phone-password-text') }}
-      </div>
-    </div>
-    <div class="client-section-element client-phone-body">
-      <Form :resolver="resolver" :validate-on-blur="true" @submit="onSubmit" v-if="!verified">
-        <div class="client-phone-question">
-          <h3 class="client-phone-question-title">
-            {{ t('client-phone-identification-question') }}
-          </h3>
-          <div class="client-option-item" :class="{ active: selectedConsentOption === 'allowed' }">
-            <RadioButton
-              v-model="selectedConsentOption"
-              inputId="phone-consent-yes"
-              name="phone-consent"
-              value="allowed"
-            />
-            <label for="phone-consent-yes" class="client-option-label">
-              {{ t('client-phone-consent-yes-label') }}
-            </label>
-          </div>
-          <div
-            class="client-option-item"
-            :class="{ active: selectedConsentOption === 'not_allowed' }"
-          >
-            <RadioButton
-              v-model="selectedConsentOption"
-              inputId="phone-consent-no"
-              name="phone-consent"
-              value="not_allowed"
-            />
-            <label for="phone-consent-no" class="client-option-label">
-              <span
-                v-html="
-                  f('client-phone-consent-no-text', [{ key: 'caseId', value: caseId }], true).value
-                "
-              ></span>
-            </label>
-          </div>
+
+      <Panel :toggleable="true" :collapsed="true" class="privacy-panel">
+        <template #header>
+          <h4>{{ t('privacy-header') }}</h4>
+        </template>
+        <div class="client-phone-body">
+          <p v-html="r('client-phone-privacy')" class="health-info-text"></p>
+          <br />
+          <p v-html="r('client-phone-improving-health')" class="health-info-text"></p>
         </div>
-      </Form>
+      </Panel>
+
+      <div class="client-phone-body">
+        <p v-html="r('client-phone-identification-question')"></p>
+      </div>
+
+      <div
+        class="choice-panel"
+        :class="{
+          active: selectedConsentOption == 'allowed',
+          inactive: selectedConsentOption && selectedConsentOption != 'allowed',
+        }"
+        @click="selectedConsentOption = 'allowed'"
+      >
+        <div
+          class="client-phone-icon"
+          v-if="!selectedConsentOption || selectedConsentOption == 'allowed'"
+        >
+          <IconPhone />
+        </div>
+        <div class="client-phone-subtitle">{{ t('client-phone-sms-header') }}</div>
+      </div>
+      <div
+        class="choice-panel"
+        :class="{
+          active: selectedConsentOption == 'not_allowed',
+          inactive: selectedConsentOption && selectedConsentOption != 'not_allowed',
+        }"
+        @click="selectedConsentOption = 'not_allowed'"
+      >
+        <div
+          class="client-phone-icon"
+          v-if="!selectedConsentOption || selectedConsentOption == 'not_allowed'"
+        >
+          <i class="pi pi-user" style="font-size: 40px"></i>
+        </div>
+        <div class="client-phone-subtitle">{{ t('client-phone-id-header') }}</div>
+      </div>
     </div>
 
-    <div class="client-section-element client-bottom-body" v-if="showContactForm && !verified">
+    <div
+      class="client-section-element client-bottom-body client-form"
+      v-if="showContactForm && !verified"
+    >
       <Form v-slot="$form" class="form-col">
         <p>
           {{ t('client-phone-input-description') }}
@@ -277,10 +276,12 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
           </section>
           <Message v-if="errorVerify" severity="error" size="small">{{ errorVerify }}</Message>
         </div>
+
+        <p v-html="r('client-phone-sms-text')" class="info-disclaimer"></p>
       </Form>
     </div>
 
-    <div class="client-section-element client-bottom-body">
+    <div class="client-section-element client-bottom-body client-form">
       <Message v-if="verified" severity="success" size="small" variant="outlined" class="msg">
         {{
           f('client-phone-verification-success', [{ key: 'phone', value: phonenumberSent }]).value
@@ -319,13 +320,16 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
           errorKey
         }}</Message>
 
-        <section v-html="r('client-phone-privacy')" class="health-info-text"></section>
-        <section v-html="r('client-phone-improving-health')" class="health-info-text"></section>
-
         <Button class="button-extra-large" severity="primary" rounded type="submit"
           >{{ t('client-phone-finalize-button') }}
           <IconRightArrow />
         </Button>
+
+        <p
+          class="info-disclaimer"
+          v-if="!verified"
+          v-html="f('client-phone-password-text', [{ key: 'caseId', value: caseId }], true).value"
+        ></p>
       </Form>
     </div>
   </div>
@@ -334,6 +338,10 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
 <style scoped>
 .p-inputgroup {
   width: 20rem;
+}
+
+.client-form {
+  margin-top: 5rem;
 }
 
 #navi-top {
@@ -350,12 +358,17 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   top: 0;
 }
 
+.info-disclaimer {
+  font-size: 1rem;
+  color: var(--color-ahs-gray-600);
+  margin-top: 1rem;
+}
+
 .client-option-item {
   align-items: center;
 }
 
 .client-phone-subtitle {
-  color: var(--color-ahs-black);
   font-family: 'Circular Std';
   font-size: 18px;
   font-style: normal;
@@ -383,6 +396,32 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   gap: 12px;
   display: flex;
   flex-direction: column;
+}
+
+.choice-panel {
+  display: flex;
+  min-width: min(400px, 100%);
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  border: solid 2px black;
+  padding: 2rem 3rem;
+  border-radius: 25px;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.choice-panel.active {
+  border-color: var(--color-ahs-red);
+  color: var(--color-ahs-red);
+  background-color: var(--color-ahs-primary-lightest);
+}
+
+.choice-panel.inactive {
+  opacity: 0.6;
+  border-color: var(--color-ahs-light-gray);
 }
 
 p {
@@ -455,6 +494,10 @@ p {
   min-width: 20rem;
 }
 .msg {
+  margin-bottom: 1rem;
+}
+.privacy-panel {
+  width: 100%;
   margin-bottom: 1rem;
 }
 </style>

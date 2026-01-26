@@ -3,7 +3,7 @@ import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import IconPhone from '@/components/icons/IconPhone.vue'
 import IconPen from '@/components/icons/IconPen.vue'
 import IconRightArrow from '@/components/icons/IconRightArrow.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RadioButton, InputText } from 'primevue'
 import { sureApiConnectCase, sureApiSendToken, sureApiSetCaseKey } from '@/client'
 import { useRouter } from 'vue-router'
@@ -144,6 +144,12 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     query: { showCaseId: String(showCaseId) },
   })
 }
+
+watch(selectedConsentOption, () => {
+  // Scroll to contact form when option is selected
+
+  document.getElementById('contact-form-anchor')?.scrollIntoView({ behavior: 'smooth' })
+})
 </script>
 
 <template>
@@ -209,6 +215,8 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
         <div class="client-phone-subtitle">{{ t('client-phone-id-header') }}</div>
       </div>
     </div>
+
+    <div class="scroll-anchor" id="contact-form-anchor"></div>
 
     <div
       class="client-section-element client-bottom-body client-form"
@@ -356,6 +364,11 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   background-color: var(--color-ahs-white);
   z-index: 10;
   top: 0;
+}
+
+#contact-form-anchor {
+  margin-top: -100px;
+  padding-bottom: 100px;
 }
 
 .info-disclaimer {

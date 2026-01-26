@@ -1,8 +1,10 @@
 from django.shortcuts import redirect
 from .models import VisitExport, VisitExportDownload
 from django.core.exceptions import PermissionDenied
+from core.auth import require_2fa_or_trusted
 
 
+@require_2fa_or_trusted
 def download_visit_export(request, pk):
     visit_export = VisitExport.objects.get(pk=pk)
 

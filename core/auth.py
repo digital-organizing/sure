@@ -39,3 +39,16 @@ def require_2fa(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
+
+
+def require_2fa_or_trusted(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        is_allowed = auth_2fa_or_trusted.authenticate(request, key=None)
+
+        if not is_allowed:
+            raise Unauthorized("You must be verified or use a trusted device.")
+
+        return view_func(request, *args, **kwargs)
+
+    return wrapper

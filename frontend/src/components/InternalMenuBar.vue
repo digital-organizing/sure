@@ -4,7 +4,6 @@ import { useAccount } from '@/composables/useAccount'
 import { useTexts } from '@/composables/useTexts'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { R } from 'vue-router/dist/router-CWoNjPRp.mjs'
 
 const { account } = useAccount()
 const router = useRouter()

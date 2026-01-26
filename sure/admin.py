@@ -62,6 +62,7 @@ from sure.models import (
     TestKind,
     TestResultOption,
     VisitExport,
+    VisitExportDownload,
 )
 from sure.tasks import create_export, generate_pdf_task
 
@@ -210,28 +211,46 @@ class ConsultantQuestionAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationA
     inlines = [ConsultantOptionInline]
 
 
+class VisitExportDownloadInline(TabularInline):
+    model = VisitExportDownload
+    extra = 0
+    readonly_fields = ("downloaded_at", "user")
+    can_delete = False
+
+    per_page = 10
+
+
 @admin.register(
     VisitExport,
 )
 class VisitExportAdmin(ModelAdmin):
-    list_display = ("created_at", "user", "status", "start_date", "end_date", "file")
+    list_display = (
+        "created_at",
+        "user",
+        "status",
+        "start_date",
+        "end_date",
+        "download_url",
+    )
     list_filter = ("status", "created_at", "start_date", "end_date", "user")
 
     readonly_fields = (
         "created_at",
         "status",
-        "file",
+        "download_url",
         "error_message",
         "total_visits",
         "progress",
     )
-    exclude = ("user",)
+    exclude = ("user", "file")
 
     actions_detail = ["start_export_obj"]
 
     actions = ["start_export"]
 
     date_hierarchy = "created_at"
+
+    inlines = [VisitExportDownloadInline]
 
     @action
     def start_export(self, request: HttpRequest, queryset):

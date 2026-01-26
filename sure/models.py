@@ -6,6 +6,7 @@ import secrets
 import uuid
 from datetime import timedelta
 
+from django.urls import reverse
 import phonenumbers
 from colorfield.fields import ColorField
 from django.conf import settings
@@ -1069,5 +1070,30 @@ class VisitExport(models.Model):
         help_text=_("Progress of the export in percentage"),
     )
 
+    def download_url(self):
+        if self.file:
+            link = reverse("sure:download_visit_export", args=[self.pk])
+            return mark_safe(f'<a href="{link}" target="_blank">{self.file.name}</a>')  # nosec
+        return None
+
     def __str__(self):
         return f"Visit Export {self.pk} by {self.user.get_full_name()} ({self.status})"
+
+
+class VisitExportDownload(models.Model):
+    visit_export = models.ForeignKey(
+        VisitExport,
+        on_delete=models.CASCADE,
+        related_name="downloads",
+    )
+    downloaded_at = models.DateTimeField(
+        auto_now_add=True, verbose_name=_("Downloaded At")
+    )
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.PROTECT,
+        related_name="visit_export_downloads",
+    )
+
+    def __str__(self):
+        return f"Download of Visit Export {self.visit_export.pk} by {self.user.get_full_name()} at {self.downloaded_at}"

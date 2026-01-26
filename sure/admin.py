@@ -510,6 +510,8 @@ class CaseCohortComponent(BaseComponent):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         form = CohortFilterForm(self.request.GET or None, request=self.request)
+        print(context)
+        context["form"] = form
         filter = None
         if form.is_valid():
             filter = form.get_filter_dict()

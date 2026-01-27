@@ -3,11 +3,17 @@ import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import IconPhone from '@/components/icons/IconPhone.vue'
 import IconPen from '@/components/icons/IconPen.vue'
 import IconRightArrow from '@/components/icons/IconRightArrow.vue'
-import { computed, onMounted, ref, watch } from 'vue'
-import { RadioButton, InputText } from 'primevue'
-import { sureApiConnectCase, sureApiSendToken, sureApiSetCaseKey } from '@/client'
-import { useRouter } from 'vue-router'
-import { useCountdown } from '@vueuse/core'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { RadioButton, InputText, useConfirm } from 'primevue'
+import {
+  sureApiConnectCase,
+  sureApiResetCaseConnection,
+  sureApiSendToken,
+  sureApiSetCaseKey,
+  VisitLightSchema,
+} from '@/client'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import { formatDate, useCountdown } from '@vueuse/core'
 import { useTexts } from '@/composables/useTexts'
 
 const props = defineProps<{
@@ -32,6 +38,10 @@ const showVerify = ref<boolean>(false)
 const verified = ref<boolean>(false)
 const token = ref<string>('')
 
+const lastVisits = ref<VisitLightSchema[]>([])
+const connectionId = ref<number | null>(null)
+const hideReset = ref<boolean>(false)
+
 const countdownSeconds = 0
 const { remaining, start } = useCountdown(countdownSeconds, {
   onComplete() {},
@@ -41,6 +51,14 @@ const { remaining, start } = useCountdown(countdownSeconds, {
 const showContactForm = computed(() => {
   return selectedConsentOption.value === 'allowed'
 })
+
+// Check if there are unsaved changes that would be lost on page leave
+const hasUnsavedChanges = computed(() => {
+  // User has started the process but hasn't submitted the final form
+  return verified.value && !formSubmitted.value
+})
+
+const formSubmitted = ref(false)
 
 const canFinish = computed(() => {
   if (!selectedConsentOption.value) return false
@@ -71,6 +89,36 @@ onMounted(() => {
   if (savedId !== props.caseId) {
     localStorage.setItem('clientFormCaseId', props.caseId)
     localStorage.setItem('clientFormIndex', '0')
+  }
+
+  // Add beforeunload listener to warn user before leaving/reloading the page
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+})
+
+// Handler for browser close/reload
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (hasUnsavedChanges.value) {
+    e.preventDefault()
+    // Modern browsers ignore custom messages but still show a generic warning
+    return ''
+  }
+}
+
+// Navigation guard for Vue Router navigation
+onBeforeRouteLeave((to, from, next) => {
+  if (hasUnsavedChanges.value) {
+    const confirmLeave = window.confirm(translate('client-phone-unsaved-changes-warning'))
+    if (confirmLeave) {
+      next()
+    } else {
+      next(false)
+    }
+  } else {
+    next()
   }
 })
 
@@ -123,6 +171,35 @@ async function onVerify() {
   }
   showVerify.value = false
   verified.value = true
+  lastVisits.value = response.data.last_visits
+  connectionId.value = response.data.connection_id
+}
+
+const confirm = useConfirm()
+
+const confirmReset = () => {
+  confirm.require({
+    message: t('client-phone-reset-connection-confirmation').value,
+    header: t('confirmation').value,
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      resetConnection()
+    },
+    reject: () => {
+      /* no action */
+    },
+  })
+}
+
+async function resetConnection() {
+  if (!connectionId.value) return
+  const response = await sureApiResetCaseConnection({ path: { pk: props.caseId } })
+  if (response.error) {
+    error.value =
+      ensureString(response.error.message) || translate('client-phone-error-reset-connection')
+    return
+  }
+  lastVisits.value = response.data.last_visits
 }
 
 async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) {
@@ -137,6 +214,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
     errorKey.value = ensureString(response.error?.message) || translate('client-phone-error-key')
     return
   }
+  formSubmitted.value = true
   const showCaseId = selectedConsentOption.value === 'not_allowed'
   router.push({
     name: 'client-done',
@@ -205,6 +283,7 @@ watch(selectedConsentOption, () => {
           inactive: selectedConsentOption && selectedConsentOption != 'not_allowed',
         }"
         @click="selectedConsentOption = 'not_allowed'"
+        v-if="!verified"
       >
         <div
           class="client-phone-icon"
@@ -284,17 +363,58 @@ watch(selectedConsentOption, () => {
           </section>
           <Message v-if="errorVerify" severity="error" size="small">{{ errorVerify }}</Message>
         </div>
-
         <p v-html="r('client-phone-sms-text')" class="info-disclaimer"></p>
       </Form>
     </div>
-
-    <div class="client-section-element client-bottom-body client-form">
-      <Message v-if="verified" severity="success" size="small" variant="outlined" class="msg">
+    <div class="client-section-element client-bottom-body" v-if="verified">
+      <Message v-if="verified" severity="success" variant="outlined" class="msg">
         {{
           f('client-phone-verification-success', [{ key: 'phone', value: phonenumberSent }]).value
         }}
       </Message>
+    </div>
+
+    <div
+      class="client-section-element client-bottom-body confirm-last-visit"
+      v-if="verified && lastVisits.length > 0 && !hideReset"
+    >
+      <Message variant="outlined" severity="contrast" class="msg">
+        <h4>{{ t('client-phone-recent-visits-header') }}</h4>
+        <p v-html="r('client-phone-recent-visits-text')"></p>
+        <ul>
+          <li
+            v-for="(visit, idx) in lastVisits"
+            :key="idx"
+            v-html="
+              f(
+                'client-phone-recent-visit',
+                [
+                  { key: 'location', value: visit.location },
+                  { key: 'date', value: formatDate(new Date(visit.created_at), 'DD.MM.YYYY') },
+                ],
+                true,
+              ).value
+            "
+          ></li>
+        </ul>
+        <div class="actions">
+          <Button
+            @click="confirmReset"
+            severity="primary"
+            class="button"
+            size="small"
+            variant="outlined"
+          >
+            {{ t('client-phone-reset-connection-button') }}
+          </Button>
+          <Button @click="hideReset = true" severity="secondary" size="small" variant="outlined">
+            {{ t('client-phone-keep-connection-button') }}
+          </Button>
+        </div>
+      </Message>
+    </div>
+
+    <div class="client-section-element client-bottom-body client-form">
       <Form v-if="canFinish" class="form-col form-key" @submit="onSubmit" ref="$form">
         <p
           v-if="!verified"
@@ -349,7 +469,7 @@ watch(selectedConsentOption, () => {
 }
 
 .client-form {
-  margin-top: 5rem;
+  margin-top: 4rem;
 }
 
 #navi-top {
@@ -497,7 +617,7 @@ p {
 }
 
 .client-section-element:last-child {
-  margin-bottom: 8rem;
+  margin-bottom: 4rem;
 }
 .button {
   margin-top: 1rem;
@@ -512,5 +632,11 @@ p {
 .privacy-panel {
   width: 100%;
   margin-bottom: 1rem;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 </style>

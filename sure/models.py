@@ -145,8 +145,12 @@ class Contact(models.Model):
     id = models.UUIDField(
         primary_key=True, editable=False, unique=True, default=uuid.uuid4
     )
-    email = models.EmailField(blank=True)
-    phone_number = models.CharField(max_length=30, unique=True)
+    phone_number = models.CharField(max_length=30)
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Whether the contact is active"),
+    )
 
     tokens: models.QuerySet["Token"]
 

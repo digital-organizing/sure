@@ -628,6 +628,21 @@ class ConnectSchema(Schema):
     phone_number: Annotated[str, BeforeValidator(validate_phone_number)]
 
 
+class VisitLightSchema(ModelSchema):
+    location: str = Field(..., alias="case.location.name")
+
+    class Meta:
+        model = Visit
+        fields = [
+            "created_at",
+        ]
+
+
+class ConnectResponse(Schema):
+    last_visits: list[VisitLightSchema]
+    connection_id: int
+
+
 class RelatedCaseSchema(ModelSchema):
     case_id: str
 

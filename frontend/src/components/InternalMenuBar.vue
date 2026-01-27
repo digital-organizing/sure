@@ -97,7 +97,9 @@ const drawerVisible = ref(false)
       </div>
       <i class="pi pi-book icon" />
       <a :href="t('manual-link').value" target="_blank" rel="noopener noreferrer" class="text">
-        {{ t('user-manual') }}
+        <strong>
+          {{ t('user-manual') }}
+        </strong>
       </a>
       <i class="pi pi-phone icon" />
       <div class="text support-contact" v-html="r('support-contact')"></div>

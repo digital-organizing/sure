@@ -374,46 +374,6 @@ watch(selectedConsentOption, () => {
       </Message>
     </div>
 
-    <div
-      class="client-section-element client-bottom-body confirm-last-visit"
-      v-if="verified && lastVisits.length > 0 && !hideReset"
-    >
-      <Message variant="outlined" severity="contrast" class="msg">
-        <h4>{{ t('client-phone-recent-visits-header') }}</h4>
-        <p v-html="r('client-phone-recent-visits-text')"></p>
-        <ul>
-          <li
-            v-for="(visit, idx) in lastVisits"
-            :key="idx"
-            v-html="
-              f(
-                'client-phone-recent-visit',
-                [
-                  { key: 'location', value: visit.location },
-                  { key: 'date', value: formatDate(new Date(visit.created_at), 'DD.MM.YYYY') },
-                ],
-                true,
-              ).value
-            "
-          ></li>
-        </ul>
-        <div class="actions">
-          <Button
-            @click="confirmReset"
-            severity="primary"
-            class="button"
-            size="small"
-            variant="outlined"
-          >
-            {{ t('client-phone-reset-connection-button') }}
-          </Button>
-          <Button @click="hideReset = true" severity="secondary" size="small" variant="outlined">
-            {{ t('client-phone-keep-connection-button') }}
-          </Button>
-        </div>
-      </Message>
-    </div>
-
     <div class="client-section-element client-bottom-body client-form">
       <Form v-if="canFinish" class="form-col form-key" @submit="onSubmit" ref="$form">
         <p
@@ -459,6 +419,46 @@ watch(selectedConsentOption, () => {
           v-html="f('client-phone-password-text', [{ key: 'caseId', value: caseId }], true).value"
         ></p>
       </Form>
+    </div>
+
+    <div
+      class="client-section-element client-bottom-body confirm-last-visit"
+      v-if="verified && lastVisits.length > 0 && !hideReset"
+    >
+      <Message variant="outlined" severity="contrast" class="msg">
+        <h4>{{ t('client-phone-recent-visits-header') }}</h4>
+        <p v-html="r('client-phone-recent-visits-text')"></p>
+        <ul>
+          <li
+            v-for="(visit, idx) in lastVisits"
+            :key="idx"
+            v-html="
+              f(
+                'client-phone-recent-visit',
+                [
+                  { key: 'location', value: visit.location },
+                  { key: 'date', value: formatDate(new Date(visit.created_at), 'DD.MM.YYYY') },
+                ],
+                true,
+              ).value
+            "
+          ></li>
+        </ul>
+        <div class="actions">
+          <Button
+            @click="confirmReset"
+            severity="primary"
+            class="button"
+            size="small"
+            variant="outlined"
+          >
+            {{ t('client-phone-reset-connection-button') }}
+          </Button>
+          <Button @click="hideReset = true" severity="secondary" size="small" variant="outlined">
+            {{ t('client-phone-keep-connection-button') }}
+          </Button>
+        </div>
+      </Message>
     </div>
   </div>
 </template>

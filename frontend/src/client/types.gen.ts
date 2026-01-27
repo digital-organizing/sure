@@ -279,6 +279,34 @@ export type PhoneNumberSchema = {
 };
 
 /**
+ * ConnectResponse
+ */
+export type ConnectResponse = {
+    /**
+     * Last Visits
+     */
+    last_visits: Array<VisitLightSchema>;
+    /**
+     * Connection Id
+     */
+    connection_id: number;
+};
+
+/**
+ * VisitLightSchema
+ */
+export type VisitLightSchema = {
+    /**
+     * Location
+     */
+    location: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
  * ConnectSchema
  */
 export type ConnectSchema = {
@@ -1880,10 +1908,45 @@ export type SureApiConnectCaseResponses = {
     /**
      * OK
      */
-    200: StatusSchema;
+    200: ConnectResponse;
 };
 
 export type SureApiConnectCaseResponse = SureApiConnectCaseResponses[keyof SureApiConnectCaseResponses];
+
+export type SureApiResetCaseConnectionData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/reset-connection/';
+};
+
+export type SureApiResetCaseConnectionErrors = {
+    /**
+     * Bad Request
+     */
+    400: StatusSchema;
+};
+
+export type SureApiResetCaseConnectionError = SureApiResetCaseConnectionErrors[keyof SureApiResetCaseConnectionErrors];
+
+export type SureApiResetCaseConnectionResponses = {
+    /**
+     * OK
+     */
+    200: ConnectResponse;
+};
+
+export type SureApiResetCaseConnectionResponse = SureApiResetCaseConnectionResponses[keyof SureApiResetCaseConnectionResponses];
 
 export type SureApiGetCaseInternalData = {
     body?: never;

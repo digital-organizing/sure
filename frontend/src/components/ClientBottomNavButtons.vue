@@ -59,6 +59,7 @@ function onSubmit() {
       v-if="props.hasNext"
       @click="onNext"
       :severity="props.active ? 'primary' : 'secondary'"
+      :disabled="!props.active"
       rounded
       :aria-label="t('client-form-next-button').value"
     >

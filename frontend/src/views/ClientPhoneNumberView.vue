@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import IconPhone from '@/components/icons/IconPhone.vue'
-import IconPen from '@/components/icons/IconPen.vue'
 import IconRightArrow from '@/components/icons/IconRightArrow.vue'
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
-import { RadioButton, InputText, useConfirm } from 'primevue'
+import { InputText, useConfirm } from 'primevue'
 import {
   sureApiConnectCase,
   sureApiResetCaseConnection,
   sureApiSendToken,
   sureApiSetCaseKey,
-  VisitLightSchema,
+  type VisitLightSchema,
 } from '@/client'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { formatDate, useCountdown } from '@vueuse/core'
@@ -68,7 +67,7 @@ const canFinish = computed(() => {
   return true
 })
 
-const resolver = ({ values }: { values: Record<string, unknown> }) => {
+const _resolver = ({ values }: { values: Record<string, unknown> }) => {
   const errors: Record<string, { message: string }[]> = {}
   if (selectedConsentOption.value === 'allowed') {
     if (

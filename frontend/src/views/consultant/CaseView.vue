@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCase } from '@/composables/useCase'
-import { computed, onActivated, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useClipboard, useTitle } from '@vueuse/core'
 import HistoryComponent from '@/components/HistoryComponent.vue'

@@ -2,12 +2,18 @@
 import ClientLogoFooter from '@/components/ClientLogoFooter.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import { useTexts } from '@/composables/useTexts'
+import { onMounted } from 'vue'
 
 const props = defineProps<{
   caseId: string
   showCaseId: boolean
 }>()
 
+onMounted(() => {
+  setTimeout(() => {
+    scrollTo({ top: 0, behavior: 'smooth' })
+  }, 100)
+})
 const { getText: t } = useTexts()
 </script>
 

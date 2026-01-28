@@ -2,7 +2,7 @@
 import ClientNavigationTop from '@/components/ClientNavigationTop.vue'
 import IconPhone from '@/components/icons/IconPhone.vue'
 import IconRightArrow from '@/components/icons/IconRightArrow.vue'
-import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { InputText, useConfirm } from 'primevue'
 import {
   sureApiConnectCase,
@@ -172,6 +172,12 @@ async function onVerify() {
   verified.value = true
   lastVisits.value = response.data.last_visits
   connectionId.value = response.data.connection_id
+
+  nextTick(() => {
+    document
+      .getElementById('phone-success')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
 }
 
 const confirm = useConfirm()
@@ -215,7 +221,6 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   }
   formSubmitted.value = true
   const showCaseId = selectedConsentOption.value === 'not_allowed'
-  scrollTo({ top: 0, behavior: 'smooth' })
   router.push({
     name: 'client-done',
     params: { caseId: props.caseId },
@@ -226,7 +231,12 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
 watch(selectedConsentOption, () => {
   // Scroll to contact form when option is selected
 
-  document.getElementById('contact-form-anchor')?.scrollIntoView({ behavior: 'smooth' })
+  nextTick(() => {
+    const anchor = document.getElementById('contact-form-anchor')
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
 })
 </script>
 
@@ -341,7 +351,7 @@ watch(selectedConsentOption, () => {
             id="verification-code"
             v-model="token"
             class="text-input"
-            autocomplete="tel"
+            autocomplete="one-time-code"
             :placeholder="t('client-phone-verification-code-input').value"
           />
 
@@ -367,7 +377,7 @@ watch(selectedConsentOption, () => {
       </Form>
     </div>
     <div class="client-section-element client-bottom-body" v-if="verified">
-      <Message v-if="verified" severity="success" variant="outlined" class="msg">
+      <Message v-if="verified" severity="success" variant="outlined" class="msg" id="phone-success">
         {{
           f('client-phone-verification-success', [{ key: 'phone', value: phonenumberSent }]).value
         }}

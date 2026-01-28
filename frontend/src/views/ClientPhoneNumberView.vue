@@ -215,6 +215,7 @@ async function onSubmit(e: { valid: boolean; values: Record<string, unknown> }) 
   }
   formSubmitted.value = true
   const showCaseId = selectedConsentOption.value === 'not_allowed'
+  scrollTo({ top: 0, behavior: 'smooth' })
   router.push({
     name: 'client-done',
     params: { caseId: props.caseId },
@@ -280,9 +281,9 @@ watch(selectedConsentOption, () => {
         :class="{
           active: selectedConsentOption == 'not_allowed',
           inactive: selectedConsentOption && selectedConsentOption != 'not_allowed',
+          disabled: verified,
         }"
         @click="selectedConsentOption = 'not_allowed'"
-        v-if="!verified"
       >
         <div
           class="client-phone-icon"
@@ -468,7 +469,7 @@ watch(selectedConsentOption, () => {
 }
 
 .client-form {
-  margin-top: 4rem;
+  margin-top: 1rem;
 }
 
 #navi-top {
@@ -622,10 +623,8 @@ p {
   margin-top: 1rem;
 }
 
-.p-inputtext {
-  min-width: 20rem;
-}
 .msg {
+  margin-top: 1rem;
   margin-bottom: 1rem;
 }
 .privacy-panel {
@@ -637,5 +636,15 @@ p {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
+}
+
+.confirm-last-visit {
+  margin-top: 2rem;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

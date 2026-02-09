@@ -1318,6 +1318,148 @@ export type ResultInformationSchema = {
 };
 
 /**
+ * LabOrderResponseSchema
+ */
+export type LabOrderResponseSchema = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * Barcodes
+     */
+    barcodes: Array<string>;
+    /**
+     * Warnings
+     */
+    warnings?: Array<string> | null;
+};
+
+/**
+ * LabOrderSchema
+ */
+export type LabOrderSchema = {
+    /**
+     * Codes
+     */
+    codes: Array<string>;
+    /**
+     * Order Number
+     */
+    order_number: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Profiles
+     *
+     * List of test profiles included in the order
+     */
+    profiles?: Array<unknown> | null;
+    /**
+     * Status
+     */
+    status?: string;
+};
+
+/**
+ * LaboratorySchema
+ */
+export type LaboratorySchema = {
+    /**
+     * Profiles
+     */
+    profiles: Array<TestProfileSetSchema>;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * TestProfileSetSchema
+ */
+export type TestProfileSetSchema = {
+    /**
+     * Test Kind
+     *
+     * Test kind associated with this profile
+     */
+    test_kind: number;
+    /**
+     * Profile Name
+     *
+     * Name of the test profile (lab)
+     */
+    profile_name: string;
+    /**
+     * Profile Code
+     *
+     * Code of the test profile (lab)
+     */
+    profile_code: string;
+    /**
+     * Result Label
+     *
+     * Label in HL7 result (OBX-3)
+     */
+    result_label?: string | null;
+    /**
+     * Material
+     *
+     * e.g. Serum, EDTA
+     */
+    material?: string | null;
+    /**
+     * Material Code
+     *
+     * e.g. S
+     */
+    material_code?: string | null;
+    /**
+     * Price Vct
+     *
+     * Price for private patients (VCT)
+     */
+    price_vct?: string | null;
+    /**
+     * Price Kk
+     *
+     * Price for statutory health insurance (KK)
+     */
+    price_kk?: string | null;
+    /**
+     * Note
+     *
+     * Additional notes about the test profile
+     */
+    note?: string | null;
+};
+
+/**
+ * PatientDataSchema
+ */
+export type PatientDataSchema = {
+    /**
+     * Birth Year
+     */
+    birth_year: number;
+    /**
+     * Gender
+     */
+    gender: string;
+    /**
+     * Note
+     */
+    note: string;
+};
+
+/**
  * LocationSchema
  */
 export type LocationSchema = {
@@ -3084,6 +3226,163 @@ export type SureApiPublishCaseResultsResponses = {
 };
 
 export type SureApiPublishCaseResultsResponse = SureApiPublishCaseResultsResponses[keyof SureApiPublishCaseResultsResponses];
+
+export type SureApiOrderLabTestsData = {
+    body: LabOrderSchema;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/order-lab/';
+};
+
+export type SureApiOrderLabTestsResponses = {
+    /**
+     * OK
+     */
+    200: LabOrderResponseSchema;
+};
+
+export type SureApiOrderLabTestsResponse = SureApiOrderLabTestsResponses[keyof SureApiOrderLabTestsResponses];
+
+export type LaborApiGetLaboratoryData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: never;
+    url: '/api/labor/{case_id}/laboratory';
+};
+
+export type LaborApiGetLaboratoryErrors = {
+    /**
+     * Response
+     *
+     * Not Found
+     */
+    404: {
+        [key: string]: unknown;
+    };
+};
+
+export type LaborApiGetLaboratoryError = LaborApiGetLaboratoryErrors[keyof LaborApiGetLaboratoryErrors];
+
+export type LaborApiGetLaboratoryResponses = {
+    /**
+     * OK
+     */
+    200: LaboratorySchema;
+};
+
+export type LaborApiGetLaboratoryResponse = LaborApiGetLaboratoryResponses[keyof LaborApiGetLaboratoryResponses];
+
+export type LaborApiGenerateOrderData = {
+    body: PatientDataSchema;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: never;
+    url: '/api/labor/{case_id}/generate_order';
+};
+
+export type LaborApiGenerateOrderErrors = {
+    /**
+     * Response
+     *
+     * Bad Request
+     */
+    400: {
+        [key: string]: unknown;
+    };
+};
+
+export type LaborApiGenerateOrderError = LaborApiGenerateOrderErrors[keyof LaborApiGenerateOrderErrors];
+
+export type LaborApiGenerateOrderResponses = {
+    /**
+     * OK
+     */
+    200: LabOrderSchema;
+};
+
+export type LaborApiGenerateOrderResponse = LaborApiGenerateOrderResponses[keyof LaborApiGenerateOrderResponses];
+
+export type LaborApiCancelOrderData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+        /**
+         * Order Number
+         */
+        order_number: string;
+    };
+    query?: never;
+    url: '/api/labor/{case_id}/{order_number}/cancel';
+};
+
+export type LaborApiCancelOrderErrors = {
+    /**
+     * Response
+     *
+     * Bad Request
+     */
+    400: {
+        [key: string]: unknown;
+    };
+};
+
+export type LaborApiCancelOrderError = LaborApiCancelOrderErrors[keyof LaborApiCancelOrderErrors];
+
+export type LaborApiCancelOrderResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<LabOrderSchema>;
+};
+
+export type LaborApiCancelOrderResponse = LaborApiCancelOrderResponses[keyof LaborApiCancelOrderResponses];
+
+export type LaborApiListLabOrdersData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: never;
+    url: '/api/labor/{case_id}/lab_orders';
+};
+
+export type LaborApiListLabOrdersResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<LabOrderSchema>;
+};
+
+export type LaborApiListLabOrdersResponse = LaborApiListLabOrdersResponses[keyof LaborApiListLabOrdersResponses];
 
 export type TenantsApiListLocationsData = {
     body?: never;

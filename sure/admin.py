@@ -65,6 +65,13 @@ from sure.models import (
     VisitExportDownload,
 )
 from sure.tasks import create_export, generate_pdf_task
+from labor.models import TestProfile
+
+
+class TestProfileInline(StackedInline):
+    model = TestProfile
+    extra = 0
+    autocomplete_fields = ("laboratory",)
 
 
 @admin.register(
@@ -304,7 +311,7 @@ class TestKindAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_filter = ("category",)
     search_fields = ("name", "name_en")
     ordering = ("name",)
-    inlines = [TestOptionInline]
+    inlines = [TestOptionInline, TestProfileInline]
 
 
 class TestKindInline(TabularInline, TranslationTabularInline):

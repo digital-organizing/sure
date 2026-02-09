@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onActivated, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useAccount } from './composables/useAccount'
 import InternalMenuBar from './components/InternalMenuBar.vue'
@@ -18,7 +18,6 @@ const { getText, texts, onLanguageChange } = useTexts()
 
 const showInternalMenu = computed(() => route.meta.showInternalMenu !== false)
 
-useTitle(getText('sure_app_title'))
 
 function setupPrimeVue() {
   if (primevue.config.locale) {
@@ -29,6 +28,11 @@ function setupPrimeVue() {
     })
   }
 }
+
+onActivated(() => {
+  useTitle(getText('sure_app_title'))
+})
+
 
 onMounted(() => {
   setupPrimeVue()

@@ -84,9 +84,12 @@ from sure.schema import (
     TestCategorySchema,
     TestResultOptionSchema,
     TestSchema,
+    LabOrderSchema,
+    LabOrderResponseSchema,
 )
 from tenants.models import Consultant
 from texts.translate import translate
+from labor.service import generate_hl7_order
 
 logger = logging.getLogger(__name__)
 
@@ -956,3 +959,20 @@ def publish_case_results(request, pk: str):
     send_results_link(visit.case)
 
     return {"success": True}
+
+
+@router.post("/case/{pk}/order-lab/", response=LabOrderResponseSchema)
+@inject_language
+def order_lab_tests(request, pk: str, data: LabOrderSchema):
+    """Generate HL7 order for the visit."""
+    visit = get_case(request, pk)
+    # Check permissions? access to location? get_case does it.
+
+    try:
+        path, barcodes = generate_hl7_order(visit, data)
+    except Exception as e:
+        # Log error?
+        # return failure
+        return {"success": False, "message": str(e), "barcodes": []}
+
+    return {"success": True, "barcodes": barcodes}

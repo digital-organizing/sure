@@ -28,6 +28,13 @@ from tenants.models import (
     Tenant,
 )
 from tenants.views import ConsultantInviteView
+from labor.models import LocationToLab
+
+
+class LocationToLabInline(TabularInline):
+    model = LocationToLab
+    extra = 0
+    autocomplete_fields = ("labor",)
 
 
 class LocationInline(TabularInline):
@@ -49,6 +56,8 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
     autocomplete_fields = ("tenant",)
     filter_horizontal = ("excluded_questions", "included_questions")
+
+    inlines = [LocationToLabInline]
 
     # Section for excluded and included questions with title ('visible questions')
     fieldsets = (

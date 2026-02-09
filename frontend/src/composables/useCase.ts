@@ -196,8 +196,11 @@ export const useCase = createGlobalState(() => {
     callbacks.value.push(callback)
   }
 
-  function onCaseRefresh(callback: (caseId: string) => void) {
+  function onCaseRefresh(callback: (caseId: string) => void, instant = false) {
     refreshCallbacks.value.push(callback)
+    if (instant && selectedVisitId.value) {
+      callback(selectedVisitId.value)
+    }
   }
 
   async function fetchVisitDetails() {

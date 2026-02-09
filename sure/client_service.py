@@ -369,3 +369,13 @@ def get_case_unverified(pk, key: str = ""):
         raise PermissionError(translate("invalid-case-key"))
 
     return visit
+
+
+def get_pid(visit: Visit):
+    """Try to get Client ID through a connection, otherwise return the case ID"""
+    connection = Connection.objects.filter(case=visit.case).first()
+
+    if connection:
+        return connection.client.human_id
+
+    return visit.case.human_id

@@ -53,7 +53,7 @@ def cancel_order(request, case_id: str, order_number: str):
         return 400, {"error": "Only generated orders can be cancelled"}
 
     lab_order.status = OrderStatus.CANCELLED
-    lab_order._history_user = request.user  # type: ignore
+    lab_order._history_user = request.user
     lab_order.save()
 
     orders = LabOrder.objects.filter(visit=visit).order_by("-created_at")

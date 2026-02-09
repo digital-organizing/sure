@@ -8,7 +8,7 @@ import { useTexts } from '@/composables/useTexts'
 import { Tag } from 'primevue'
 import { computed, ref, watch } from 'vue'
 
-const props = defineProps({
+defineProps({
   dirty: {
     type: Boolean,
     required: false,

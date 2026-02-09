@@ -18,7 +18,6 @@ const { getText, texts, onLanguageChange } = useTexts()
 
 const showInternalMenu = computed(() => route.meta.showInternalMenu !== false)
 
-
 function setupPrimeVue() {
   if (primevue.config.locale) {
     Object.keys(primevue.config.locale).forEach((key) => {
@@ -32,7 +31,6 @@ function setupPrimeVue() {
 onActivated(() => {
   useTitle(getText('sure_app_title'))
 })
-
 
 onMounted(() => {
   setupPrimeVue()

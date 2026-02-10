@@ -13,9 +13,11 @@ export const useAdvertisement = createGlobalState(() => {
 
   async function fetchAdvertisements(case_id: string) {
     console.log('Fetching advertisements for case_id:', case_id, 'and language:', language.value)
-    await tenantsApiGetAdvertisements({ path: { case_id }, query: { lang: language.value } }).then((response) => {
-      if (response.data) advertisements.value = response.data
-    })
+    await tenantsApiGetAdvertisements({ path: { case_id }, query: { lang: language.value } }).then(
+      (response) => {
+        if (response.data) advertisements.value = response.data
+      },
+    )
   }
 
   return {

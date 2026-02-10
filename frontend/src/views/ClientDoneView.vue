@@ -3,18 +3,29 @@ import ClientLogoFooter from '@/components/ClientLogoFooter.vue'
 import ClientLogoHeader from '@/components/ClientLogoHeader.vue'
 import { useTexts } from '@/composables/useTexts'
 import { onMounted } from 'vue'
+import { useAdvertisement } from '@/composables/useAdvertisements'
+import { useRender } from '@/composables/useRender'
+
 
 const props = defineProps<{
   caseId: string
   showCaseId: boolean
 }>()
 
+const { getText: t, onLanguageChange } = useTexts()
+const { showAdvertisements, fetchAdvertisements } = useAdvertisement()
+const { renderMarkdown } = useRender()
+
+onLanguageChange(() => {
+    fetchAdvertisements(props.caseId)
+  })
+
 onMounted(() => {
   setTimeout(() => {
     scrollTo({ top: 0, behavior: 'smooth' })
   }, 100)
 })
-const { getText: t } = useTexts()
+
 </script>
 
 <template>
@@ -33,6 +44,14 @@ const { getText: t } = useTexts()
         {{ props.caseId }}
       </p>
     </div>
+    <Message
+        class="client-done-advertisement"
+        variant="outlined"
+        v-for="advertisement in showAdvertisements"
+        :key="advertisement.id!"
+      >
+        <div v-html="renderMarkdown(advertisement.content)" />
+      </Message>
     <div id="client-welcome-ahs-logo-footer">
       <ClientLogoFooter />
     </div>
@@ -67,5 +86,9 @@ const { getText: t } = useTexts()
 
 #client-welcome-ahs-logo-footer {
   margin-top: auto;
+}
+
+.client-done-advertisement {
+  margin: 0 5% 0 5%;
 }
 </style>

@@ -1417,6 +1417,26 @@ export type BannerSchema = {
 };
 
 /**
+ * AdvertisementSchema
+ */
+export type AdvertisementSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Content
+     *
+     * Content of the advertisement, supports markdown or html: <a target="_blank" href="https://www.markdownguide.org/basic-syntax/">More info</a>.
+     */
+    content: string;
+};
+
+/**
  * TextsSchema
  */
 export type TextsSchema = {
@@ -3201,6 +3221,34 @@ export type TenantsApiGetBannersResponses = {
 };
 
 export type TenantsApiGetBannersResponse = TenantsApiGetBannersResponses[keyof TenantsApiGetBannersResponses];
+
+export type TenantsApiGetAdvertisementsData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/tenants/advertisements/{case_id}';
+};
+
+export type TenantsApiGetAdvertisementsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<AdvertisementSchema>;
+};
+
+export type TenantsApiGetAdvertisementsResponse = TenantsApiGetAdvertisementsResponses[keyof TenantsApiGetAdvertisementsResponses];
 
 export type TextsApiListTextsData = {
     body?: never;

@@ -422,6 +422,13 @@ UNFOLD = {
                         ),
                     },
                     {
+                        "title": "Advertisements",
+                        "icon": "announcement",
+                        "link": reverse_lazy(
+                            "admin:tenants_advertisement_changelist"
+                        ),
+                    },
+                    {
                         "title": "Tags",
                         "icon": "label",
                         "link": reverse_lazy("admin:tenants_tag_changelist"),

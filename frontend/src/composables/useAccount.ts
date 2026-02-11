@@ -156,16 +156,17 @@ export const useAccount = createGlobalState(() => {
     error.value = null
     try {
       const response = await coreApiVerifyOtpView({ body: { token, device_id } })
-      if (response.error) {
-        throw new Error(response.error.error!)
-      }
-
       await Promise.all([fetchAccount(), fetchTwoFaDevices()])
+
+      if (response.error) {
+        return false
+      }
     } catch (e: unknown) {
       error.value = (e as Error).message
     } finally {
       loading.value = false
     }
+    return true
   }
 
   async function logout(forget: boolean = false) {

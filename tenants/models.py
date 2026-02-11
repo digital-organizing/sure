@@ -335,6 +335,7 @@ class InformationBanner(models.Model):
         self.content = sanitizer.sanitize(self.content)
         super().save(*args, **kwargs)
 
+
 class Advertisement(models.Model):
     """
     Docstring für Advertisement

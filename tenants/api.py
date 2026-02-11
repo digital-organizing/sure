@@ -68,6 +68,7 @@ def get_banners(request):
     )
     return banners
 
+
 @router.get("/advertisements/{case_id}", response=list[AdvertisementSchema], auth=None)
 @inject_language
 def get_advertisements(request, case_id):

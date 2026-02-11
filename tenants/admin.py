@@ -355,6 +355,7 @@ class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
 
+
 @admin.register(Advertisement)
 class AdvertisementAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     """Admin for advertisements."""
@@ -393,6 +394,7 @@ class AdvertisementAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin)
         if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
+
 
 @admin.register(APIToken)
 class APITokenAdmin(ModelAdmin):

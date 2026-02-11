@@ -37,6 +37,7 @@ class BannerSchema(ModelSchema):
         model = InformationBanner
         fields = ["id", "name", "content", "severity"]
 
+
 class AdvertisementSchema(ModelSchema):
     class Meta:
         model = Advertisement

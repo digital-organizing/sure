@@ -150,7 +150,9 @@ def send_results_link(case: Case):
     contact = connection.client.contact
     link = settings.SITE_URL + "/results?case=" + case.human_id
 
-    msg = translate("results-link-message", language=case.language).format(link=link)
+    msg = translate("results-link-message", language=case.language).format(
+        link=link, case_id=case.human_id
+    )
 
     send_sms(contact.phone_number, msg, case.location.tenant)
 

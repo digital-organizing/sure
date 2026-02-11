@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tenants", "0026_advertisement_content_de_advertisement_content_en_and_more"),
     ]

@@ -424,9 +424,7 @@ UNFOLD = {
                     {
                         "title": "Advertisements",
                         "icon": "announcement",
-                        "link": reverse_lazy(
-                            "admin:tenants_advertisement_changelist"
-                        ),
+                        "link": reverse_lazy("admin:tenants_advertisement_changelist"),
                     },
                     {
                         "title": "Tags",

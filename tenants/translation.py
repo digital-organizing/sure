@@ -7,6 +7,7 @@ from .models import InformationBanner, Advertisement, Location
 class InformationBannerTranslationOptions(TranslationOptions):
     fields = ("content",)
 
+
 class AdvertisementTranslationOptions(TranslationOptions):
     fields = ("content",)
 

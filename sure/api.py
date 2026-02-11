@@ -22,7 +22,7 @@ from sure.cases import (
     get_test_results,
     prefetch_questionnaire,
 )
-from sure.client_service import can_connect_case
+from sure.client_service import can_connect_case, generate_token
 from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
     create_case,
@@ -42,6 +42,7 @@ from sure.client_service import strip_id, verify_access_to_location
 from sure.lang import inject_language
 from sure.models import (
     Case,
+    ConsentChoice,
     FreeFormTest,
     Questionnaire,
     ResultInformation,
@@ -59,6 +60,7 @@ from sure.schema import (
     CaseHistory,
     CaseListingSchema,
     ClientAnswerSchema,
+    ConnectResponse,
     ConnectSchema,
     ConsultantAnswerSchema,
     CreateCaseResponse,
@@ -163,7 +165,7 @@ def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
 
 
 @router.post(
-    "/case/{pk}/connect/", auth=None, response={200: StatusSchema, 400: StatusSchema}
+    "/case/{pk}/connect/", auth=None, response={200: ConnectResponse, 400: StatusSchema}
 )
 @inject_language
 def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
@@ -178,16 +180,77 @@ def connect_case(request: HttpRequest, pk: str, data: ConnectSchema):
     if request.session["phone_number"] != data.phone_number:
         raise HttpError(400, translate("phone-number-mismatch"))
 
+    last_visits = Visit.objects.none()
+
     try:
-        contact = connect_case_service(
+        connection = connect_case_service(
             visit.case, data.phone_number, data.token, data.consent
         )
+
     except ValueError as e:
         return 400, StatusSchema(success=False, message=str(e))
-    if contact is None:
+    if connection is None:
         return 400, StatusSchema(success=False, message="Failed to connect case")
 
-    return StatusSchema(success=True, message="Case connected successfully")
+    request.session["connection_id"] = connection.pk
+
+    last_visits = (
+        Visit.objects.filter(
+            case__connection__client=connection.client,
+        )
+        .exclude(pk=visit.pk)
+        .order_by("-created_at")[:5]
+    )
+
+    return {
+        "last_visits": last_visits,
+        "connection_id": connection.pk,
+    }
+
+
+@router.post(
+    "/case/{pk}/reset-connection/",
+    response={200: ConnectResponse, 400: StatusSchema},
+    auth=None,
+)
+@inject_language
+def reset_case_connection(request, pk: str):
+    visit = get_case_unverified(pk)
+
+    if can_connect_case(visit.case):
+        raise HttpError(400, translate("case-not-connected"))
+
+    connection = visit.case.connection
+
+    if connection is None:
+        raise HttpError(400, translate("no-connection-to-reset"))
+
+    if connection.pk != request.session.get("connection_id"):
+        raise HttpError(400, translate("connection-id-mismatch"))
+
+    contact = connection.client.contact
+    contact.active = False
+    contact.save(update_fields=["active"])
+
+    connection.delete()
+
+    _, token = generate_token(contact.phone_number, visit.case)
+
+    try:
+        connection = connect_case_service(
+            visit.case, contact.phone_number, token, ConsentChoice.ALLOWED
+        )
+
+    except ValueError as e:
+        return 400, StatusSchema(success=False, message=str(e))
+
+    if connection is None:
+        return 400, StatusSchema(success=False, message="Failed to connect case")
+
+    return {
+        "last_visits": [],
+        "connection_id": connection.pk,
+    }
 
 
 @router.get("/case/{pk}/internal/", response=InternalQuestionnaireSchema)

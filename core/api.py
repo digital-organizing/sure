@@ -28,6 +28,7 @@ api = NinjaAPI(
         AnonRateThrottle("50/s"),
         AuthRateThrottle("200/s"),
     ],
+    version="1.0.0",
 )
 
 api.add_router("/sure", sure.api.router)

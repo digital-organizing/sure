@@ -25,7 +25,7 @@ def translate_text_task(slug, language):
 
     activate(language)
     if isinstance(result, list):
-        text.content = result[0].text
+        text.content = result[0].text  # type: ignore
     else:
         text.content = result.text
     text.save()

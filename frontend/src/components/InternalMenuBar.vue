@@ -10,7 +10,7 @@ const router = useRouter()
 
 const tenant = ref<TenantSchema | null>(null)
 
-const { getText: t, setLanguage, getAvailableLanguages, language } = useTexts()
+const { getText: t, setLanguage, getAvailableLanguages, language, render: r } = useTexts()
 
 const langs = ref<[string, string][]>([])
 
@@ -97,8 +97,12 @@ const drawerVisible = ref(false)
       </div>
       <i class="pi pi-book icon" />
       <a :href="t('manual-link').value" target="_blank" rel="noopener noreferrer" class="text">
-        {{ t('user-manual') }}
+        <strong>
+          {{ t('user-manual') }}
+        </strong>
       </a>
+      <i class="pi pi-phone icon" />
+      <div class="text support-contact" v-html="r('support-contact')"></div>
     </section>
   </Drawer>
 </template>
@@ -123,6 +127,11 @@ header {
 .text {
   grid-column: 2 / span 1;
 }
+
+.support-contact {
+  grid-column: 2 / span 1;
+}
+
 .icon {
   grid-column: 1 / span 1;
 }

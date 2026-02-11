@@ -336,6 +336,53 @@ class InformationBanner(models.Model):
         super().save(*args, **kwargs)
 
 
+class Advertisement(models.Model):
+    """
+    Docstring für Advertisement
+    """
+
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name="advertisements"
+    )
+
+    locations = models.ManyToManyField(
+        Location,
+        blank=True,
+        related_name="advertisements",
+        help_text=_("Locations for which this advertisement is displayed."),
+    )
+
+    name = models.CharField(max_length=100)
+    content = models.TextField(
+        help_text=_(
+            'Content of the advertisement, supports markdown or html: <a target="_blank" href="https://www.markdownguide.org/basic-syntax/">More info</a>.'
+        )
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    published_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Date and time when the advertisement becomes visible. If empty, the advertisement is visible immediately."
+        ),
+    )
+    expires_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_(
+            "Date and time when the advertisement expires. If empty, the advertisement does not expire."
+        ),
+    )
+
+    def __str__(self) -> str:
+        return f"Advertisement for {self.tenant.name} ({self.pk})"
+
+    def save(self, *args, **kwargs):
+        sanitizer = Sanitizer({"keep_typographic_whitespace": True})
+        self.content = sanitizer.sanitize(self.content)
+        super().save(*args, **kwargs)
+
+
 def generate_name():
     return secrets.token_hex(10)
 

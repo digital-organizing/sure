@@ -6,6 +6,7 @@ import secrets
 import uuid
 from datetime import timedelta
 
+from django.urls import reverse
 import phonenumbers
 from colorfield.fields import ColorField
 from django.conf import settings
@@ -144,8 +145,12 @@ class Contact(models.Model):
     id = models.UUIDField(
         primary_key=True, editable=False, unique=True, default=uuid.uuid4
     )
-    email = models.EmailField(blank=True)
-    phone_number = models.CharField(max_length=30, unique=True)
+    phone_number = models.CharField(max_length=30)
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Whether the contact is active"),
+    )
 
     tokens: models.QuerySet["Token"]
 
@@ -251,7 +256,9 @@ class Token(models.Model):
         Contact, on_delete=models.CASCADE, related_name="tokens"
     )
     token = models.CharField(
-        max_length=64, verbose_name=_("Token"), default=generate_token, unique=True
+        max_length=64,
+        verbose_name=_("Token"),
+        default=generate_token,
     )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
@@ -1069,5 +1076,30 @@ class VisitExport(models.Model):
         help_text=_("Progress of the export in percentage"),
     )
 
+    def download_url(self):
+        if self.file:
+            link = reverse("sure:download_visit_export", args=[self.pk])
+            return mark_safe(f'<a href="{link}" target="_blank">{self.file.name}</a>')  # nosec
+        return None
+
     def __str__(self):
         return f"Visit Export {self.pk} by {self.user.get_full_name()} ({self.status})"
+
+
+class VisitExportDownload(models.Model):
+    visit_export = models.ForeignKey(
+        VisitExport,
+        on_delete=models.CASCADE,
+        related_name="downloads",
+    )
+    downloaded_at = models.DateTimeField(
+        auto_now_add=True, verbose_name=_("Downloaded At")
+    )
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.PROTECT,
+        related_name="visit_export_downloads",
+    )
+
+    def __str__(self):
+        return f"Download of Visit Export {self.visit_export.pk} by {self.user.get_full_name()} at {self.downloaded_at}"

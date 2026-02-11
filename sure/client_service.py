@@ -121,6 +121,7 @@ def generate_token(phone_number: str, case: Case) -> tuple[Contact, str]:
     """Generate a token for the given phone number, creating a contact if necessary."""
     contact, _ = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
+        active=True,
     )
     token = contact.generate_token(case)
     return contact, token
@@ -130,6 +131,7 @@ def send_case_link(case: Case, phone_number: str):
     """Send a link to access the case to the given phone number."""
     contact, token = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
+        active=True,
     )
 
     link = get_case_link(case)
@@ -148,7 +150,9 @@ def send_results_link(case: Case):
     contact = connection.client.contact
     link = settings.SITE_URL + "/results?case=" + case.human_id
 
-    msg = translate("results-link-message", language=case.language).format(link=link)
+    msg = translate("results-link-message", language=case.language).format(
+        link=link, case_id=case.human_id
+    )
 
     send_sms(contact.phone_number, msg, case.location.tenant)
 
@@ -158,6 +162,7 @@ def send_token(phone_number: str, case: Case):
 
     contact, _ = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
+        active=True,
     )
     if contact.has_recent_token():
         raise ValueError(translate("recent-token-error"))
@@ -177,6 +182,7 @@ def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:
 
     contact = Contact.objects.filter(
         phone_number=canonicalize_phone_number(phone_number),
+        active=True,
     ).first()
 
     if not contact:

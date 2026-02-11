@@ -492,14 +492,17 @@ export const useCase = createGlobalState(() => {
       return []
     }
     const answer = answerForConsultantQuestion(questionId)
+    const question = consultantQuestionnaire.value?.consultant_questions.find(
+      (q) => q.id === questionId,
+    )
 
     if (!answer) {
       return []
     }
 
-    return answer.texts.map((text, idx) => {
+    return answer.choices.map((code, idx) => {
       return {
-        text: text,
+        text: question?.options.find((opt) => +opt.code === code)?.text || answer.texts[idx],
         created_at: answer.created_at,
         user: answer.user,
         index: idx,

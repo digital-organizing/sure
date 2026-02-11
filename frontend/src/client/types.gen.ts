@@ -279,6 +279,34 @@ export type PhoneNumberSchema = {
 };
 
 /**
+ * ConnectResponse
+ */
+export type ConnectResponse = {
+    /**
+     * Last Visits
+     */
+    last_visits: Array<VisitLightSchema>;
+    /**
+     * Connection Id
+     */
+    connection_id: number;
+};
+
+/**
+ * VisitLightSchema
+ */
+export type VisitLightSchema = {
+    /**
+     * Location
+     */
+    location: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
  * ConnectSchema
  */
 export type ConnectSchema = {
@@ -1389,6 +1417,26 @@ export type BannerSchema = {
 };
 
 /**
+ * AdvertisementSchema
+ */
+export type AdvertisementSchema = {
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Content
+     *
+     * Content of the advertisement, supports markdown or html: <a target="_blank" href="https://www.markdownguide.org/basic-syntax/">More info</a>.
+     */
+    content: string;
+};
+
+/**
  * TextsSchema
  */
 export type TextsSchema = {
@@ -1880,10 +1928,45 @@ export type SureApiConnectCaseResponses = {
     /**
      * OK
      */
-    200: StatusSchema;
+    200: ConnectResponse;
 };
 
 export type SureApiConnectCaseResponse = SureApiConnectCaseResponses[keyof SureApiConnectCaseResponses];
+
+export type SureApiResetCaseConnectionData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/reset-connection/';
+};
+
+export type SureApiResetCaseConnectionErrors = {
+    /**
+     * Bad Request
+     */
+    400: StatusSchema;
+};
+
+export type SureApiResetCaseConnectionError = SureApiResetCaseConnectionErrors[keyof SureApiResetCaseConnectionErrors];
+
+export type SureApiResetCaseConnectionResponses = {
+    /**
+     * OK
+     */
+    200: ConnectResponse;
+};
+
+export type SureApiResetCaseConnectionResponse = SureApiResetCaseConnectionResponses[keyof SureApiResetCaseConnectionResponses];
 
 export type SureApiGetCaseInternalData = {
     body?: never;
@@ -3138,6 +3221,34 @@ export type TenantsApiGetBannersResponses = {
 };
 
 export type TenantsApiGetBannersResponse = TenantsApiGetBannersResponses[keyof TenantsApiGetBannersResponses];
+
+export type TenantsApiGetAdvertisementsData = {
+    body?: never;
+    path: {
+        /**
+         * Case Id
+         */
+        case_id: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/tenants/advertisements/{case_id}';
+};
+
+export type TenantsApiGetAdvertisementsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<AdvertisementSchema>;
+};
+
+export type TenantsApiGetAdvertisementsResponse = TenantsApiGetAdvertisementsResponses[keyof TenantsApiGetAdvertisementsResponses];
 
 export type TextsApiListTextsData = {
     body?: never;

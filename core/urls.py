@@ -18,14 +18,15 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 
-from .api import api
+import core.api
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     # path("admin-old/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
-    path("api/", api.urls),
+    path("api/", core.api.api.urls),
     path("ht/", include("health_check.urls")),
+    path("sure/", include("sure.urls")),
     path("", TemplateView.as_view(template_name="index.html")),
     path("<path:path>", TemplateView.as_view(template_name="index.html")),
 ]

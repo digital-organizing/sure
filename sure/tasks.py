@@ -74,7 +74,7 @@ def create_export(export_id: int) -> None:
         export.progress = int(len(records) / export.total_visits * 100)
         export.save(update_fields=["progress"])
 
-    df = pl.DataFrame(records)
+    df = pl.DataFrame(records, infer_schema_length=None)
     # Store the dataframe as excel in export.file
 
     # Store the dataframe as excel in export.file

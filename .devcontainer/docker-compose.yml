@@ -30,6 +30,7 @@ services:
 
   redis:
     image: redis:latest
+    hostname: redis
     command: ["redis-server", "/etc/redis/redis.conf"]
     volumes:
       - ./redis.conf:/etc/redis/redis.conf

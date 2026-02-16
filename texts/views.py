@@ -55,7 +55,7 @@ class ImportTextView(UnfoldModelAdminViewMixin, FormView):
         file = form.cleaned_data["texts_file"]
 
         # Read the Excel file with polars
-        df = pl.read_excel(file.read()).fill_null("")  # type: ignore
+        df = pl.read_excel(file.read()).fill_null("") 
 
         # Track statistics
         created_count = 0

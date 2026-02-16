@@ -16,6 +16,7 @@ from pathlib import Path
 import sentry_sdk
 from django.urls import reverse_lazy
 from environ import Env
+import kombu
 
 env = Env()
 
@@ -82,13 +83,6 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django.contrib.postgres",
     "health_check",
-    "health_check.db",
-    "health_check.cache",
-    "health_check.storage",
-    "health_check.contrib.migrations",
-    "health_check.contrib.celery",
-    "health_check.contrib.redis",
-    "health_check.contrib.psutil",
     "crispy_forms",
     "django_otp",
     "django_otp.plugins.otp_totp",
@@ -278,6 +272,9 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_RESULT_EXTENDED = True
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24 * 30
+
+
+CELERY_TASK_QUEUES = [kombu.Queue("celery")]
 
 
 HEALTH_CHECK = {

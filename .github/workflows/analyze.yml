@@ -41,7 +41,7 @@ jobs:
         run: uv run bandit -r . -x migrations,tests,./.venv/
        
       - name: Run vulnerability check
-        run: uv run uv-secure --ignore-pkgs django-timezone-field
+        run: uv run uv-secure 
 
   npm-check:
     runs-on: ubuntu-latest

@@ -16,6 +16,7 @@ from pathlib import Path
 import sentry_sdk
 from django.urls import reverse_lazy
 from environ import Env
+import kombu
 
 env = Env()
 
@@ -271,6 +272,9 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 CELERY_RESULT_EXTENDED = True
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24 * 30
+
+
+CELERY_TASK_QUEUES = [kombu.Queue("celery")]
 
 
 HEALTH_CHECK = {

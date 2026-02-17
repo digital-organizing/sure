@@ -1318,52 +1318,6 @@ export type ResultInformationSchema = {
 };
 
 /**
- * LabOrderResponseSchema
- */
-export type LabOrderResponseSchema = {
-    /**
-     * Success
-     */
-    success: boolean;
-    /**
-     * Barcodes
-     */
-    barcodes: Array<string>;
-    /**
-     * Warnings
-     */
-    warnings?: Array<string> | null;
-};
-
-/**
- * LabOrderSchema
- */
-export type LabOrderSchema = {
-    /**
-     * Codes
-     */
-    codes: Array<string>;
-    /**
-     * Order Number
-     */
-    order_number: string;
-    /**
-     * Created At
-     */
-    created_at: string;
-    /**
-     * Profiles
-     *
-     * List of test profiles included in the order
-     */
-    profiles?: Array<unknown> | null;
-    /**
-     * Status
-     */
-    status?: string;
-};
-
-/**
  * LaboratorySchema
  */
 export type LaboratorySchema = {
@@ -1385,6 +1339,14 @@ export type LaboratorySchema = {
  * TestProfileSetSchema
  */
 export type TestProfileSetSchema = {
+    /**
+     * Materials
+     */
+    materials?: Array<string>;
+    /**
+     * Material Codes
+     */
+    material_codes?: Array<string>;
     /**
      * Test Kind
      *
@@ -1410,18 +1372,6 @@ export type TestProfileSetSchema = {
      */
     result_label?: string | null;
     /**
-     * Material
-     *
-     * e.g. Serum, EDTA
-     */
-    material?: string | null;
-    /**
-     * Material Code
-     *
-     * e.g. S
-     */
-    material_code?: string | null;
-    /**
      * Price Vct
      *
      * Price for private patients (VCT)
@@ -1437,6 +1387,50 @@ export type TestProfileSetSchema = {
      * Note
      *
      * Additional notes about the test profile
+     */
+    note?: string | null;
+    /**
+     * N Materials
+     *
+     * Number of materials required for this test profile
+     */
+    n_materials?: number;
+};
+
+/**
+ * LabOrderSchema
+ */
+export type LabOrderSchema = {
+    /**
+     * Codes
+     */
+    codes: Array<string>;
+    /**
+     * Materials
+     */
+    materials: Array<string>;
+    /**
+     * Order Number
+     */
+    order_number: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Profiles
+     *
+     * List of test profiles included in the order
+     */
+    profiles?: Array<unknown> | null;
+    /**
+     * Status
+     */
+    status?: string;
+    /**
+     * Note
+     *
+     * Additional notes for the lab order
      */
     note?: string | null;
 };
@@ -3226,32 +3220,6 @@ export type SureApiPublishCaseResultsResponses = {
 };
 
 export type SureApiPublishCaseResultsResponse = SureApiPublishCaseResultsResponses[keyof SureApiPublishCaseResultsResponses];
-
-export type SureApiOrderLabTestsData = {
-    body: LabOrderSchema;
-    path: {
-        /**
-         * Pk
-         */
-        pk: string;
-    };
-    query?: {
-        /**
-         * Lang
-         */
-        lang?: string | null;
-    };
-    url: '/api/sure/case/{pk}/order-lab/';
-};
-
-export type SureApiOrderLabTestsResponses = {
-    /**
-     * OK
-     */
-    200: LabOrderResponseSchema;
-};
-
-export type SureApiOrderLabTestsResponse = SureApiOrderLabTestsResponses[keyof SureApiOrderLabTestsResponses];
 
 export type LaborApiGetLaboratoryData = {
     body?: never;

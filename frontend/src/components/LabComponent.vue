@@ -109,6 +109,8 @@ async function prefillPatientData() {
     const yearNum = parseInt(birthYearValue, 10)
     if (!isNaN(yearNum)) {
       birthYear.value = yearNum
+    } else {
+      birthYear.value = 2000
     }
   }
 
@@ -162,6 +164,7 @@ function submitOrder() {
 }
 
 async function printBarcodes(codes: string[]) {
+console.log('Printing barcodes:', codes)
   if (hasConnectedPrinter.value) {
     await printLabels(codes)
     return
@@ -174,18 +177,26 @@ async function printBarcodes(codes: string[]) {
   })
 }
 
-function codeForProfile(profile: string): string | null {
+function codeForProfile(profile: string): string[] {
   const order = openOrder.value
   if (!order) {
-    return null
+    return []
   }
+  console.log('Finding code for profile', profile, 'in order', order)
+  console.log('Order profiles:', labInfo.value?.profiles)
+  const labProfile = labInfo.value?.profiles.find((p) => p.profile_code === profile)
 
-  const profileIdx = order.profiles?.findIndex((p) => p === profile)
-
-  if (profileIdx === undefined || profileIdx === -1) {
-    return null
+  if (!labProfile) {
+    return []
   }
-  return order.codes?.[profileIdx] || null
+  const requiredMaterialCodes = labProfile.material_codes
+  console.log(requiredMaterialCodes)
+  console.log(order.codes)
+  console.log(order.materials)
+
+
+  return requiredMaterialCodes?.map((code) => order.codes[order.materials.findIndex((c) => c === code)] || '') || []
+
 }
 
 function openDialog() {
@@ -254,7 +265,7 @@ defineExpose({
           </div>
           <div class="form-field">
             <label>{{ t('note') }} ({{ t('optional') }}): </label>
-            <InputText v-model="patientData.note" :label="t('note')" />
+            <Textarea v-model="patientData.note" :label="t('note')" rows="5" />
           </div>
 
           <Button
@@ -277,24 +288,26 @@ defineExpose({
               icon="pi pi-print"
               severity="secondary"
               rounded
-              @click="printBarcodes([codeForProfile(profile.profile_code)!])"
-              :label="t('print').value"
+              @click="printBarcodes(codeForProfile(profile.profile_code))"
+              :label="t('print').value + ' (' + codeForProfile(profile.profile_code).length + ')' "
             />
           </span>
           <span class="code">
             {{ profile.profile_code }}
           </span>
-          <span class="material" v-if="profile.material">
-            <strong>{{ t('material') }}:</strong> {{ profile.material }} ({{
-              profile.material_code
+          <div class="materials">
+          <div class="material" v-for="code, idx in profile.material_codes" :key="code">
+            <strong>{{ t('material') }}:</strong> {{ profile.materials![idx] }} ({{
+              code
             }})
-          </span>
+          </div>
+        </div>
           <span class="note">
             {{ profile.note }}
           </span>
           <span class="pricing">
-            <strong>{{ t('price-vct') }}</strong> {{ profile.price_vct || '-' }}
-            <strong>{{ t('price-kk') }}</strong> {{ profile.price_kk || '-' }}
+            <strong>{{ t('price-vct') }}</strong> {{ profile.price_vct || '-' }} CHF
+            <strong>{{ t('price-kk') }}</strong> {{ profile.price_kk || '-' }} CHF
           </span>
         </div>
       </section>
@@ -319,8 +332,16 @@ defineExpose({
           <div class="codes">
             <strong>{{ t('barcodes') }}:</strong>
             <ul>
-              <li v-for="code in order.codes" :key="'' + code">{{ code }}</li>
+              <li v-for="code, idx in order.codes" :key="'' + code">
+                {{ code }}
+                ({{ order.materials[idx] }})
+                <Button v-if="order.status != 'cancelled'" size="small" icon="pi pi-print" severity="secondary" rounded @click="printBarcodes([code])" :label="t('print').value" />
+              </li>
             </ul>
+          </div>
+          
+          <div class="note">
+           {{ order.note }}
           </div>
 
           <div class="actions">
@@ -374,7 +395,13 @@ defineExpose({
   display: grid;
   grid-template-areas:
     'info codes'
+    'note codes'
     'actions actions';
+}
+
+.order-card .note {
+  grid-area: note;
+  color: black;
 }
 
 .info {
@@ -467,7 +494,7 @@ defineExpose({
   justify-self: end;
 }
 
-.profile-card .material {
+.profile-card .materials {
   grid-area: material;
   color: #555;
   align-self: center;

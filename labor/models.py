@@ -5,8 +5,18 @@ from simple_history.models import HistoricalRecords
 # Create your models here.
 
 
+class ImlementationChoices(models.TextChoices):
+    TEAM_W = "team_w", "Team W"
+    UNILABS = "unilabs", "Unilabs"
+
+
 class Laboratory(models.Model):
     name = models.CharField(max_length=255)
+    implementation = models.CharField(
+        max_length=20, choices=ImlementationChoices.choices, default=ImlementationChoices.TEAM_W
+    )
+    managers = models.ManyToManyField(
+        "auth.User", blank=True, related_name="managed_laboratories")
 
     def __str__(self):
         return self.name
@@ -35,6 +45,22 @@ class FTPConnection(models.Model):
     class Meta:
         verbose_name = "FTP Connection"
         verbose_name_plural = "FTP Connections"
+        
+
+class APIConnection(models.Model):
+    laboratory = models.OneToOneField(Laboratory, on_delete=models.CASCADE)
+
+    api_url = models.URLField()
+    api_key = models.CharField(max_length=255)
+
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return f"API Settings for {self.laboratory.name}"
+
+    class Meta:
+        verbose_name = "API Connection"
+        verbose_name_plural = "API Connections"
 
 
 def validate_nr_kreis(value):
@@ -90,7 +116,8 @@ class LabOrder(models.Model):
     visit = models.ForeignKey(
         "sure.Visit", on_delete=models.CASCADE, related_name="lab_orders"
     )
-    lab_order_counter = models.ForeignKey(LabOrderCounter, on_delete=models.CASCADE)
+    lab_order_counter = models.ForeignKey(
+        LabOrderCounter, on_delete=models.CASCADE)
     order_number = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -111,6 +138,13 @@ class LabOrder(models.Model):
         default=list,
         help_text="List of material codes",
     )
+    materials = ArrayField(
+        models.CharField(max_length=50),
+        blank=True,
+        default=list,
+        help_text="List of materials required for the order",
+    )
+    note = models.TextField(blank=True, help_text="Additional notes for the lab order")
 
     history = HistoricalRecords()
 
@@ -120,6 +154,15 @@ class LabOrder(models.Model):
     class Meta:
         verbose_name = "Lab Order"
         verbose_name_plural = "Lab Orders"
+
+
+class HL7Result(models.Model):
+    content = models.TextField(blank=True, help_text="HL7 Result content")
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    laboratory = models.ForeignKey(
+        Laboratory, on_delete=models.CASCADE, related_name="hl7_results"
+    )
 
 
 class LabResult(models.Model):
@@ -168,8 +211,27 @@ class TestProfile(models.Model):
         max_length=100, blank=True, help_text="Label in HL7 result (OBX-3)"
     )
 
-    material = models.CharField(max_length=50, blank=True, help_text="e.g. Serum, EDTA")
-    material_code = models.CharField(max_length=10, blank=True, help_text="e.g. S")
+    materials = ArrayField(
+        models.CharField(max_length=50),
+        blank=True,
+        default=list,
+        help_text="List of required materials (e.g. Serum, EDTA)",
+    )
+
+    material_codes = ArrayField(
+        models.CharField(max_length=10),
+        blank=True,
+        default=list,
+        help_text="List of material codes (e.g. S, EDTA)",
+    )
+
+    n_materials = models.PositiveIntegerField(
+        default=1, help_text="Number of materials required for this test profile"
+    )
+
+    require_additional = models.BooleanField(
+        default=False, help_text="Whether additional information is required for this test profile"
+    )
 
     price_vct = models.DecimalField(
         max_digits=10,
@@ -192,8 +254,18 @@ class TestProfile(models.Model):
     def __str__(self):
         return f"{self.profile_name} ({self.laboratory.name})"
 
+    def clean(self):
+        if self.materials and self.material_codes and len(self.materials) != len(self.material_codes):
+            raise ValidationError(
+                "Number of materials must match number of material codes")
+
     history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Test Profile"
         verbose_name_plural = "Test Profiles"
+
+        constraints = [models.UniqueConstraint(
+            fields=["laboratory", "test_kind"],
+            name="unique_test_profile_per_laboratory_and_test_kind",
+        )]

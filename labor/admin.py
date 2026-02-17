@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 from unfold.admin import ModelAdmin, TabularInline
 from labor.models import (
     FTPConnection,
@@ -27,6 +29,17 @@ class LaboratoryAdmin(ModelAdmin):
     search_fields = ("name",)
 
     inlines = [FTPConnectionInline]
+    
+    autocomplete_fields = ("managers",)
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(managers=request.user)
+    
+    
+    
 
 
 @admin.register(LabOrderCounter)
@@ -35,6 +48,7 @@ class LabOrderCounterAdmin(ModelAdmin):
     search_fields = ("base_number",)
 
     list_filter = ("nr_kreis",)
+    
 
 
 @admin.register(TestProfile)
@@ -43,6 +57,12 @@ class TestProfileAdmin(ModelAdmin):
     search_fields = ("profile_name", "profile_code", "test_kind__name")
     list_filter = ("laboratory",)
     autocomplete_fields = ("test_kind", "laboratory")
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(laboratory__managers=request.user)
 
 
 @admin.register(LocationToLab)
@@ -52,6 +72,12 @@ class LocationToLabAdmin(ModelAdmin):
     autocomplete_fields = ("location", "labor")
 
     list_filter = ("labor",)
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(labor__managers=request.user)
 
 
 @admin.register(LabOrder)
@@ -74,3 +100,13 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     def has_delete_permission(self, *args, **kwargs) -> bool:
         return False
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+
+        consultant = getattr(request.user, "consultant", None)
+        if not consultant:
+            return qs.none()
+        return qs.filter(visit__case__location__tenant=consultant.tenant)

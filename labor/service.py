@@ -180,8 +180,8 @@ def _process_nte(seg, visit, last_test_name):
 
 
 @transaction.atomic
-def parse_hl7_to_db(file_path):
-    h = _read_and_parse_hl7(file_path)
+def parse_hl7_to_db(content):
+    h = hl7.parse(content)
     order = _find_order_from_hl7(h)
 
     if not order:
@@ -189,11 +189,11 @@ def parse_hl7_to_db(file_path):
 
     visit = order.visit
 
-    laboratory = _get_laboratory(visit)
-
     lab_result = LabResult.objects.create(
-        visit=visit, order=order, conent=str(h).replace("\r", "\n")
+        visit=visit, order=order, conent=content
     )
+
+    laboratory = _get_laboratory(visit)
 
     results = []
     full_commentary = []
@@ -298,6 +298,8 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
     materials = []
     profiles = []
     barcodes = []
+    common_codes = set()
+    
 
     obr_index = 1
     for profile in test_profiles:
@@ -308,10 +310,21 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
         segments.append(obr_segment)
         obr_index += 1
 
-        if profile.material and profile.material_code:
-            materials.append((profile.material, profile.material_code))
-            # Collect profiles that require materials for SPM segments
+        for material_name, material_code in zip(profile.materials, profile.material_codes):
+            if profile.require_additional:
+                materials.append((material_name, material_code))
+                profiles.append(profile.profile_code)
+                continue
+             
+            if material_code in common_codes:
+                continue
+            common_codes.add(material_code)
+
+            materials.append((material_name, material_code))
             profiles.append(profile.profile_code)
+    
+    
+    
     # SPM
     spm_index = 1
     for material_name, material_code in materials:
@@ -327,12 +340,14 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
 
     if patient_data.note:
         nte = f"NTE|1||{patient_data.note}"
+        order.note = patient_data.note
         segments.append(nte)
 
     hl7_content = "\r".join(segments)
 
     order.content = hl7_content.replace("\r", "\n")
     order.codes = barcodes
+    order.materials = [m[1] for m in materials]
     order.profiles = profiles
     order.save()
 

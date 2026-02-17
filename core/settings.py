@@ -29,12 +29,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env.read_env(os.path.join(BASE_DIR, ".env"))
 
 
-sentry_sdk.init(
-    dsn="https://f23eef026dedb9d752fc45fc961f71a0@sentry.d-o.li/5",
-    send_default_pii=True,
-    traces_sample_rate=1.0,
-    environment=env.str("ENVIORNMENT", default="develop"),
-)
+if env.str("SENTRY_DSN", default=""):
+    sentry_sdk.init(
+        dsn=env.str("SENTRY_DSN"),
+        send_default_pii=env.bool("SENTRY_SEND_DEFAULT_PII", default=True),
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+        environment=env.str("ENVIORNMENT", default="develop"),
+    )
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/

@@ -29,17 +29,14 @@ class LaboratoryAdmin(ModelAdmin):
     search_fields = ("name",)
 
     inlines = [FTPConnectionInline]
-    
+
     autocomplete_fields = ("managers",)
-    
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
         return qs.filter(managers=request.user)
-    
-    
-    
 
 
 @admin.register(LabOrderCounter)
@@ -48,7 +45,6 @@ class LabOrderCounterAdmin(ModelAdmin):
     search_fields = ("base_number",)
 
     list_filter = ("nr_kreis",)
-    
 
 
 @admin.register(TestProfile)
@@ -57,7 +53,7 @@ class TestProfileAdmin(ModelAdmin):
     search_fields = ("profile_name", "profile_code", "test_kind__name")
     list_filter = ("laboratory",)
     autocomplete_fields = ("test_kind", "laboratory")
-    
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
@@ -72,7 +68,7 @@ class LocationToLabAdmin(ModelAdmin):
     autocomplete_fields = ("location", "labor")
 
     list_filter = ("labor",)
-    
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:

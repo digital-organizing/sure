@@ -13,10 +13,18 @@ class PatientDataSchema(Schema):
 class LabOrderSchema(ModelSchema):
     class Meta:
         model = LabOrder
-        fields = ["order_number", "created_at", "codes", "profiles", "materials", "status", "note"]
+        fields = [
+            "order_number",
+            "created_at",
+            "codes",
+            "profiles",
+            "materials",
+            "status",
+            "note",
+        ]
 
     codes: list[str] = Field(...)
-    materials : list[str] = Field(...)
+    materials: list[str] = Field(...)
 
 
 class TestProfileSetSchema(ModelSchema):
@@ -33,12 +41,11 @@ class TestProfileSetSchema(ModelSchema):
             "price_kk",
             "note",
             "n_materials",
-            
         ]
-
 
     materials: list[str] = Field(default_factory=list)
     material_codes: list[str] = Field(default_factory=list)
+
 
 class LaboratorySchema(ModelSchema):
     class Meta:

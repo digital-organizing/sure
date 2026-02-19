@@ -72,7 +72,7 @@ class TestProfileInline(StackedInline):
     model = TestProfile
     extra = 0
     autocomplete_fields = ("laboratory",)
-    
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:

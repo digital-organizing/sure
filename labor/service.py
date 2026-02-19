@@ -189,9 +189,7 @@ def parse_hl7_to_db(content):
 
     visit = order.visit
 
-    lab_result = LabResult.objects.create(
-        visit=visit, order=order, conent=content
-    )
+    lab_result = LabResult.objects.create(visit=visit, order=order, conent=content)
 
     laboratory = _get_laboratory(visit)
 
@@ -299,7 +297,6 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
     profiles = []
     barcodes = []
     common_codes = set()
-    
 
     obr_index = 1
     for profile in test_profiles:
@@ -310,21 +307,21 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
         segments.append(obr_segment)
         obr_index += 1
 
-        for material_name, material_code in zip(profile.materials, profile.material_codes):
+        for material_name, material_code in zip(
+            profile.materials, profile.material_codes
+        ):
             if profile.require_additional:
                 materials.append((material_name, material_code))
                 profiles.append(profile.profile_code)
                 continue
-             
+
             if material_code in common_codes:
                 continue
             common_codes.add(material_code)
 
             materials.append((material_name, material_code))
             profiles.append(profile.profile_code)
-    
-    
-    
+
     # SPM
     spm_index = 1
     for material_name, material_code in materials:

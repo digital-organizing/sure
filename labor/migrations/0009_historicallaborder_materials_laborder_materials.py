@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("labor", "0008_testprofile_unique_test_profile_per_laboratory_and_test_kind"),
     ]

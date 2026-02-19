@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("labor", "0007_remove_historicaltestprofile_material_and_more"),
         ("sure", "0050_remove_contact_email_contact_active_and_more"),

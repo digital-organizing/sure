@@ -13,10 +13,13 @@ class ImlementationChoices(models.TextChoices):
 class Laboratory(models.Model):
     name = models.CharField(max_length=255)
     implementation = models.CharField(
-        max_length=20, choices=ImlementationChoices.choices, default=ImlementationChoices.TEAM_W
+        max_length=20,
+        choices=ImlementationChoices.choices,
+        default=ImlementationChoices.TEAM_W,
     )
     managers = models.ManyToManyField(
-        "auth.User", blank=True, related_name="managed_laboratories")
+        "auth.User", blank=True, related_name="managed_laboratories"
+    )
 
     def __str__(self):
         return self.name
@@ -45,7 +48,7 @@ class FTPConnection(models.Model):
     class Meta:
         verbose_name = "FTP Connection"
         verbose_name_plural = "FTP Connections"
-        
+
 
 class APIConnection(models.Model):
     laboratory = models.OneToOneField(Laboratory, on_delete=models.CASCADE)
@@ -116,8 +119,7 @@ class LabOrder(models.Model):
     visit = models.ForeignKey(
         "sure.Visit", on_delete=models.CASCADE, related_name="lab_orders"
     )
-    lab_order_counter = models.ForeignKey(
-        LabOrderCounter, on_delete=models.CASCADE)
+    lab_order_counter = models.ForeignKey(LabOrderCounter, on_delete=models.CASCADE)
     order_number = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -230,7 +232,8 @@ class TestProfile(models.Model):
     )
 
     require_additional = models.BooleanField(
-        default=False, help_text="Whether additional information is required for this test profile"
+        default=False,
+        help_text="Whether additional information is required for this test profile",
     )
 
     price_vct = models.DecimalField(
@@ -255,9 +258,14 @@ class TestProfile(models.Model):
         return f"{self.profile_name} ({self.laboratory.name})"
 
     def clean(self):
-        if self.materials and self.material_codes and len(self.materials) != len(self.material_codes):
+        if (
+            self.materials
+            and self.material_codes
+            and len(self.materials) != len(self.material_codes)
+        ):
             raise ValidationError(
-                "Number of materials must match number of material codes")
+                "Number of materials must match number of material codes"
+            )
 
     history = HistoricalRecords()
 
@@ -265,7 +273,9 @@ class TestProfile(models.Model):
         verbose_name = "Test Profile"
         verbose_name_plural = "Test Profiles"
 
-        constraints = [models.UniqueConstraint(
-            fields=["laboratory", "test_kind"],
-            name="unique_test_profile_per_laboratory_and_test_kind",
-        )]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["laboratory", "test_kind"],
+                name="unique_test_profile_per_laboratory_and_test_kind",
+            )
+        ]

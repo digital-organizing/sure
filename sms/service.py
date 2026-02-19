@@ -1,6 +1,8 @@
 from enum import Enum
 
 import requests
+from retry import retry
+from django.db import transaction
 from django.conf import settings
 
 from sms.models import SMSMessage
@@ -20,6 +22,8 @@ class SMSUpStatus(Enum):
     UNKNOWN_ERROR = -99
 
 
+@retry(tries=3, delay=2, backoff=1)
+@transaction.atomic
 def send_sms(to: str, body: str, tenant: Tenant) -> None:
     """Send an SMS message via SMS Up, uses settings from Django settings."""
     headers = {

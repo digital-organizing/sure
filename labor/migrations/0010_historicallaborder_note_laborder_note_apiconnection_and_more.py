@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("labor", "0009_historicallaborder_materials_laborder_materials"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

@@ -182,6 +182,7 @@ def get_export_dict(visit: Visit):
     record = {
         "id": visit.pk,
         "created_at": make_naive(visit.created_at),
+        "internal_id": visit.case.external_id,
         "status": visit.status,
         "tags": ", ".join(visit.tags),
         "location": visit.case.location.name,

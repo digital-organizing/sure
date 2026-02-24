@@ -2,7 +2,7 @@ from enum import Enum
 
 import requests
 from django.conf import settings
-from retry import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from sms.models import SMSMessage
 from tenants.models import Tenant
@@ -20,7 +20,8 @@ class SMSUpStatus(Enum):
     MODERATION = -8
     UNKNOWN_ERROR = -99
 
-@retry(tries=3, delay=2)
+
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
 def _send_sms(to: str, body: str):
     headers = {
         "Authorization": f"Bearer {settings.SMSUP_API_TOKEN}",

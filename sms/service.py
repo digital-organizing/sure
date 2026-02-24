@@ -2,6 +2,7 @@ from enum import Enum
 
 import requests
 from django.conf import settings
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from sms.models import SMSMessage
 from tenants.models import Tenant
@@ -20,8 +21,8 @@ class SMSUpStatus(Enum):
     UNKNOWN_ERROR = -99
 
 
-def send_sms(to: str, body: str, tenant: Tenant) -> None:
-    """Send an SMS message via SMS Up, uses settings from Django settings."""
+@retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+def _send_sms(to: str, body: str):
     headers = {
         "Authorization": f"Bearer {settings.SMSUP_API_TOKEN}",
         "Accept": "application/json",
@@ -58,6 +59,14 @@ def send_sms(to: str, body: str, tenant: Tenant) -> None:
 
     if data.get("sent") != 1:
         raise Exception(f"SMS not sent: {data}")
+
+    return data
+
+
+def send_sms(to: str, body: str, tenant: Tenant) -> None:
+    """Send an SMS message via SMS Up, uses settings from Django settings."""
+
+    data = _send_sms(to, body)
 
     SMSMessage.objects.create(
         to=to,

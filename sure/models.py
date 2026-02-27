@@ -26,6 +26,8 @@ from html_sanitizer import Sanitizer
 from markdown import markdown
 from simple_history.models import HistoricalRecords
 
+from sure.validators import MimeTypeValidator
+
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
 
@@ -891,6 +893,16 @@ class VisitLog(models.Model):
     )
 
 
+ALLOWED_MIMETYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "image/jpeg",
+    "image/png",
+]
+
+
 class VisitDocument(models.Model):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="documents")
     name = models.CharField(
@@ -906,6 +918,7 @@ class VisitDocument(models.Model):
             FileExtensionValidator(
                 allowed_extensions=["pdf", "doc", "docx", "jpg", "png"]
             ),
+            MimeTypeValidator(allowed_mimetypes=ALLOWED_MIMETYPES),
             validate_file_infection,
         ],
     )

@@ -13,7 +13,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   postgresql-client \
   python3-pip \
   netcat-traditional \
-  gettext git
+  gettext git libmagic1
 
 
 RUN --mount=type=cache,target=/root/.cache pip install --upgrade uv

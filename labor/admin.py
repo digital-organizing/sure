@@ -1,6 +1,11 @@
 from django.contrib import admin
 from django.db.models.query import QuerySet
+from django.http import HttpResponse
 from django.http.request import HttpRequest
+
+from django.shortcuts import redirect
+from django.urls import reverse
+from unfold.decorators import action
 from unfold.admin import ModelAdmin, TabularInline
 from labor.models import (
     FTPConnection,
@@ -87,6 +92,21 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
     )
     search_fields = ("order_number", "visit__case__id")
     list_filter = ("status", "created_at", "visit__case__location")
+    
+
+    actions_detail = ["download_hl7"]
+    
+    
+    @action(description="Download HL7 content", icon="download")
+    def download_hl7(self, request, object_id):
+        order = self.get_object(request, object_id)
+        if not order:
+            self.message_user(request, "Lab order not found.", level="error")
+
+            return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
+        
+        msg = order.content
+        return HttpResponse(msg, content_type="text/plain", headers={"Content-Disposition": f'attachment; filename="lab_order_{order.order_number}.hl7"'})
 
     def has_change_permission(self, *args, **kwargs) -> bool:
         return False

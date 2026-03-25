@@ -62,7 +62,7 @@ def process_results():
 
     for result in results:
         try:
-            lab_result = parse_hl7_to_db(result)
+            parse_hl7_to_db(result)
             result.processed_at = timezone.now()
             result.save(update_fields=["processed_at"])
         except Exception as e:

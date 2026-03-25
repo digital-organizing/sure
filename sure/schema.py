@@ -41,6 +41,19 @@ class StatusSchema(Schema):
     warnings: list[str] | None = None
 
 
+class LabOrderSchema(Schema):
+    first_name: str
+    last_name: str
+    gender: str = Field(pattern="^[MFO]$")
+    year_of_birth: int
+
+
+class LabOrderResponseSchema(Schema):
+    success: bool
+    barcodes: list[str]
+    warnings: list[str] | None = None
+
+
 class ClientOptionSchema(ModelSchema):
     class Meta:
         model = ClientOption
@@ -568,6 +581,7 @@ class TestResultSchema(ModelSchema):
         fields = [
             "result_option",
             "note",
+            "note_lab",
             "user",
             "created_at",
         ]

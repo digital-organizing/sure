@@ -55,8 +55,10 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
     "sure.apps.SureConfig",
+    "labor.apps.LaborConfig",
     "unfold.apps.BasicAppConfig",
     "unfold.contrib.constance",
+    "unfold.contrib.forms",
     "constance",
     "texts",
     "guard",
@@ -100,6 +102,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "core.middleware.CaddyUserLogMiddleware",
     "django_agent_trust.middleware.AgentMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -456,6 +459,43 @@ UNFOLD = {
                 ],
             },
             {
+                "title": "Laboratories",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Laboratories",
+                        "icon": "science",
+                        "link": reverse_lazy("admin:labor_laboratory_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Test Profiles",
+                        "icon": "list_alt",
+                        "link": reverse_lazy("admin:labor_testprofile_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Lab Order Counters",
+                        "icon": "counter_1",
+                        "link": reverse_lazy("admin:labor_labordercounter_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Location to Lab Mappings",
+                        "icon": "swap_horiz",
+                        "link": reverse_lazy("admin:labor_locationtolab_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Orders",
+                        "icon": "assignment",
+                        "link": reverse_lazy("admin:labor_laborder_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+            {
                 "title": "Export",
                 "separator": True,
                 "collapsible": True,
@@ -659,3 +699,8 @@ CLAMD_TCP_SOCKET = env.int("CLAMD_TCP_SOCKET", default=3310)
 CLAMD_TCP_ADDR = env.str("CLAMD_TCP_ADDR", default="127.0.0.1")
 
 CLAMD_FAIL_BY_DEFAULT = not DEBUG
+
+
+TEAM_W_FTP_HOST = env.str("TEAM_W_FTP_HOST", default="ftp.team-w.ch")
+TEAM_W_FTP_USER = env.str("TEAM_W_FTP_USER", default="sure")
+TEAM_W_FTP_PASSWORD = env.str("TEAM_W_FTP_PASSWORD", default="password")

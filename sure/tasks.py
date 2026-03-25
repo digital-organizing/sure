@@ -1,5 +1,6 @@
 import io
 from datetime import timedelta
+import time
 
 import polars as pl
 from celery import shared_task
@@ -52,7 +53,11 @@ def close_seen_task():
 
 @shared_task
 def create_export(export_id: int) -> None:
-    export = VisitExport.objects.get(id=export_id)
+
+    export = VisitExport.objects.filter(id=export_id).first()
+    if not export:
+        time.sleep(5)  # Wait for the export to be created
+        export = VisitExport.objects.filter(id=export_id).get()
 
     queryset = Visit.objects.filter(
         created_at__date__gte=export.start_date,

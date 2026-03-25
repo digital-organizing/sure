@@ -1024,6 +1024,12 @@ class TestResult(models.Model):
         verbose_name=_("Note"),
         help_text=_("Additional notes about the test result"),
     )
+    note_lab = models.TextField(
+        max_length=2000,
+        blank=True,
+        verbose_name=_("Lab Note"),
+        help_text=_("Additional notes from the lab about the test result"),
+    )
     user = models.ForeignKey(
         "auth.User",
         on_delete=models.PROTECT,

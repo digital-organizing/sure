@@ -62,7 +62,9 @@ def _process_nte(seg, visit, last_test_name):
     if not comment_text:
         return None
 
-    VisitNote.objects.create(visit=visit, note=f"Lab Note ({last_test_name}):\n{comment_text}")
+    VisitNote.objects.create(
+        visit=visit, note=f"Lab Note ({last_test_name}):\n{comment_text}"
+    )
     return comment_text
 
 
@@ -73,9 +75,11 @@ def parse_hl7_to_db(content):
     if not order_number:
         raise ValueError("Order number not found in HL7 data")
 
-    order = LabOrder.objects.filter(order_number=order_number).select_related(
-        "visit__case__location"
-    ).first()
+    order = (
+        LabOrder.objects.filter(order_number=order_number)
+        .select_related("visit__case__location")
+        .first()
+    )
 
     if not order:
         raise ValueError("Lab order not found from HL7 data")
@@ -95,9 +99,13 @@ def parse_hl7_to_db(content):
         if seg_id == "OBR":
             profile_code = str(seg[4][0][0]).strip()
 
-            active_profile = TestProfile.objects.filter(
-                laboratory=laboratory, profile_code=profile_code
-            ).select_related("test_kind", "fallback_result_option").first()
+            active_profile = (
+                TestProfile.objects.filter(
+                    laboratory=laboratory, profile_code=profile_code
+                )
+                .select_related("test_kind", "fallback_result_option")
+                .first()
+            )
 
         elif seg_id == "OBX":
             _, test_name = _extract_test_info(seg[3])
@@ -112,10 +120,14 @@ def parse_hl7_to_db(content):
             if not value:
                 continue
 
-            mapping = ResultMapping.objects.filter(
-                profile=active_profile,
-                result_text=value,
-            ).select_related("result_option").first()
+            mapping = (
+                ResultMapping.objects.filter(
+                    profile=active_profile,
+                    result_text=value,
+                )
+                .select_related("result_option")
+                .first()
+            )
 
             # Exact mapping preferred, fallback_result_option is used for non-matches.
             result_option = (

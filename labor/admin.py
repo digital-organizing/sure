@@ -66,9 +66,11 @@ class ResultMappingInline(TabularInline):
 
             if object_id:
                 try:
-                    test_kind_id = TestProfile.objects.filter(pk=object_id).values_list(
-                        "test_kind_id", flat=True
-                    ).get()
+                    test_kind_id = (
+                        TestProfile.objects.filter(pk=object_id)
+                        .values_list("test_kind_id", flat=True)
+                        .get()
+                    )
                     kwargs["queryset"] = TestResultOption.objects.filter(
                         test_kind_id=test_kind_id
                     ).order_by("label")
@@ -78,6 +80,7 @@ class ResultMappingInline(TabularInline):
                 kwargs["queryset"] = TestResultOption.objects.none()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(TestProfile)
 class TestProfileAdmin(ModelAdmin):
@@ -120,11 +123,9 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
     )
     search_fields = ("order_number", "visit__case__id")
     list_filter = ("status", "created_at", "visit__case__location")
-    
 
     actions_detail = ["download_hl7"]
-    
-    
+
     @action(description="Download HL7 content", icon="download")
     def download_hl7(self, request, object_id):
         order = self.get_object(request, object_id)
@@ -132,9 +133,15 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
             self.message_user(request, "Lab order not found.", level="error")
 
             return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
-        
+
         msg = order.content
-        return HttpResponse(msg, content_type="text/plain", headers={"Content-Disposition": f'attachment; filename="lab_order_{order.order_number}.hl7"'})
+        return HttpResponse(
+            msg,
+            content_type="text/plain",
+            headers={
+                "Content-Disposition": f'attachment; filename="lab_order_{order.order_number}.hl7"'
+            },
+        )
 
     def has_change_permission(self, *args, **kwargs) -> bool:
         return False

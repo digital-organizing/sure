@@ -236,7 +236,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Display locations as a comma-separated list."""
         return ", ".join(location.name for location in obj.locations.all())
 
-    display_locations.short_description = "Locations"  #ty: ignore[unresolved-attribute]
+    display_locations.short_description = "Locations"  # ty: ignore[unresolved-attribute]
 
 
 class ConsultantInline(TabularInline):

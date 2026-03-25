@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("labor", "0010_historicallaborder_note_laborder_note_apiconnection_and_more"),
         ("sure", "0051_alter_token_token"),

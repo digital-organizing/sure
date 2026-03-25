@@ -165,7 +165,7 @@ class HL7Result(models.Model):
     laboratory = models.ForeignKey(
         Laboratory, on_delete=models.CASCADE, related_name="hl7_results"
     )
-    
+
     logs = models.TextField(blank=True, help_text="Processing logs and errors")
 
 
@@ -295,7 +295,7 @@ class ResultMapping(models.Model):
     profile = models.ForeignKey(
         TestProfile, on_delete=models.CASCADE, related_name="result_mappings"
     )
-    
+
     result_text = models.TextField()
-    
+
     result_option = models.ForeignKey("sure.TestResultOption", on_delete=models.CASCADE)

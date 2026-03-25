@@ -3,12 +3,23 @@ from celery import shared_task
 from django.utils import timezone
 
 from .service import parse_hl7_to_db
-from labor.models import HL7Result, LabOrder, Laboratory, LocationToLab, OrderStatus, ImlementationChoices
-from .team_w import upload_order as upload_order_team_w, retrieve_results as retrieve_results_team_w
+from labor.models import (
+    HL7Result,
+    LabOrder,
+    Laboratory,
+    LocationToLab,
+    OrderStatus,
+    ImlementationChoices,
+)
+from .team_w import (
+    upload_order as upload_order_team_w,
+    retrieve_results as retrieve_results_team_w,
+)
 
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def process_order(order: LabOrder):
     location = order.visit.case.location
@@ -43,12 +54,12 @@ def retrieve_results_task(lab_id: int):
             pass
         case ImlementationChoices.TEAM_W:
             retrieve_results_team_w(laboratory)
-    
+
 
 @shared_task
 def process_results():
     results = HL7Result.objects.filter(processed_at=None)
-    
+
     for result in results:
         try:
             lab_result = parse_hl7_to_db(result)
@@ -57,5 +68,5 @@ def process_results():
         except Exception as e:
             result.logs += f"\nError: {e}"
             result.save(update_fields=["logs"])
-            
+
             logging.error(f"Error processing HL7 result {result.pk}: {e}")

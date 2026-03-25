@@ -890,6 +890,12 @@ export type TestResultSchema = {
      */
     note?: string | null;
     /**
+     * Lab Note
+     *
+     * Additional notes from the lab about the test result
+     */
+    note_lab?: string | null;
+    /**
      * User
      *
      * The user who recorded the test result (consultant)

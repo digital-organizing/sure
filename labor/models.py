@@ -165,6 +165,8 @@ class HL7Result(models.Model):
     laboratory = models.ForeignKey(
         Laboratory, on_delete=models.CASCADE, related_name="hl7_results"
     )
+    
+    logs = models.TextField(blank=True, help_text="Processing logs and errors")
 
 
 class LabResult(models.Model):
@@ -211,6 +213,14 @@ class TestProfile(models.Model):
     )
     result_label = models.CharField(
         max_length=100, blank=True, help_text="Label in HL7 result (OBX-3)"
+    )
+    fallback_result_option = models.ForeignKey(
+        "sure.TestResultOption",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="fallback_profiles",
+        help_text="Result option used when no ResultMapping exact match is found",
     )
 
     materials = ArrayField(
@@ -279,3 +289,13 @@ class TestProfile(models.Model):
                 name="unique_test_profile_per_laboratory_and_test_kind",
             )
         ]
+
+
+class ResultMapping(models.Model):
+    profile = models.ForeignKey(
+        TestProfile, on_delete=models.CASCADE, related_name="result_mappings"
+    )
+    
+    result_text = models.TextField()
+    
+    result_option = models.ForeignKey("sure.TestResultOption", on_delete=models.CASCADE)

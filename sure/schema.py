@@ -581,6 +581,7 @@ class TestResultSchema(ModelSchema):
         fields = [
             "result_option",
             "note",
+            "note_lab",
             "user",
             "created_at",
         ]

@@ -1,8 +1,6 @@
 import hl7
 from django.db import transaction
-import base64
 from django.utils import timezone
-from django.core.files.base import ContentFile
 import logging
 
 from labor.schema import PatientDataSchema
@@ -16,53 +14,24 @@ from labor.models import (
     LabOrder,
     OrderStatus,
     TestProfile,
+    ResultMapping,
 )
 from sure.models import (
-    VisitDocument,
     VisitNote,
     TestResult,
-    TestResultOption,
     Test,
-    FreeFormTest,
+    VisitStatus,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def _read_and_parse_hl7(file_path) -> hl7.Message:
-    with open(file_path, "r", encoding="iso-8859-1") as f:
-        raw_data = f.read().replace("\n", "\r")
-    return hl7.parse(raw_data)
-
-
 def _get_order_number(h):
     for seg in h:
-        if seg[0] == "ORC":
-            if len(seg) > 2:
-                order_number = str(seg[2])
-                return order_number
+        if str(seg[0]) == "ORC":
+            return str(seg[2][0]).strip()
 
-        if seg[0] == "OBR":
-            if len(seg) > 2:
-                order_number = str(seg[2])
-                return order_number
-
-
-def _find_order_from_hl7(h):
-    order_number = _get_order_number(h)
-
-    if not order_number:
-        raise ValueError("Order number not found in HL7 data")
-
-    try:
-        pid_seg = h.segment("PID")
-        case_id = str(pid_seg[3][0][0])
-    except Exception:
-        raise ValueError("Case ID not found in HL7 data")
-
-    return LabOrder.objects.filter(
-        order_number=order_number, visit__case__id=case_id
-    ).first()
+    raise ValueError("Order number not found in HL7 data")
 
 
 def _get_laboratory(visit):
@@ -77,152 +46,106 @@ def _get_laboratory(visit):
 
 
 def _extract_test_info(obx_3):
-    try:
-        test_code = str(obx_3[0][0])
-        test_name = str(obx_3[0][1]) if len(obx_3[0]) > 1 else test_code
-        return test_code, test_name
-    except Exception:
-        val = str(obx_3)
-        return val, val
-
-
-def _find_matching_option(test, value):
-    options = TestResultOption.objects.filter(test_kind=test.test_kind)
-
-    # Exact match
-    for opt in options:
-        if opt.label.lower() == value.lower():
-            return opt
-
-    return None
-
-
-def _process_data_obx(visit, laboratory, test_code, test_name, value, status_flag):
-    # Find Test via TestProfile.result_label
-    profile = None
-    if laboratory:
-        profile = TestProfile.objects.filter(
-            laboratory=laboratory, result_label=test_code
-        ).first()
-        if not profile:
-            profile = TestProfile.objects.filter(
-                laboratory=laboratory, result_label=test_name
-            ).first()
-
-    if profile:
-        test, created = Test.objects.get_or_create(
-            visit=visit, test_kind=profile.test_kind
-        )
-
-        if value is not None:
-            matched_option = _find_matching_option(test, value)
-            if matched_option:
-                TestResult.objects.create(
-                    test=test, result_option=matched_option, note=value
-                )
-            else:
-                if test.note:
-                    test.note += f"\nResult: {value} (Flag: {status_flag})"
-                else:
-                    test.note = f"Result: {value} (Flag: {status_flag})"
-                test.save()
-    else:
-        # Profile not found -> FreeFormTest
-        if value is not None:
-            FreeFormTest.objects.create(
-                visit=visit,
-                name=test_name,
-                result=f"{value} ({status_flag})" if status_flag else value,
-            )
-
-    return {
-        "test_code": test_code,
-        "name": test_name,
-        "value": value,
-        "status_flag": status_flag,
-    }
-
-
-def _process_ed_obx(seg, visit, test_code, test_name):
-    try:
-        field_data = seg[5][0]
-        if len(field_data) > 4:
-            pdf_base64 = str(field_data[4])
-            file_content = base64.b64decode(pdf_base64)
-
-            filename = f"Result_{test_code}_{timezone.now().timestamp()}.pdf"
-
-            doc = VisitDocument(
-                visit=visit, name=f"Lab Result {test_name}", hidden=False
-            )
-            doc.document.save(filename, ContentFile(file_content))
-            doc.save()
-    except Exception as e:
-        logger.error(f"Error processing document OBX: {e}")
+    test_code = str(obx_3[0][0]).strip()
+    test_name = str(obx_3[0][1]).strip() if len(obx_3[0]) > 1 else test_code
+    return test_code, test_name
 
 
 def _process_nte(seg, visit, last_test_name):
-    try:
-        comment_text = (
-            str(seg[3][0])
-            .replace(r"\.br\\", "\n")
-            .replace(r"\.br\|", "\n")
-            .replace(r"\.br", "\n")
-        )
-        full_text = f"Referenz/Hinweis zu {last_test_name}:\n{comment_text}"
-
-        VisitNote.objects.create(
-            visit=visit, note=f"Lab Note ({last_test_name}):\n{comment_text}"
-        )
-        return full_text
-    except Exception:
+    comment_text = (
+        str(seg[3][0])
+        .replace(r"\.br\\", "\n")
+        .replace(r"\.br\|", "\n")
+        .replace(r"\.br", "\n")
+        .strip()
+    )
+    if not comment_text:
         return None
+
+    VisitNote.objects.create(visit=visit, note=f"Lab Note ({last_test_name}):\n{comment_text}")
+    return comment_text
 
 
 @transaction.atomic
 def parse_hl7_to_db(content):
     h = hl7.parse(content)
-    order = _find_order_from_hl7(h)
+    order_number = _get_order_number(h)
+    if not order_number:
+        raise ValueError("Order number not found in HL7 data")
+
+    order = LabOrder.objects.filter(order_number=order_number).select_related(
+        "visit__case__location"
+    ).first()
 
     if not order:
-        raise ValueError("Visit not found from HL7 data")
+        raise ValueError("Lab order not found from HL7 data")
 
     visit = order.visit
-
-    lab_result = LabResult.objects.create(visit=visit, order=order, conent=content)
-
     laboratory = _get_laboratory(visit)
 
-    results = []
-    full_commentary = []
+    lab_result = LabResult.objects.create(visit=visit, order=order, content=content)
+
+    active_profile = None
     last_test_name = "Allgemein"
+    last_test_result = None
 
     for seg in h:
         seg_id = str(seg[0])
 
-        if seg_id == "OBX":
-            test_code, test_name = _extract_test_info(seg[3])
+        if seg_id == "OBR":
+            profile_code = str(seg[4][0][0]).strip()
+
+            active_profile = TestProfile.objects.filter(
+                laboratory=laboratory, profile_code=profile_code
+            ).select_related("test_kind", "fallback_result_option").first()
+
+        elif seg_id == "OBX":
+            _, test_name = _extract_test_info(seg[3])
             last_test_name = test_name
+            last_test_result = None
 
-            dtype = str(seg[2])
+            if not active_profile:
+                continue
 
-            if dtype in ["NM", "TX", "ST", "CE", "CWE"]:
-                value = str(seg[5][0])
-                status_flag = str(seg[8]) if len(seg) > 8 else ""
+            value = str(seg[5][0]).strip()
 
-                res_data = _process_data_obx(
-                    visit, laboratory, test_code, test_name, value, status_flag
-                )
-                results.append(res_data)
+            if not value:
+                continue
 
-            elif dtype == "ED":
-                _process_ed_obx(seg, visit, test_code, test_name)
+            mapping = ResultMapping.objects.filter(
+                profile=active_profile,
+                result_text=value,
+            ).select_related("result_option").first()
+
+            # Exact mapping preferred, fallback_result_option is used for non-matches.
+            result_option = (
+                mapping.result_option
+                if mapping
+                else active_profile.fallback_result_option
+            )
+            if not result_option:
+                continue
+
+            test, _ = Test.objects.get_or_create(
+                visit=visit,
+                test_kind=active_profile.test_kind,
+            )
+            last_test_result = TestResult.objects.create(
+                test=test,
+                result_option=result_option,
+                note=value,
+            )
 
         elif seg_id == "NTE":
-            comment = _process_nte(seg, visit, last_test_name)
-            if comment:
-                full_commentary.append(comment)
+            comment_text = _process_nte(seg, visit, last_test_name)
+            if comment_text and last_test_result:
+                if last_test_result.note_lab:
+                    last_test_result.note_lab += f"\n{comment_text}"
+                else:
+                    last_test_result.note_lab = comment_text
+                last_test_result.save(update_fields=["note_lab"])
 
+    visit.status = VisitStatus.RESULTS_RECORDED
     order.status = OrderStatus.COMPLETED
     order.save()
 
@@ -280,11 +203,14 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
 
     pid = f"PID|1|{pid_id}|{pid_id}||{last_name}^{first_name}^^^||{dob}|{sex}|||||||||||||||||||||||||||||"
 
-    # ORC
+    # PV1
     client_code = location_to_lab.client_code
+    pv1 = f"PV1|1||{client_code}||||||||||||||||{visit.id}||||||||||||||||||||||||||"
+
+    # ORC
     orc = f"ORC|NW|{full_order_number}|||||||{timestamp}|||{client_code}^^^^^^|"
 
-    segments = [msh, pid, orc]
+    segments = [msh, pid, pv1, orc]
 
     # OBR
     tests = visit.tests.all()

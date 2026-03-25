@@ -12,9 +12,11 @@ from labor.models import (
     Laboratory,
     LabOrder,
     LabOrderCounter,
+    ResultMapping,
     TestProfile,
     LocationToLab,
 )
+from sure.models import TestResultOption
 
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -52,12 +54,38 @@ class LabOrderCounterAdmin(ModelAdmin):
     list_filter = ("nr_kreis",)
 
 
+class ResultMappingInline(TabularInline):
+    model = ResultMapping
+    extra = 0
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "result_option":
+            object_id = None
+            if request.resolver_match:
+                object_id = request.resolver_match.kwargs.get("object_id")
+
+            if object_id:
+                try:
+                    test_kind_id = TestProfile.objects.filter(pk=object_id).values_list(
+                        "test_kind_id", flat=True
+                    ).get()
+                    kwargs["queryset"] = TestResultOption.objects.filter(
+                        test_kind_id=test_kind_id
+                    ).order_by("label")
+                except TestProfile.DoesNotExist:
+                    kwargs["queryset"] = TestResultOption.objects.none()
+            else:
+                kwargs["queryset"] = TestResultOption.objects.none()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 @admin.register(TestProfile)
 class TestProfileAdmin(ModelAdmin):
     list_display = ("profile_name", "test_kind", "laboratory", "profile_code")
     search_fields = ("profile_name", "profile_code", "test_kind__name")
     list_filter = ("laboratory",)
     autocomplete_fields = ("test_kind", "laboratory")
+    inlines = [ResultMappingInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -119,7 +147,7 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet:
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if getattr(request.user, "is_superuser", False):
             return qs
 
         consultant = getattr(request.user, "consultant", None)

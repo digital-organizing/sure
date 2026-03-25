@@ -1,4 +1,4 @@
-from ftplib import FTP_TLS
+from ftplib import FTP_TLS # nosec
 from io import BytesIO
 from django.utils import timezone
 
@@ -65,3 +65,4 @@ def retrieve_results(laboratory: Laboratory):
             except Exception as e:
                 print(f"Error processing result file {filename}: {e}")
                 ftp.rename(filename, f"error/{filename}")
+

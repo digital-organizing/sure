@@ -236,7 +236,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Display locations as a comma-separated list."""
         return ", ".join(location.name for location in obj.locations.all())
 
-    display_locations.short_description = "Locations"  # type: ignore[unresolved-attribute]
+    display_locations.short_description = "Locations"  #ty: ignore[unresolved-attribute]
 
 
 class ConsultantInline(TabularInline):
@@ -421,7 +421,7 @@ class APITokenAdmin(ModelAdmin):
         """Display the full API token header."""
         return f"{obj.name}:{obj.token}"
 
-    header.short_description = "X-Tenant-Token"  # type: ignore[unresolved-attribute]
+    header.short_description = "X-Tenant-Token"  # ty: ignore[unresolved-attribute]
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""

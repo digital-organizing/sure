@@ -49,13 +49,22 @@ async function onVerify2FaSetup(e: { values: Record<string, string>; valid: bool
   }
 
   const authCode = e.values['auth_code']!
-  await verifyOtp(authCode, device.value.id)
-  toast.add({
-    severity: 'success',
-    summary: t('2FA Setup').value,
-    detail: t('2fa-complete'),
-    life: 3000,
-  })
+  const response = await verifyOtp(authCode, device.value.id)
+  if (!response) {
+    toast.add({
+      severity: 'error',
+      summary: t('2fa-setup').value,
+      detail: t('2fa-error'),
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'success',
+      summary: t('2fa-setup').value,
+      detail: t('2fa-complete'),
+      life: 3000,
+    })
+  }
 }
 
 async function onCreateBackupCodes() {
@@ -123,7 +132,7 @@ function onCopyCode() {
     </ul>
   </Form>
 
-  <Form v-if="setupComplete" @submit="onCreateBackupCodes" class="form-col">
+  <Form v-if="setupComplete" @submit="onCreateBackupCodes" class="form-col setup-complete">
     <p>
       {{ t('2fa-setup-complete') }}
     </p>
@@ -139,3 +148,9 @@ function onCopyCode() {
 
   <Button v-if="setupComplete" @click="router.push({ name: 'home' })">{{ t('go-to-home') }}</Button>
 </template>
+
+<style scoped>
+.setup-complete {
+  margin-bottom: 1rem;
+}
+</style>

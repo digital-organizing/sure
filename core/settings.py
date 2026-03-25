@@ -16,6 +16,7 @@ from pathlib import Path
 import sentry_sdk
 from django.urls import reverse_lazy
 from environ import Env
+import kombu
 
 env = Env()
 
@@ -28,12 +29,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env.read_env(os.path.join(BASE_DIR, ".env"))
 
 
-sentry_sdk.init(
-    dsn="https://f23eef026dedb9d752fc45fc961f71a0@sentry.d-o.li/5",
-    send_default_pii=True,
-    traces_sample_rate=1.0,
-    environment=env.str("ENVIORNMENT", default="develop"),
-)
+if env.str("SENTRY_DSN", default=""):
+    sentry_sdk.init(
+        dsn=env.str("SENTRY_DSN"),
+        send_default_pii=env.bool("SENTRY_SEND_DEFAULT_PII", default=True),
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+        environment=env.str("ENVIORNMENT", default="develop"),
+    )
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -84,13 +86,6 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django.contrib.postgres",
     "health_check",
-    "health_check.db",
-    "health_check.cache",
-    "health_check.storage",
-    "health_check.contrib.migrations",
-    "health_check.contrib.celery",
-    "health_check.contrib.redis",
-    "health_check.contrib.psutil",
     "crispy_forms",
     "django_otp",
     "django_otp.plugins.otp_totp",
@@ -283,6 +278,9 @@ CELERY_RESULT_EXTENDED = True
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 24 * 30
 
 
+CELERY_TASK_QUEUES = [kombu.Queue("celery")]
+
+
 HEALTH_CHECK = {
     "DISK_USAGE_MAX": 90,
     "MEMORY_MIN": 100,  # in MB
@@ -423,6 +421,11 @@ UNFOLD = {
                         "link": reverse_lazy(
                             "admin:tenants_informationbanner_changelist"
                         ),
+                    },
+                    {
+                        "title": "Advertisements",
+                        "icon": "announcement",
+                        "link": reverse_lazy("admin:tenants_advertisement_changelist"),
                     },
                     {
                         "title": "Tags",

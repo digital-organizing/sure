@@ -123,6 +123,9 @@ const router = createRouter({
           path: '/setup-2fa',
           name: 'setup-2fa',
           component: Setup2FaView,
+          meta: {
+            doNotRedirectToLogin: true,
+          },
         },
       ],
     },

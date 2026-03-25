@@ -6,9 +6,10 @@ from ninja import Router
 from sure.client_service import strip_id
 from sure.lang import inject_language
 from sure.models import Case
-from tenants.models import Consultant, InformationBanner, Tag
+from tenants.models import Consultant, InformationBanner, Advertisement, Tag
 from tenants.schema import (
     BannerSchema,
+    AdvertisementSchema,
     LocationSchema,
     TagSchema,
     TenantSchema,
@@ -66,3 +67,19 @@ def get_banners(request):
         .distinct()
     )
     return banners
+
+
+@router.get("/advertisements/{case_id}", response=list[AdvertisementSchema], auth=None)
+@inject_language
+def get_advertisements(request, case_id):
+    case = get_object_or_404(Case.objects.all(), pk=strip_id(case_id))
+    now = timezone.now()
+    advertisements = (
+        Advertisement.objects.filter(
+            Q(published_at__lte=now) | Q(published_at__isnull=True),
+            locations__in=[case.location],
+        )
+        .exclude(Q(expires_at__isnull=False) & Q(expires_at__lt=now))
+        .distinct()
+    )
+    return advertisements

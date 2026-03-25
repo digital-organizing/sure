@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import TemplateView
+from health_check.views import HealthCheckView
 
 import core.api
 
@@ -25,7 +26,22 @@ urlpatterns = [
     # path("admin-old/", admin.site.urls),
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/", core.api.api.urls),
-    path("ht/", include("health_check.urls")),
+    path(
+        "ht/llZsFa0L6hgQVAiDDDRI4JOrW3GYYY3FB8GESJOlytc/",
+        HealthCheckView.as_view(
+            checks=[  # optional, default is all but 3rd party checks
+                "health_check.Cache",
+                "health_check.DNS",
+                "health_check.Database",
+                "health_check.Mail",
+                "health_check.Storage",
+                # 3rd party checks
+                "health_check.contrib.psutil.Disk",
+                "health_check.contrib.psutil.Memory",
+                "health_check.contrib.celery.Ping",
+            ],
+        ),
+    ),
     path("sure/", include("sure.urls")),
     path("", TemplateView.as_view(template_name="index.html")),
     path("<path:path>", TemplateView.as_view(template_name="index.html")),

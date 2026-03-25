@@ -256,7 +256,9 @@ class Token(models.Model):
         Contact, on_delete=models.CASCADE, related_name="tokens"
     )
     token = models.CharField(
-        max_length=64, verbose_name=_("Token"), default=generate_token, unique=True
+        max_length=64,
+        verbose_name=_("Token"),
+        default=generate_token,
     )
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))

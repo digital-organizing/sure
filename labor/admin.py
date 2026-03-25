@@ -12,10 +12,12 @@ from labor.models import (
     Laboratory,
     LabOrder,
     LabOrderCounter,
+    OrderStatus,
     ResultMapping,
     TestProfile,
     LocationToLab,
 )
+from labor.tasks import process_order, retrieve_results_task
 from sure.models import TestResultOption
 
 from simple_history.admin import SimpleHistoryAdmin
@@ -39,11 +41,25 @@ class LaboratoryAdmin(ModelAdmin):
 
     autocomplete_fields = ("managers",)
 
+    actions_detail = ["fetch_results"]
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
+
         return qs.filter(managers=request.user)
+
+    @action(description="Fetch results", icon="refresh")
+    def fetch_results(self, request, object_id):
+        laboratory = self.get_object(request, object_id)
+        if not laboratory:
+            self.message_user(request, "Laboratory not found.", level="error")
+            return redirect(reverse("admin:labor_laboratory_change", args=[object_id]))
+
+        retrieve_results_task.delay(laboratory.id)
+        self.message_user(request, "Result retrieval initiated.", level="success")
+        return redirect(reverse("admin:labor_laboratory_change", args=[object_id]))
 
 
 @admin.register(LabOrderCounter)
@@ -124,7 +140,7 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
     search_fields = ("order_number", "visit__case__id")
     list_filter = ("status", "created_at", "visit__case__location")
 
-    actions_detail = ["download_hl7"]
+    actions_detail = ["download_hl7", "upload_hl7"]
 
     @action(description="Download HL7 content", icon="download")
     def download_hl7(self, request, object_id):
@@ -142,6 +158,22 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
                 "Content-Disposition": f'attachment; filename="lab_order_{order.order_number}.hl7"'
             },
         )
+
+    @action(description="Upload", icon="upload")
+    def upload_hl7(self, request, object_id):
+        obj = self.get_object(request, object_id)
+        if not obj:
+            self.message_user(request, "Lab order not found.", level="error")
+            return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
+
+        if obj.status != OrderStatus.GENERATED:
+            self.message_user(
+                request,
+                "Only orders with status 'Generated' can be uploaded.",
+                level="error",
+            )
+            return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
+        process_order(obj.id)
 
     def has_change_permission(self, *args, **kwargs) -> bool:
         return False

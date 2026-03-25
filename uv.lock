@@ -991,14 +991,14 @@ wheels = [
 
 [[package]]
 name = "django-unfold"
-version = "0.86.1"
+version = "0.87.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/91/08/f5b3f80b4e7aa8ebf621614c03c8f25d15b2d185d264f355837210dac48f/django_unfold-0.86.1.tar.gz", hash = "sha256:17d5812beeeb1e32a54ff0cbb08fb6838b6b9686ba5ec58b03a865b9b6ecec46", size = 1117484, upload-time = "2026-03-20T14:20:31.675Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4a/8e/74d2772b46236f062772c23c527cc2b4c33296a8b8306a4856b7e93830f6/django_unfold-0.87.0.tar.gz", hash = "sha256:011048047eea2e789e087660203ca221243885e0c93dbcb47539ff80dde9b76c", size = 1117584, upload-time = "2026-03-25T15:36:10.063Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/71/260f2829a4fc5b590c13b22c13396ffc858f71500806e14c8b7fd9be515b/django_unfold-0.86.1-py3-none-any.whl", hash = "sha256:ecb039f3a7bf3a442e0a53e855f242eccd9ec5bdbf12a4ba04ebb4477ce9e3e9", size = 1239632, upload-time = "2026-03-20T14:20:33.254Z" },
+    { url = "https://files.pythonhosted.org/packages/89/8d/76967f4593eec3422378eccf1ae24279a194afb5b1ab2daaece9f00c5e44/django_unfold-0.87.0-py3-none-any.whl", hash = "sha256:7ac7eac54d2a6f9eab98e3a90bf0696996ef1638a13b053226e5a007f895aadb", size = 1239731, upload-time = "2026-03-25T15:36:08.698Z" },
 ]
 
 [[package]]
@@ -2237,15 +2237,6 @@ wheels = [
 ]
 
 [[package]]
-name = "py"
-version = "1.11.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/98/ff/fec109ceb715d2a6b4c4a85a61af3b40c723a961e8828319fbcb15b868dc/py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719", size = 207796, upload-time = "2021-11-04T17:17:01.377Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/f0/10642828a8dfb741e5f3fbaac830550a518a775c7fff6f04a007259b0548/py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378", size = 98708, upload-time = "2021-11-04T17:17:00.152Z" },
-]
-
-[[package]]
 name = "pycparser"
 version = "3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2646,7 +2637,7 @@ wheels = [
 
 [[package]]
 name = "requests"
-version = "2.32.5"
+version = "2.33.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -2654,9 +2645,9 @@ dependencies = [
     { name = "idna" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/74/b3ff8e6c8446842c3f5c837e9c3dfcfe2018ea6ecef224c710c85ef728f4/requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf", size = 134517, upload-time = "2025-08-18T20:46:02.573Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/34/64/8860370b167a9721e8956ae116825caff829224fbca0ca6e7bf8ddef8430/requests-2.33.0.tar.gz", hash = "sha256:c7ebc5e8b0f21837386ad0e1c8fe8b829fa5f544d8df3b2253bff14ef29d7652", size = 134232, upload-time = "2026-03-25T15:10:41.586Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/db/4254e3eabe8020b458f1a747140d32277ec7a271daf1d235b70dc0b4e6e3/requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6", size = 64738, upload-time = "2025-08-18T20:46:00.542Z" },
+    { url = "https://files.pythonhosted.org/packages/56/5d/c814546c2333ceea4ba42262d8c4d55763003e767fa169adc693bd524478/requests-2.33.0-py3-none-any.whl", hash = "sha256:3324635456fa185245e24865e810cecec7b4caf933d7eb133dcde67d48cee69b", size = 65017, upload-time = "2026-03-25T15:10:40.382Z" },
 ]
 
 [[package]]
@@ -2686,19 +2677,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/95/96/fb6dbfebb524d5601d359a47c78fe7ba1eef90fc4096404aa60c9a906fbb/requirements_parser-0.13.0.tar.gz", hash = "sha256:0843119ca2cb2331de4eb31b10d70462e39ace698fd660a915c247d2301a4418", size = 22630, upload-time = "2025-05-21T13:42:05.464Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bd/60/50fbb6ffb35f733654466f1a90d162bcbea358adc3b0871339254fbc37b2/requirements_parser-0.13.0-py3-none-any.whl", hash = "sha256:2b3173faecf19ec5501971b7222d38f04cb45bb9d87d0ad629ca71e2e62ded14", size = 14782, upload-time = "2025-05-21T13:42:04.007Z" },
-]
-
-[[package]]
-name = "retry"
-version = "0.9.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "decorator" },
-    { name = "py" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/72/75d0b85443fbc8d9f38d08d2b1b67cc184ce35280e4a3813cda2f445f3a4/retry-0.9.2.tar.gz", hash = "sha256:f8bfa8b99b69c4506d6f5bd3b0aabf77f98cdb17f3c9fc3f5ca820033336fba4", size = 6448, upload-time = "2016-05-11T13:58:51.541Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/4b/0d/53aea75710af4528a25ed6837d71d117602b01946b307a3912cb3cfcbcba/retry-0.9.2-py2.py3-none-any.whl", hash = "sha256:ccddf89761fa2c726ab29391837d4327f819ea14d244c232a1d24c67a2f98606", size = 7986, upload-time = "2016-05-11T13:58:39.925Z" },
 ]
 
 [[package]]
@@ -2964,7 +2942,6 @@ dependencies = [
     { name = "polars" },
     { name = "psutil" },
     { name = "psycopg2-binary" },
-    { name = "retry" },
     { name = "sentry-sdk", extra = ["django"] },
     { name = "tenacity" },
     { name = "whitenoise" },
@@ -3034,7 +3011,6 @@ requires-dist = [
     { name = "polars", specifier = ">=1.33.1" },
     { name = "psutil", specifier = ">=7.1.3" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
-    { name = "retry", specifier = ">=0.9.2" },
     { name = "sentry-sdk", extras = ["django"], specifier = ">=2.43.0" },
     { name = "tenacity", specifier = ">=9.1.4" },
     { name = "whitenoise", specifier = ">=6.10.0" },

@@ -232,6 +232,7 @@ STORAGES = {
             "endpoint_url": env.str("S3_ENDPOINT", ""),
             # "custom_domain": env.str("S3_DOMAIN", ""),
             "addressing_style": "auto",
+            "signature_version": "v4",
         },
     },
 }

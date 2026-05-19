@@ -265,7 +265,7 @@ def get_client_answers_export(visit: Visit):
                 }
             else:
                 # Use prefetched options from the question
-                options = {opt.code: opt.text_en for opt in question.options.all()} # type: ignore
+                options = {opt.code: opt.text_en for opt in question.options.all()}  # type: ignore
 
                 answers_en = []
                 for code, text in zip(answer.choices, answer.texts):
@@ -292,8 +292,8 @@ def get_consultant_answers_export(visit: Visit):
     all_answers.sort(key=lambda x: x.created_at, reverse=True)
     answers_map = {}
     for ans in all_answers:
-        if ans.question_id not in answers_map: # type: ignore
-            answers_map[ans.question_id] = ans # type: ignore
+        if ans.question_id not in answers_map:  # type: ignore
+            answers_map[ans.question_id] = ans  # type: ignore
 
     output = {}
     for question in visit.questionnaire.consultant_questions.all():

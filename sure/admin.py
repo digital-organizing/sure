@@ -181,7 +181,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
         ),
     )
 
-    @action(description="Generate PDFs")
+    @action(description="Generate PDFs")  # ty:ignore[call-non-callable]
     def generate_pdf_action(self, request, object_id):
         generate_pdf_task.delay(object_id)
 
@@ -270,7 +270,7 @@ class VisitExportAdmin(ModelAdmin):
         for export in queryset.values_list("id", flat=True):
             create_export.delay(export.pk)
 
-    @action(description="Start Export")
+    @action(description="Start Export")  # ty:ignore[call-non-callable]
     def start_export_obj(self, request, object_id):
         create_export.delay(object_id)
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))

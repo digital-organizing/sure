@@ -174,6 +174,8 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
             )
             return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
         process_order(obj.id)
+        self.message_user(request, "Lab order upload started.", level="success")
+        return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
 
     def has_change_permission(self, *args, **kwargs) -> bool:
         return False

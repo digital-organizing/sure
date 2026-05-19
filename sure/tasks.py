@@ -14,7 +14,7 @@ from sure.export import generate_pdfs
 from sure.models import Questionnaire
 from sure.reminder import send_reminders
 
-from .models import ExportStatus, Visit, VisitExport, VisitStatus
+from .models import ExportStatus, Visit, VisitExport, VisitStatus, TestKind
 
 
 @shared_task
@@ -72,11 +72,36 @@ def create_export(export_id: int) -> None:
     export.total_visits = queryset.count()
     export.save(update_fields=["status", "total_visits"])
 
-    records = []
+    # Optimization: prefetch all needed relations
+    queryset = (
+        queryset.select_related(
+            "case__location__tenant",
+            "questionnaire",
+            "case__connection",
+        )
+        .prefetch_related(
+            "questionnaire__sections__client_questions__options",
+            "questionnaire__sections__client_questions__show_for_options__question",
+            "questionnaire__consultant_questions__options",
+            "client_answers",
+            "consultant_answers",
+            "tests__results__result_option",
+        )
+        .order_by("created_at")
+    )
 
-    for visit in queryset:
-        records.append(get_export_dict(visit))
-        export.progress = int(len(records) / export.total_visits * 100)
+    test_kinds = list(TestKind.objects.all())
+    records = []
+    total = export.total_visits
+
+    # Process in batches to save memory while keeping prefetch benefits
+    BATCH_SIZE = 100
+    for i in range(0, total, BATCH_SIZE):
+        batch = list(queryset[i : i + BATCH_SIZE])
+        for visit in batch:
+            records.append(get_export_dict(visit, test_kinds=test_kinds))
+
+        export.progress = int(len(records) / total * 100) if total > 0 else 100
         export.save(update_fields=["progress"])
 
     df = pl.DataFrame(records, infer_schema_length=None)

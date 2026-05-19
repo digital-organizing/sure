@@ -27,7 +27,7 @@ class TextAdmin(ModelAdmin, TabbedTranslationAdmin):
 
     list_editable = ("content",)
 
-    @action(description="Export as Excel")
+    @action(description="Export as Excel")  # ty:ignore[call-non-callable]
     def export_as_excel(self, request: HttpRequest, queryset):
         records = queryset.values(
             "slug",
@@ -48,11 +48,11 @@ class TextAdmin(ModelAdmin, TabbedTranslationAdmin):
         response["Content-Disposition"] = "attachment; filename=texts.xlsx"
         return response
 
-    @action(description="Export all texts", icon="download")
+    @action(description="Export all texts", icon="download")  # ty:ignore[call-non-callable]
     def export_all_texts(self, request: HttpRequest):
         return self.export_as_excel(request, self.get_queryset(request))
 
-    @action(description="Import Texts", icon="upload")
+    @action(description="Import Texts", icon="upload")  # ty:ignore[call-non-callable]
     def import_texts(self, request: HttpRequest):
         return redirect(reverse("admin:texts_import"))
 

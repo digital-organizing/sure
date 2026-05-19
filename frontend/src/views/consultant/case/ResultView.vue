@@ -20,6 +20,7 @@ const { testCategories } = useTests()
 
 const results = ref<{ [id: string]: string | null }>({})
 const notes = ref<{ [id: string]: string }>({})
+const lab_notes = ref<{ [id: string]: string }>({})
 const freeFormResults = ref<{ [id: string]: string }>({})
 const showError = ref(false)
 
@@ -37,6 +38,7 @@ onMounted(() => {
       )
       results.value[test.testKind.number] = option?.label || null
       notes.value[test.testKind.number] = latest.note || ''
+      lab_notes.value[test.testKind.number] = latest.note_lab || ''
     })
     freeFormTests.value.forEach((test) => {
       freeFormResults.value[test.id!] = test.result || ''
@@ -192,6 +194,9 @@ function onBack() {
           />
           <label :for="'' + option.id!">{{ option.label }}</label>
         </div>
+      </div>
+      <div v-if="lab_notes[test.testKind.number]" class="note-lab">
+        {{ lab_notes[test.testKind.number] }}
       </div>
     </div>
   </div>

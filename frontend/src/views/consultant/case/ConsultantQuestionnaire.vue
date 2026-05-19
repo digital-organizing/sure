@@ -80,7 +80,7 @@ function onBack() {
       </div>
       <div>
         <h3>
-          <span class="nr">{{ nrQuestions + 2 }}</span> {{ t('tags') }}
+          <span class="nr">{{ nrQuestions + 1 }}</span> {{ t('tags') }}
         </h3>
         <div class="tag-boxes question">
           <div class="option-item" v-for="tag in tags" :key="tag.id!">

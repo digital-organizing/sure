@@ -65,6 +65,19 @@ from sure.models import (
     VisitExportDownload,
 )
 from sure.tasks import create_export, generate_pdf_task
+from labor.models import TestProfile
+
+
+class TestProfileInline(StackedInline):
+    model = TestProfile
+    extra = 0
+    autocomplete_fields = ("laboratory",)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(laboratory__managers=request.user)
 
 
 @admin.register(
@@ -168,7 +181,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
         ),
     )
 
-    @action(description="Generate PDFs")
+    @action(description="Generate PDFs")  # ty:ignore[call-non-callable]
     def generate_pdf_action(self, request, object_id):
         generate_pdf_task.delay(object_id)
 
@@ -257,7 +270,7 @@ class VisitExportAdmin(ModelAdmin):
         for export in queryset.values_list("id", flat=True):
             create_export.delay(export.pk)
 
-    @action(description="Start Export")
+    @action(description="Start Export")  # ty:ignore[call-non-callable]
     def start_export_obj(self, request, object_id):
         create_export.delay(object_id)
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
@@ -304,7 +317,7 @@ class TestKindAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     list_filter = ("category",)
     search_fields = ("name", "name_en")
     ordering = ("name",)
-    inlines = [TestOptionInline]
+    inlines = [TestOptionInline, TestProfileInline]
 
 
 class TestKindInline(TabularInline, TranslationTabularInline):

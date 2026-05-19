@@ -20,6 +20,7 @@ from sesame.utils import get_user
 import sure.api
 import tenants.api
 import texts.api
+import labor.api
 from core.auth import auth_2fa, auth_2fa_or_trusted
 
 api = NinjaAPI(
@@ -32,6 +33,7 @@ api = NinjaAPI(
 )
 
 api.add_router("/sure", sure.api.router)
+api.add_router("/labor", labor.api.router)
 api.add_router("/tenants", tenants.api.router)
 api.add_router("/texts", texts.api.router)
 

@@ -29,6 +29,13 @@ from tenants.models import (
     Tenant,
 )
 from tenants.views import ConsultantInviteView
+from labor.models import LocationToLab
+
+
+class LocationToLabInline(TabularInline):
+    model = LocationToLab
+    extra = 0
+    autocomplete_fields = ("labor",)
 
 
 class LocationInline(TabularInline):
@@ -50,6 +57,8 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
     autocomplete_fields = ("tenant",)
     filter_horizontal = ("excluded_questions", "included_questions")
+
+    inlines = [LocationToLabInline]
 
     # Section for excluded and included questions with title ('visible questions')
     fieldsets = (
@@ -131,7 +140,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
 
-    @action(description="Reset password")
+    @action(description="Reset password")  # ty:ignore[call-non-callable]
     def reset_password_detail(self, request: HttpRequest, object_id: int):
         """Admin action to reset password for a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
@@ -141,7 +150,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         send_reset_mail(request, consultant)
         return redirect("admin:tenants_consultant_change", object_id)
 
-    @action(description="Reset 2FA")
+    @action(description="Reset 2FA")  # ty:ignore[call-non-callable]
     def reset_2fa_detail(self, request: HttpRequest, object_id: int):
         """Admin action to reset 2FA for a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
@@ -151,7 +160,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         send_2fa_reset_mail(request, user)
         return redirect("admin:tenants_consultant_change", object_id)
 
-    @action(description="Deactivate consultant")
+    @action(description="Deactivate consultant")  # ty:ignore[call-non-callable]
     def deactivate_detail(self, request: HttpRequest, object_id: int):
         """Admin action to deactivate a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
@@ -227,7 +236,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
         """Display locations as a comma-separated list."""
         return ", ".join(location.name for location in obj.locations.all())
 
-    display_locations.short_description = "Locations"  # type: ignore[unresolved-attribute]
+    display_locations.short_description = "Locations"  # ty: ignore[unresolved-attribute]
 
 
 class ConsultantInline(TabularInline):
@@ -283,7 +292,7 @@ class TagAdmin(ModelAdmin):
 
     autocomplete_fields = ("owner", "available_in")
 
-    @action(description="Clear locations")
+    @action(description="Clear locations")  # ty:ignore[call-non-callable]
     def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
         """Admin action to clear locations for selected tags."""
         tag = self.get_queryset(request).get(pk=object_id)
@@ -291,7 +300,7 @@ class TagAdmin(ModelAdmin):
 
         return redirect("admin:tenants_tag_change", object_id)
 
-    @action(description="Select all locations")
+    @action(description="Select all locations")  # ty:ignore[call-non-callable]
     def select_all_locations(
         self, request: HttpRequest, object_id: int
     ) -> HttpResponse:
@@ -327,7 +336,7 @@ class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
 
     autocomplete_fields = ("tenant", "locations")
 
-    @action(description="Clear locations")
+    @action(description="Clear locations")  # ty:ignore[call-non-callable]
     def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
         """Admin action to clear locations for selected information banners."""
         banner = self.get_queryset(request).get(pk=object_id)
@@ -335,7 +344,7 @@ class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
 
         return redirect("admin:tenants_informationbanner_change", object_id)
 
-    @action(description="Select all locations")
+    @action(description="Select all locations")  # ty:ignore[call-non-callable]
     def select_all_locations(
         self, request: HttpRequest, object_id: int
     ) -> HttpResponse:
@@ -367,7 +376,7 @@ class AdvertisementAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin)
 
     autocomplete_fields = ("tenant", "locations")
 
-    @action(description="Clear locations")
+    @action(description="Clear locations")  # ty:ignore[call-non-callable]
     def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
         """Admin action to clear locations for selected advertisements."""
         advertisement = self.get_queryset(request).get(pk=object_id)
@@ -375,7 +384,7 @@ class AdvertisementAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin)
 
         return redirect("admin:tenants_advertisement_change", object_id)
 
-    @action(description="Select all locations")
+    @action(description="Select all locations")  # ty:ignore[call-non-callable]
     def select_all_locations(
         self, request: HttpRequest, object_id: int
     ) -> HttpResponse:
@@ -412,7 +421,7 @@ class APITokenAdmin(ModelAdmin):
         """Display the full API token header."""
         return f"{obj.name}:{obj.token}"
 
-    header.short_description = "X-Tenant-Token"  # type: ignore[unresolved-attribute]
+    header.short_description = "X-Tenant-Token"  # ty: ignore[unresolved-attribute]
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { sureApiGetCaseFreeFormTests, sureApiGetCaseTests } from '@/client'
+import LabComponent from '@/components/LabComponent.vue'
 import { useCase } from '@/composables/useCase'
+import { useLab } from '@/composables/useLab'
 import { useTests } from '@/composables/useTests'
 import { useTexts } from '@/composables/useTexts'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{ caseId: string }>()
@@ -11,16 +13,34 @@ const router = useRouter()
 const { getText: t, formatText } = useTexts()
 
 const { testKinds, testCategories, testBundles } = useTests()
-const { updateCaseTests, error } = useCase()
+const { visit, updateCaseTests, error } = useCase()
+const { fetchLabInfo, labInfo } = useLab()
 
 const selectedTests = ref<number[]>([])
+let remoteTests = [] as number[]
 
 const freeFormTests = ref<string[]>([])
+
+const labComponentRef = ref<InstanceType<typeof LabComponent> | null>(null)
+
+const testsChanged = computed(() => {
+  if (selectedTests.value.length !== remoteTests.length) {
+    return true
+  }
+  const selectedSet = new Set(selectedTests.value)
+  for (const testId of remoteTests) {
+    if (!selectedSet.has(testId)) {
+      return true
+    }
+  }
+  return false
+})
 
 onMounted(() => {
   sureApiGetCaseTests({ path: { pk: props.caseId } }).then((response) => {
     if (Array.isArray(response.data)) {
       selectedTests.value = response.data.map((test) => test.test_kind.id!)
+      remoteTests = response.data.map((test) => test.test_kind.id!)
     }
   })
   sureApiGetCaseFreeFormTests({ path: { pk: props.caseId } }).then((response) => {
@@ -53,7 +73,25 @@ function selectBundle(id: number) {
 }
 
 async function submitSelectedTests() {
+  const stateBefore = visit.value?.status || null
   await updateCaseTests([...selectedTests.value], [...freeFormTests.value])
+
+  await fetchLabInfo(props.caseId)
+  if (labInfo.value && stateBefore !== 'tests_recorded') {
+    if (
+      selectedTests.value.some((testId) =>
+        labInfo.value!.profiles.some((profile) => profile.test_kind === testId),
+      ) ||
+      freeFormTests.value.length > 0
+    ) {
+      console.log('Tests can be ordered from lab:', labInfo.value)
+      if (labComponentRef.value) {
+        labComponentRef.value.openDialog()
+      }
+      return
+    }
+  }
+
   router.push({ name: 'consultant-case-summary', params: { caseId: props.caseId } })
 }
 </script>
@@ -122,15 +160,19 @@ async function submitSelectedTests() {
       severity="secondary"
       @click="router.push({ name: 'consultant-questionnaire', params: { caseId: props.caseId } })"
     />
-    <Button
-      :label="
-        formatText('save-selected-tests', [
-          { key: 'count', value: String(selectedTests.length + freeFormTests.length) },
-        ]).value
-      "
-      class="mt-4"
-      @click="submitSelectedTests"
-    />
+    <div class="actions">
+      <Button
+        :label="
+          formatText('save-selected-tests', [
+            { key: 'count', value: String(selectedTests.length + freeFormTests.length) },
+          ]).value
+        "
+        class="mt-4"
+        @click="submitSelectedTests"
+      />
+
+      <LabComponent ref="labComponentRef" :dirty="testsChanged" />
+    </div>
   </section>
 </template>
 
@@ -143,5 +185,9 @@ async function submitSelectedTests() {
 }
 .free-form-item {
   margin-bottom: 0.5rem;
+}
+.actions {
+  display: flex;
+  gap: 1rem;
 }
 </style>

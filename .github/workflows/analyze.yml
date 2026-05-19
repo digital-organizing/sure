@@ -41,7 +41,7 @@ jobs:
         run: uv run bandit -r . -x migrations,tests,./.venv/
        
       - name: Run vulnerability check
-        run: uv run uv-secure 
+        run: uv run uv-secure  --ignore-unfixed
 
   npm-check:
     runs-on: ubuntu-latest

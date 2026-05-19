@@ -1,4 +1,7 @@
 {
     "editor.formatOnSave": false,
-    "editor.formatOnType": false
+    "editor.formatOnType": false,
+    "chat.tools.terminal.autoApprove": {
+        "/workspaces/sure/.venv/bin/python": true
+    }
 }

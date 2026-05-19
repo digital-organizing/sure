@@ -178,7 +178,7 @@ def get_case_tests_with_latest_results(
     return visit_with_latest.tests
 
 
-def get_export_dict(visit: Visit):
+def get_export_dict(visit: Visit, test_kinds=None):
     record = {
         "id": visit.pk,
         "created_at": make_naive(visit.created_at),
@@ -188,6 +188,7 @@ def get_export_dict(visit: Visit):
         "location": visit.case.location.name,
         "tenant": visit.case.location.tenant.name,
         "questionnaire": visit.questionnaire.name,
+        "language": visit.case.language,
     }
 
     if hasattr(visit.case, "connection"):
@@ -195,17 +196,20 @@ def get_export_dict(visit: Visit):
 
     record.update(get_client_answers_export(visit))
     record.update(get_consultant_answers_export(visit))
-    record.update(get_test_results_export(visit))
+    record.update(get_test_results_export(visit, test_kinds=test_kinds))
 
     return record
 
 
 def show_question(question, answers):
-    if not question.show_for_options.exists():
+    # Use prefetched show_for_options if available to avoid .exists() query
+    show_for_options = question.show_for_options.all()
+    if not show_for_options:
         return True
 
-    for option in question.show_for_options.all():
+    for option in show_for_options:
         option: ClientOption = option
+        # answer record in answers dict contains 'codes' list
         answer = answers.get(option.question.code, None)
         if not answer:
             continue
@@ -236,7 +240,16 @@ def get_answer_texts(texts):
 
 
 def get_client_answers_export(visit: Visit):
+    # Pre-group answers by question_id to avoid N queries per visit
+    all_answers = list(visit.client_answers.all())
+    all_answers.sort(key=lambda x: x.created_at, reverse=True)
+    answers_map = {}
+    for ans in all_answers:
+        if ans.question_id not in answers_map:
+            answers_map[ans.question_id] = ans
+
     answers = {}
+
     for section in visit.questionnaire.sections.all():
         for question in section.client_questions.all():
             question: ClientQuestion = question
@@ -244,20 +257,26 @@ def get_client_answers_export(visit: Visit):
             if not show_question(question, answers):
                 continue
 
-            answer_qs = ClientAnswer.objects.filter(
-                visit=visit, question=question
-            ).order_by("-created_at")
-            if not answer_qs.exists():
+            answer = answers_map.get(question.pk)
+            if not answer:
                 answer_record = {
                     "codes": [99],
                     "texts": ["missing"],
                 }
             else:
-                answer = answer_qs[0]
+                # Use prefetched options from the question
+                options = {opt.code: opt.text_en for opt in question.options.all()}  # type: ignore
+
+                answers_en = []
+                for code, text in zip(answer.choices, answer.texts):
+                    text_en = options.get(str(code), text)
+                    answers_en.append(text_en)
+
                 answer_record = {
                     "codes": answer.choices,
-                    "texts": answer.texts,
+                    "texts": answers_en,
                 }
+
             answers[question.code] = answer_record
 
     output = {}
@@ -268,20 +287,25 @@ def get_client_answers_export(visit: Visit):
 
 
 def get_consultant_answers_export(visit: Visit):
+    # Pre-group answers by question_id
+    all_answers = list(visit.consultant_answers.all())
+    all_answers.sort(key=lambda x: x.created_at, reverse=True)
+    answers_map = {}
+    for ans in all_answers:
+        if ans.question_id not in answers_map:  # type: ignore
+            answers_map[ans.question_id] = ans  # type: ignore
+
     output = {}
     for question in visit.questionnaire.consultant_questions.all():
         question: ConsultantQuestion = question
 
-        answer_qs = ConsultantAnswer.objects.filter(
-            visit=visit, question=question
-        ).order_by("-created_at")
-        if not answer_qs.exists():
+        answer = answers_map.get(question.pk)
+        if not answer:
             answer_record = {
                 "codes": [99],
                 "texts": ["missing"],
             }
         else:
-            answer = answer_qs[0]
             answer_record = {
                 "codes": answer.choices,
                 "texts": answer.texts,
@@ -291,22 +315,32 @@ def get_consultant_answers_export(visit: Visit):
     return output
 
 
-def get_test_results_export(visit: Visit):
+def get_test_results_export(visit: Visit, test_kinds=None):
     output = {}
 
-    for test_kind in TestKind.objects.all():
+    if test_kinds is None:
+        test_kinds = TestKind.objects.all()
+
+    # Pre-map visit tests for faster lookup
+    visit_tests = {t.test_kind.pk: t for t in visit.tests.all()}
+
+    for test_kind in test_kinds:
         test_kind: TestKind = test_kind
 
         output[f"{test_kind.name}"] = None
         if test_kind.interpretation_needed:
             output[f"{test_kind.name} [{test_kind.note}]"] = None
 
-        test = visit.tests.filter(test_kind=test_kind).first()
+        test = visit_tests.get(test_kind.pk)
 
         if not test:
             continue
 
-        result = test.results.order_by("-created_at").first()
+        # Use prefetched results, ordered by created_at desc
+        results = list(test.results.all())
+        results.sort(key=lambda x: x.created_at, reverse=True)
+        result = results[0] if results else None
+
         if not result:
             output[f"{test_kind.name}"] = "no_result"
             continue

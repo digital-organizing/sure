@@ -3,9 +3,11 @@ import os
 
 import magic
 from django.core.exceptions import ValidationError
+from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 
 
+@deconstructible
 class MimeTypeValidator:
     def __init__(self, allowed_mimetypes):
         self.allowed_mimetypes = allowed_mimetypes

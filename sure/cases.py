@@ -269,7 +269,7 @@ def get_client_answers_export(visit: Visit):
 
                 answers_en = []
                 for code, text in zip(answer.choices, answer.texts):
-                    text_en = options.get(str(code), text)
+                    text_en = options.get(str(code), text) or text
                     answers_en.append(text_en)
 
                 answer_record = {
@@ -306,9 +306,17 @@ def get_consultant_answers_export(visit: Visit):
                 "texts": ["missing"],
             }
         else:
+            # Use prefetched options from the question
+            options = {opt.code: opt.text_en for opt in question.options.all()}  # type: ignore
+
+            answers_en = []
+            for code, text in zip(answer.choices, answer.texts):
+                text_en = options.get(str(code), text) or text
+                answers_en.append(text_en)
+
             answer_record = {
                 "codes": answer.choices,
-                "texts": answer.texts,
+                "texts": answers_en,
             }
         output[f"{question.code}_codes"] = get_answer_codes(answer_record["codes"])
         output[f"{question.code}_texts"] = get_answer_texts(answer_record["texts"])

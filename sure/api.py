@@ -810,11 +810,15 @@ def list_client_cases(request, pk: str):
     ).order_by("-created_at")
 
 
-@router.get("/questionnaires/", response=list[QuestionnaireListingSchema], auth=None)
+@router.get("/questionnaires/", response=list[QuestionnaireListingSchema])
 @inject_language
 def list_questionnaires(request):  # pylint: disable=unused-argument
     """List all questionnaires."""
-    questionnaires = Questionnaire.objects.all().only("id", "name")
+    consultant = get_object_or_404(Consultant, user=request.user)
+    
+    questionnaires = Questionnaire.objects.filter(
+        locations__in=consultant.locations.all()
+    ).order_by("order").only("id", "name")
     return questionnaires
 
 

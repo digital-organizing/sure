@@ -159,6 +159,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name", "name_en")
     inlines = [SectionInline, ConsultantQuestionInline]
     ordering = ("name",)
+    filter_vertical = ("locations",)
 
     readonly_fields = ("client_pdf", "consultant_pdf")
 
@@ -167,7 +168,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     fieldsets = (
         (
             "Questionnaire Information",
-            {"classes": ["tab"], "fields": ("name",)},
+            {"classes": ["tab"], "fields": ("name", "order", "locations")},
         ),
         (
             "Questionnaire PDFs",
@@ -268,11 +269,11 @@ class VisitExportAdmin(ModelAdmin):
     @action
     def start_export(self, request: HttpRequest, queryset):
         for export in queryset.values_list("id", flat=True):
-            create_export.delay(export.pk)
+            create_export(export.pk)
 
     @action(description="Start Export")  # ty:ignore[call-non-callable]
     def start_export_obj(self, request, object_id):
-        create_export.delay(object_id)
+        create_export(object_id)
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:

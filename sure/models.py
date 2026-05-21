@@ -281,6 +281,18 @@ class Questionnaire(models.Model):
     name = models.CharField(
         max_length=255, verbose_name=_("Name"), help_text=_("Name of the questionnaire")
     )
+    
+    order = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_("Order"),
+        help_text=_("Order of the questionnaire in the list of questionnaires"),
+    )
+
+    locations = models.ManyToManyField(
+        "tenants.Location",
+        related_name="questionnaires",
+        verbose_name=_("Locations"),
+    )
 
     sections: models.QuerySet["Section"]
     consultant_questions: models.QuerySet["ConsultantQuestion"]
@@ -312,7 +324,7 @@ class Questionnaire(models.Model):
     class Meta:
         verbose_name = _("Questionnaire")
         verbose_name_plural = _("Questionnaires")
-        ordering = ["name"]
+        ordering = ["order"]
 
     def __str__(self):
         return f"{self.name}"

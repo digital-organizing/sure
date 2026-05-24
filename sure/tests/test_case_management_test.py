@@ -245,19 +245,20 @@ class CaseManagementTest(TestCase):
 
     def test_generate_case_batch_view(self):
         from django.urls import reverse
-        from sure.models import (
-            Questionnaire,
-            TestKind,
-            TestCategory,
-            Visit,
-            VisitStatus,
-        )
+        from sure.models import Questionnaire, TestKind, TestCategory, Visit, VisitStatus
+        from django_otp.plugins.otp_totp.models import TOTPDevice
 
         # Make user a superuser to access the view easily
         self.user.is_superuser = True
         self.user.is_staff = True
         self.user.save()
+
+        # Bypass 2FA by creating a verified device and setting it in the session
+        device = TOTPDevice.objects.create(user=self.user, name="default", confirmed=True)
         self.client.force_login(self.user)
+        session = self.client.session
+        session["otp_device_id"] = device.persistent_id
+        session.save()
 
         questionnaire = Questionnaire.objects.create(name="Batch Q")
         questionnaire.locations.add(self.location)
@@ -276,6 +277,12 @@ class CaseManagementTest(TestCase):
         }
 
         response = self.client.post(url, data)
+        if response.status_code == 200 and response.get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+            if "form" in response.context:
+                print("FORM VALIDATION ERRORS:", response.context["form"].errors.as_data())
+            else:
+                print("RESPONSE CONTENT:", response.content[:500])
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response["Content-Type"],

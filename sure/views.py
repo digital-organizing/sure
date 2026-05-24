@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from .models import VisitExport, VisitExportDownload
+from .models import Test, VisitExport, VisitExportDownload
 from django.core.exceptions import PermissionDenied
 from core.auth import require_2fa_or_trusted
 
@@ -56,6 +56,7 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
         questionnaire = form.cleaned_data["questionnaire"]
         tag = form.cleaned_data["tag"]
         quantity = form.cleaned_data["quantity"]
+        selected_tests = form.cleaned_data.get("tests", [])
 
         records = []
         with transaction.atomic():
@@ -69,6 +70,14 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
                 visit = create_visit(case, questionnaire)
                 visit.tags = [tag]
                 visit.save(update_fields=["tags"])
+
+                # Create selected tests for this visit
+                if selected_tests:
+                    tests_to_create = [
+                        Test(visit=visit, test_kind=test_kind, user=self.request.user)
+                        for test_kind in selected_tests
+                    ]
+                    Test.objects.bulk_create(tests_to_create)
 
                 visit.logs.create(
                     action="Case created (batch)",

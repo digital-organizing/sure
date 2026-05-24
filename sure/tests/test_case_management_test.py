@@ -242,3 +242,55 @@ class CaseManagementTest(TestCase):
 
         self.assertTrue(location_can_view_case([new_location.pk], case1))
         self.assertTrue(location_can_view_case([self.location.pk], case2))
+
+    def test_generate_case_batch_view(self):
+        from django.urls import reverse
+        from sure.models import (
+            Questionnaire,
+            TestKind,
+            TestCategory,
+            Visit,
+            VisitStatus,
+        )
+
+        # Make user a superuser to access the view easily
+        self.user.is_superuser = True
+        self.user.is_staff = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        questionnaire = Questionnaire.objects.create(name="Batch Q")
+        questionnaire.locations.add(self.location)
+
+        category = TestCategory.objects.create(number=1, name="Cat")
+        test_kind1 = TestKind.objects.create(category=category, number=1, name="Test 1")
+        test_kind2 = TestKind.objects.create(category=category, number=2, name="Test 2")
+
+        url = reverse("admin:sure_visit_generate_batch_view")
+        data = {
+            "location": self.location.pk,
+            "questionnaire": questionnaire.pk,
+            "tag": "batch-test-123",
+            "quantity": 3,
+            "tests": [test_kind1.pk, test_kind2.pk],
+        }
+
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        # Verify 3 visits were created
+        visits = Visit.objects.filter(tags__contains=["batch-test-123"])
+        self.assertEqual(visits.count(), 3)
+
+        for visit in visits:
+            # Status must stay CREATED
+            self.assertEqual(visit.status, VisitStatus.CREATED)
+            # Associated tests count must be 2
+            self.assertEqual(visit.tests.count(), 2)
+            test_kinds = set(visit.tests.values_list("test_kind_id", flat=True))
+            self.assertIn(test_kind1.pk, test_kinds)
+            self.assertIn(test_kind2.pk, test_kinds)

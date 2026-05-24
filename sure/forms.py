@@ -4,7 +4,7 @@ from django import forms
 from unfold import widgets
 from unfold.layout import Submit
 
-from sure.models import Questionnaire, VisitStatus
+from sure.models import Questionnaire, VisitStatus, TestKind
 from tenants.models import Location, Tag
 
 
@@ -124,6 +124,17 @@ class GenerateCaseBatchForm(forms.Form):
         help_text="Number of cases to generate (max 1000).",
         widget=widgets.UnfoldAdminTextInputWidget(),
     )
+    tests = forms.ModelMultipleChoiceField(
+        queryset=TestKind.objects.all(),
+        required=False,
+        label="Pre-selected Tests",
+        help_text="Tests to automatically associate with the generated cases.",
+        widget=widgets.UnfoldAdminSelect2MultipleWidget(
+            {
+                "class": "w-full",
+            }
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop("request")
@@ -156,6 +167,12 @@ class GenerateCaseBatchForm(forms.Form):
                     "tag",
                     "quantity",
                     css_class="w-1/2",
+                ),
+            ),
+            Row(
+                Column(
+                    "tests",
+                    css_class="w-full",
                 ),
             ),
             Row(

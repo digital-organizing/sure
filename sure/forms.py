@@ -130,14 +130,14 @@ class GenerateCaseBatchForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if self.request.user.is_superuser:
-            self.fields["location"].queryset = Location.objects.all()
-            self.fields["questionnaire"].queryset = Questionnaire.objects.all()
+            self.fields["location"].queryset = Location.objects.all()  # ty:ignore[unresolved-attribute]
+            self.fields["questionnaire"].queryset = Questionnaire.objects.all()  # ty:ignore[unresolved-attribute]
         else:
             tenants = self.request.user.tenants.all()
-            self.fields["location"].queryset = Location.objects.filter(
+            self.fields["location"].queryset = Location.objects.filter(  # ty:ignore[unresolved-attribute]
                 tenant__in=tenants
             )
-            self.fields["questionnaire"].queryset = Questionnaire.objects.filter(
+            self.fields["questionnaire"].queryset = Questionnaire.objects.filter(  # ty:ignore[unresolved-attribute]
                 locations__tenant__in=tenants
             ).distinct()
 
@@ -168,11 +168,12 @@ class GenerateCaseBatchForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        location = cleaned_data.get("location")
-        questionnaire = cleaned_data.get("questionnaire")
-        if location and questionnaire:
-            if not questionnaire.locations.filter(pk=location.pk).exists():
-                raise forms.ValidationError(
-                    "The selected questionnaire is not available at the selected location."
-                )
+        if cleaned_data is not None:
+            location = cleaned_data.get("location")
+            questionnaire = cleaned_data.get("questionnaire")
+            if location and questionnaire:
+                if not questionnaire.locations.filter(pk=location.pk).exists():
+                    raise forms.ValidationError(
+                        "The selected questionnaire is not available at the selected location."
+                    )
         return cleaned_data

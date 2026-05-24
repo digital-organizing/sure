@@ -609,7 +609,7 @@ class VisitAdmin(ModelAdmin):
     def case_human_id(self, obj: Visit) -> str:
         return obj.case.human_id
 
-    case_human_id.short_description = "Case ID"
+    case_human_id.short_description = "Case ID"  # ty:ignore[unresolved-attribute]
 
     def case_location(self, obj: Visit) -> str:
         return obj.case.location.name
@@ -617,22 +617,22 @@ class VisitAdmin(ModelAdmin):
     def case_external_id(self, obj: Visit) -> str:
         return obj.case.external_id
 
-    case_external_id.short_description = "Internal ID"
+    case_external_id.short_description = "Internal ID"  # ty:ignore[unresolved-attribute]
 
     def display_tags(self, obj: Visit) -> str:
         return ", ".join(obj.tags) if obj.tags else ""
 
-    display_tags.short_description = "Tags"
+    display_tags.short_description = "Tags"  # ty:ignore[unresolved-attribute]
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Visit]:
         queryset = super().get_queryset(request)
         if getattr(request.user, "is_superuser", False):
             return queryset
         # If staff but not superuser, they must be a tenant admin
-        tenants = request.user.tenants.all()
+        tenants = request.user.tenants.all()  # ty:ignore[unresolved-attribute]
         return queryset.filter(case__location__tenant__in=tenants)
 
-    @action(description="Generate Batch", icon="layers")
+    @action(description="Generate Batch", icon="layers")  # ty:ignore[call-non-callable]
     def generate_batch(self, request: HttpRequest):
         return redirect(reverse("admin:sure_visit_generate_batch_view"))
 
@@ -646,7 +646,7 @@ class VisitAdmin(ModelAdmin):
             ),
         ] + super().get_urls()
 
-    @action(description="Cancel cases")
+    @action(description="Cancel cases")  # ty:ignore[call-non-callable]
     def cancel_cases(self, request: HttpRequest, queryset: models.QuerySet[Visit]):
         for visit in queryset:
             visit.status = VisitStatus.CANCELED

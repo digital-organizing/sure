@@ -281,7 +281,7 @@ class Questionnaire(models.Model):
     name = models.CharField(
         max_length=255, verbose_name=_("Name"), help_text=_("Name of the questionnaire")
     )
-    
+
     order = models.PositiveIntegerField(
         default=1,
         verbose_name=_("Order"),

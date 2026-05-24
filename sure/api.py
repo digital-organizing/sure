@@ -815,10 +815,12 @@ def list_client_cases(request, pk: str):
 def list_questionnaires(request):  # pylint: disable=unused-argument
     """List all questionnaires."""
     consultant = get_object_or_404(Consultant, user=request.user)
-    
-    questionnaires = Questionnaire.objects.filter(
-        locations__in=consultant.locations.all()
-    ).order_by("order").only("id", "name")
+
+    questionnaires = (
+        Questionnaire.objects.filter(locations__in=consultant.locations.all())
+        .order_by("order")
+        .only("id", "name")
+    )
     return questionnaires
 
 

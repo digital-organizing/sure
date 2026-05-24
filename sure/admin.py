@@ -48,7 +48,12 @@ from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
 from unfold.components import BaseComponent, register_component
 from unfold.decorators import action
-from unfold.forms import AdminPasswordChangeForm, BaseDialogForm, UserChangeForm, UserCreationForm
+from unfold.forms import (
+    AdminPasswordChangeForm,
+    BaseDialogForm,
+    UserChangeForm,
+    UserCreationForm,
+)
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
 from sure.cases import case_cohort_by_location, case_cohort_by_tenants
@@ -606,17 +611,20 @@ class VisitAdmin(ModelAdmin):
 
     def case_human_id(self, obj: Visit) -> str:
         return obj.case.human_id
+
     case_human_id.short_description = "Case ID"
-    
+
     def case_location(self, obj: Visit) -> str:
         return obj.case.location.name
 
     def case_external_id(self, obj: Visit) -> str:
         return obj.case.external_id
+
     case_external_id.short_description = "Internal ID"
 
     def display_tags(self, obj: Visit) -> str:
         return ", ".join(obj.tags) if obj.tags else ""
+
     display_tags.short_description = "Tags"
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Visit]:
@@ -636,7 +644,9 @@ class VisitAdmin(ModelAdmin):
             GenerateCaseBatchView.as_view(model_admin=self)
         )
         return [
-            path("generate-batch/", generate_view, name="sure_visit_generate_batch_view"),
+            path(
+                "generate-batch/", generate_view, name="sure_visit_generate_batch_view"
+            ),
         ] + super().get_urls()
 
     @action(description="Cancel cases")
@@ -644,12 +654,12 @@ class VisitAdmin(ModelAdmin):
         for visit in queryset:
             visit.status = VisitStatus.CANCELED
             visit.save()
-            
+
     def has_add_permission(self, request: HttpRequest) -> bool:
         return False
-    
-    def has_change_permission(self, request: HttpRequest, obj = None) -> bool:
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
-    
-    def has_delete_permission(self, request: HttpRequest, obj = None) -> bool:
+
+    def has_delete_permission(self, request: HttpRequest, obj=None) -> bool:
         return False

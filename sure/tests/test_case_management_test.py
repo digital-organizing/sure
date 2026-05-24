@@ -111,7 +111,9 @@ class CaseManagementTest(TestCase):
         case = create_case(self.location.pk, self.user)
 
         # Set created_at to be older than CASE_CONNECTION_WINDOW_MINUTES
-        case.created_at = timezone.now() - timedelta(minutes=settings.CASE_CONNECTION_WINDOW_MINUTES + 10)
+        case.created_at = timezone.now() - timedelta(
+            minutes=settings.CASE_CONNECTION_WINDOW_MINUTES + 10
+        )
         case.save()
 
         _, token = generate_token(phone_number, case)

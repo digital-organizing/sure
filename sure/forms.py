@@ -134,7 +134,9 @@ class GenerateCaseBatchForm(forms.Form):
             self.fields["questionnaire"].queryset = Questionnaire.objects.all()
         else:
             tenants = self.request.user.tenants.all()
-            self.fields["location"].queryset = Location.objects.filter(tenant__in=tenants)
+            self.fields["location"].queryset = Location.objects.filter(
+                tenant__in=tenants
+            )
             self.fields["questionnaire"].queryset = Questionnaire.objects.filter(
                 locations__tenant__in=tenants
             ).distinct()

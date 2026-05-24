@@ -77,21 +77,27 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
                 )
 
                 link = get_case_link(case)
-                records.append({
-                    "Case ID": case.human_id,
-                    "Access Link": link,
-                    "Location": location.name,
-                    "Questionnaire": questionnaire.name,
-                    "Tag": tag,
-                    "Created At": timezone.localtime(visit.created_at).strftime("%Y-%m-%d %H:%M:%S"),
-                })
+                records.append(
+                    {
+                        "Case ID": case.human_id,
+                        "Access Link": link,
+                        "Location": location.name,
+                        "Questionnaire": questionnaire.name,
+                        "Tag": tag,
+                        "Created At": timezone.localtime(visit.created_at).strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),
+                    }
+                )
 
         df = pl.DataFrame(records)
         output = io.BytesIO()
         df.write_excel(output)
         output.seek(0)
 
-        filename = f"case_batch_{location.name.replace(' ', '_')}_{tag.replace(' ', '_')}.xlsx"
+        filename = (
+            f"case_batch_{location.name.replace(' ', '_')}_{tag.replace(' ', '_')}.xlsx"
+        )
         response = HttpResponse(
             output.read(),
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -102,6 +102,25 @@ class CaseManagementTest(TestCase):
         assert client2 is not None
         self.assertEqual(client2.id, client.id)
 
+    def test_connect_case_old_case(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        from django.conf import settings
+
+        phone_number = "+41797360516"
+        case = create_case(self.location.pk, self.user)
+
+        # Set created_at to be older than CASE_CONNECTION_WINDOW_MINUTES
+        case.created_at = timezone.now() - timedelta(minutes=settings.CASE_CONNECTION_WINDOW_MINUTES + 10)
+        case.save()
+
+        _, token = generate_token(phone_number, case)
+        connection = connect_case(
+            case, phone_number, token, consent=ConsentChoice.ALLOWED
+        )
+        self.assertIsNotNone(connection)
+        self.assertEqual(connection.case, case)
+
     def test_connect_case_no_consent(self):
         phone_number = "+41797360516"
         case = create_case(self.location.pk, self.user)

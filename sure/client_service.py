@@ -199,11 +199,6 @@ def can_connect_case(case: Case) -> bool:
     if Connection.objects.filter(case=case).exists():
         return False
 
-    if case.created_at < timezone.now() - timedelta(
-        minutes=settings.CASE_CONNECTION_WINDOW_MINUTES
-    ):
-        return False
-
     return True
 
 

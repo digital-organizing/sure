@@ -3,6 +3,18 @@ from .models import VisitExport, VisitExportDownload
 from django.core.exceptions import PermissionDenied
 from core.auth import require_2fa_or_trusted
 
+import io
+import polars as pl
+from typing import Any
+from django.db import transaction
+from django.http import HttpResponse
+from django.utils import timezone
+from django.views.generic.edit import FormView
+from unfold.views import UnfoldModelAdminViewMixin
+
+from sure.client_service import create_case, create_visit, get_case_link
+from sure.forms import GenerateCaseBatchForm
+
 
 @require_2fa_or_trusted
 def download_visit_export(request, pk):
@@ -24,19 +36,6 @@ def download_visit_export(request, pk):
     )
     # Logic to handle the download process would go here
     return redirect(redirect_url)
-
-
-import io
-import polars as pl
-from typing import Any
-from django.db import transaction
-from django.http import HttpResponse
-from django.utils import timezone
-from django.views.generic.edit import FormView
-from unfold.views import UnfoldModelAdminViewMixin
-
-from sure.client_service import create_case, create_visit, get_case_link
-from sure.forms import GenerateCaseBatchForm
 
 
 class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):

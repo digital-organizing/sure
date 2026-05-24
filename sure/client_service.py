@@ -1,7 +1,6 @@
 """Functions for creating and managing clients and their cases."""
 
 import logging
-from datetime import timedelta
 from typing import Iterable
 
 import phonenumbers
@@ -9,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 
 import tenants.models
 from sms.service import send_sms

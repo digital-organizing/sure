@@ -288,6 +288,9 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
     duplicate_questionnaire_action.allowed_permissions = ["add"]
 
+    def has_add_permission(self, request, *args, **kwargs):
+        return super().has_add_permission(request)
+
 
 @admin.register(
     Section,

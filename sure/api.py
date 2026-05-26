@@ -22,11 +22,12 @@ from sure.cases import (
     get_test_results,
     prefetch_questionnaire,
 )
-from sure.client_service import can_connect_case, generate_token
+from sure.client_service import can_connect_case
 from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
     create_case,
     create_visit,
+    generate_token,
     get_case,
     get_case_link,
     get_case_unverified,
@@ -820,6 +821,7 @@ def list_questionnaires(request):  # pylint: disable=unused-argument
         Questionnaire.objects.filter(locations__in=consultant.locations.all())
         .order_by("order")
         .only("id", "name")
+        .distinct()
     )
     return questionnaires
 

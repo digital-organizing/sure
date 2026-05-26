@@ -29,6 +29,20 @@ const selectedChoices = computed<string[]>({
   },
 })
 
+const isOptionDisabled = (option: any) => {
+  const selectedOpts = props.question.options?.filter((opt) => selectedChoices.value.includes(opt.code!)) || []
+  const hasSelectedExclusive = selectedOpts.some((opt) => opt.exclusive)
+  const hasSelectedNonExclusive = selectedOpts.some((opt) => !opt.exclusive)
+
+  if (hasSelectedExclusive) {
+    return !selectedChoices.value.includes(option.code!)
+  }
+  if (hasSelectedNonExclusive) {
+    return !!option.exclusive
+  }
+  return false
+}
+
 function getAnswer() {
   return answer.value
 }
@@ -40,12 +54,18 @@ defineExpose({
 
 <template>
   <div class="multiple-choice-question">
-    <div v-for="option in question.options" :key="option.id || 0" class="client-option-item">
+    <div
+      v-for="option in question.options"
+      :key="option.id || 0"
+      class="client-option-item"
+      :class="{ disabled: isOptionDisabled(option) }"
+    >
       <Checkbox
         v-model="selectedChoices"
         :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
+        :disabled="isOptionDisabled(option)"
       />
       <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}

@@ -77,6 +77,20 @@ function triggerTextUpdate() {
   textInputs.value = textInputs.value
 }
 
+const isOptionDisabled = (option: any) => {
+  const selectedOpts = props.question.options?.filter((opt) => selectedChoices.value.includes(opt.code!)) || []
+  const hasSelectedExclusive = selectedOpts.some((opt) => opt.exclusive)
+  const hasSelectedNonExclusive = selectedOpts.some((opt) => !opt.exclusive)
+
+  if (hasSelectedExclusive) {
+    return !selectedChoices.value.includes(option.code!)
+  }
+  if (hasSelectedNonExclusive) {
+    return !!option.exclusive
+  }
+  return false
+}
+
 function getAnswer() {
   return answer.value
 }
@@ -95,6 +109,7 @@ defineExpose({
       :class="{
         'with-text-input': option.allow_text,
         active: selectedChoices.includes(option.code),
+        disabled: isOptionDisabled(option),
       }"
     >
       <Checkbox
@@ -102,6 +117,7 @@ defineExpose({
         :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
+        :disabled="isOptionDisabled(option)"
       />
       <label :for="`option-${option.id}`" class="client-option-label">
         {{ option.text }}

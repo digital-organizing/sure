@@ -684,7 +684,15 @@ export const sureApiListClientCases = <ThrowOnError extends boolean = false>(opt
  *
  * List all questionnaires.
  */
-export const sureApiListQuestionnaires = <ThrowOnError extends boolean = false>(options?: Options<SureApiListQuestionnairesData, ThrowOnError>) => (options?.client ?? client).get<SureApiListQuestionnairesResponses, unknown, ThrowOnError>({ url: '/api/sure/questionnaires/', ...options });
+export const sureApiListQuestionnaires = <ThrowOnError extends boolean = false>(options?: Options<SureApiListQuestionnairesData, ThrowOnError>) => (options?.client ?? client).get<SureApiListQuestionnairesResponses, unknown, ThrowOnError>({
+    security: [{
+            in: 'cookie',
+            name: 'key',
+            type: 'apiKey'
+        }],
+    url: '/api/sure/questionnaires/',
+    ...options
+});
 
 /**
  * List Tests

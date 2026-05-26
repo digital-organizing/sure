@@ -455,6 +455,11 @@ class BaseOption(models.Model):
         verbose_name=_("Allow Text"),
         help_text=_("Allow text input for this option"),
     )
+    exclusive = models.BooleanField(
+        default=False,
+        verbose_name=_("Exclusive"),
+        help_text=_("If checked, all other options are disabled when this option is selected"),
+    )
     order = models.PositiveIntegerField(
         default=0,
         verbose_name=_("Order"),

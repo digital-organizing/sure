@@ -172,7 +172,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
     readonly_fields = ("client_pdf", "consultant_pdf")
 
-    actions_detail = ["generate_pdf_action"]
+    actions_detail = ["generate_pdf_action", "duplicate_questionnaire_action"]
 
     fieldsets = (
         (
@@ -196,6 +196,90 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
         generate_pdf_task.delay(object_id)
 
         return redirect(reverse("admin:sure_questionnaire_change", args=[object_id]))
+
+    def _clone_instance(self, obj, **overrides):
+        """
+        Helper method to clone a model instance, overriding specified fields.
+        Crucially copies all modeltranslation translated fields as they are part of _meta.fields.
+        """
+        field_values = {}
+        for field in obj._meta.fields:
+            if field.primary_key:
+                continue
+            field_values[field.attname] = getattr(obj, field.attname)
+
+        field_values.update(overrides)
+        return obj.__class__.objects.create(**field_values)
+
+    def _duplicate_single_questionnaire(self, original):
+        """
+        Duplicates a single questionnaire including all its sections, questions,
+        options, and conditional show logic, while clearing the locations and visits.
+        """
+        from django.db import transaction
+
+        with transaction.atomic():
+            # 1. Clone the Questionnaire instance overriding name/name_* fields
+            questionnaire_overrides = {}
+            for field in original._meta.fields:
+                if field.primary_key:
+                    continue
+                val = getattr(original, field.attname)
+                if (field.name == "name" or field.name.startswith("name_")) and val:
+                    questionnaire_overrides[field.attname] = f"{val} (Copy)"
+
+            new_q = self._clone_instance(original, **questionnaire_overrides)
+
+            # Keep mappings to build the show_for_options relations correctly.
+            option_mapping = {}  # maps old ClientOption.pk -> new ClientOption instance
+            question_mapping = {}  # maps old ClientQuestion.pk -> new ClientQuestion instance
+
+            # 2. Duplicate Sections and their questions/options
+            for section in original.sections.all():
+                new_section = self._clone_instance(section, questionnaire_id=new_q.id)
+
+                for question in section.client_questions.all():
+                    new_question = self._clone_instance(
+                        question, section_id=new_section.id
+                    )
+                    question_mapping[question.pk] = new_question
+
+                    for option in question.options.all():
+                        new_option = self._clone_instance(
+                            option, question_id=new_question.id
+                        )
+                        option_mapping[option.pk] = new_option
+
+            # 3. Resolve the show_for_options ManyToMany relations
+            for old_question_id, new_question in question_mapping.items():
+                old_question = ClientQuestion.objects.get(pk=old_question_id)
+                old_show_options = old_question.show_for_options.all()
+                if old_show_options.exists():
+                    new_show_options = [
+                        option_mapping[old_opt.pk]
+                        for old_opt in old_show_options
+                        if old_opt.pk in option_mapping
+                    ]
+                    if new_show_options:
+                        new_question.show_for_options.set(new_show_options)
+
+            # 4. Duplicate ConsultantQuestions and their options
+            for question in original.consultant_questions.all():
+                new_c_question = self._clone_instance(
+                    question, questionnaire_id=new_q.id
+                )
+                for option in question.options.all():
+                    self._clone_instance(option, question_id=new_c_question.id)
+
+            return new_q
+
+    @action(description=_("Duplicate questionnaire"))  # ty:ignore[call-non-callable]
+    def duplicate_questionnaire_action(self, request, object_id):
+        original = Questionnaire.objects.get(pk=object_id)
+        new_q = self._duplicate_single_questionnaire(original)
+
+        self.message_user(request, _("Successfully duplicated the questionnaire."))
+        return redirect(reverse("admin:sure_questionnaire_change", args=[new_q.pk]))
 
 
 @admin.register(

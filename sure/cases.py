@@ -273,19 +273,19 @@ def get_client_answers_export(visit: Visit):
                     option = options.get(str(code))
                     if not option:
                         text_en = text
-                    elif option.choices_en: # type: ignore
+                    elif option.choices_en:  # type: ignore
                         original_choices = getattr(option, f"choices_{lang}", [])
                         try:
                             idx = original_choices.index(text)
-                            text_en = option.choices_en[idx] # type: ignore
+                            text_en = option.choices_en[idx]  # type: ignore
                         except ValueError:
                             text_en = text
                     elif option.allow_text:
                         text_en = (
-                            option.text_en + ": " + text if option.text_en else text # type: ignore
+                            option.text_en + ": " + text if option.text_en else text  # type: ignore
                         )
                     else:
-                        text_en = option.text_en if option.text_en else text # type: ignore
+                        text_en = option.text_en if option.text_en else text  # type: ignore
                     answers_en.append(text_en)
 
                 answer_record = {
@@ -324,24 +324,26 @@ def get_consultant_answers_export(visit: Visit):
             }
         else:
             # Use prefetched options from the question
-            options: dict[str, ClientOption] = {opt.code: opt for opt in question.options.all()}  # type: ignore
+            options: dict[str, ClientOption] = {
+                opt.code: opt for opt in question.options.all()
+            }  # type: ignore
 
             answers_en = []
             for code, text in zip(answer.choices, answer.texts):
                 option = options.get(code)
                 if option is None:
                     text_en = text
-                elif option.choices_en: # type: ignore
+                elif option.choices_en:  # type: ignore
                     original_choices = getattr(option, f"choices_{lang}", [])
                     try:
                         idx = original_choices.index(code)
-                        text_en = option.choices_en[idx] # type: ignore
+                        text_en = option.choices_en[idx]  # type: ignore
                     except ValueError:
                         text_en = text
                 elif option.allow_text:
-                    text_en = option.text_en + ": " + text # type: ignore
+                    text_en = option.text_en + ": " + text  # type: ignore
                 else:
-                    text_en = option.text_en if option.text_en else text # type: ignore
+                    text_en = option.text_en if option.text_en else text  # type: ignore
                 answers_en.append(text_en)
 
             answer_record = {

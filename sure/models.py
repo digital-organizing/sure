@@ -292,6 +292,7 @@ class Questionnaire(models.Model):
         "tenants.Location",
         related_name="questionnaires",
         verbose_name=_("Locations"),
+        blank=True,
     )
 
     sections: models.QuerySet["Section"]
@@ -458,7 +459,9 @@ class BaseOption(models.Model):
     exclusive = models.BooleanField(
         default=False,
         verbose_name=_("Exclusive"),
-        help_text=_("If checked, all other options are disabled when this option is selected"),
+        help_text=_(
+            "If checked, all other options are disabled when this option is selected"
+        ),
     )
     order = models.PositiveIntegerField(
         default=0,

@@ -1,7 +1,6 @@
 """Functions for creating and managing clients and their cases."""
 
 import logging
-from datetime import timedelta
 from typing import Iterable
 
 import phonenumbers
@@ -9,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 
 import tenants.models
 from sms.service import send_sms
@@ -197,11 +195,6 @@ def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:
 def can_connect_case(case: Case) -> bool:
     """Check if a case can be connected to a client."""
     if Connection.objects.filter(case=case).exists():
-        return False
-
-    if case.created_at < timezone.now() - timedelta(
-        minutes=settings.CASE_CONNECTION_WINDOW_MINUTES
-    ):
         return False
 
     return True

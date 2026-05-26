@@ -243,6 +243,7 @@ def get_client_answers_export(visit: Visit):
     # Pre-group answers by question_id to avoid N queries per visit
     all_answers = list(visit.client_answers.all())
     all_answers.sort(key=lambda x: x.created_at, reverse=True)
+    lang = visit.case.language
     answers_map = {}
     for ans in all_answers:
         if ans.question_id not in answers_map:
@@ -265,11 +266,26 @@ def get_client_answers_export(visit: Visit):
                 }
             else:
                 # Use prefetched options from the question
-                options = {opt.code: opt.text_en for opt in question.options.all()}  # type: ignore
+                options = {opt.code: opt for opt in question.options.all()}
 
                 answers_en = []
                 for code, text in zip(answer.choices, answer.texts):
-                    text_en = options.get(str(code), text) or text
+                    option = options.get(str(code))
+                    if not option:
+                        text_en = text
+                    elif option.choices_en: # type: ignore
+                        original_choices = getattr(option, f"choices_{lang}", [])
+                        try:
+                            idx = original_choices.index(text)
+                            text_en = option.choices_en[idx] # type: ignore
+                        except ValueError:
+                            text_en = text
+                    elif option.allow_text:
+                        text_en = (
+                            option.text_en + ": " + text if option.text_en else text # type: ignore
+                        )
+                    else:
+                        text_en = option.text_en if option.text_en else text # type: ignore
                     answers_en.append(text_en)
 
                 answer_record = {
@@ -290,6 +306,7 @@ def get_consultant_answers_export(visit: Visit):
     # Pre-group answers by question_id
     all_answers = list(visit.consultant_answers.all())
     all_answers.sort(key=lambda x: x.created_at, reverse=True)
+    lang = visit.case.language
     answers_map = {}
     for ans in all_answers:
         if ans.question_id not in answers_map:  # type: ignore
@@ -307,11 +324,24 @@ def get_consultant_answers_export(visit: Visit):
             }
         else:
             # Use prefetched options from the question
-            options = {opt.code: opt.text_en for opt in question.options.all()}  # type: ignore
+            options: dict[str, ClientOption] = {opt.code: opt for opt in question.options.all()}  # type: ignore
 
             answers_en = []
             for code, text in zip(answer.choices, answer.texts):
-                text_en = options.get(str(code), text) or text
+                option = options.get(code)
+                if option is None:
+                    text_en = text
+                elif option.choices_en: # type: ignore
+                    original_choices = getattr(option, f"choices_{lang}", [])
+                    try:
+                        idx = original_choices.index(code)
+                        text_en = option.choices_en[idx] # type: ignore
+                    except ValueError:
+                        text_en = text
+                elif option.allow_text:
+                    text_en = option.text_en + ": " + text # type: ignore
+                else:
+                    text_en = option.text_en if option.text_en else text # type: ignore
                 answers_en.append(text_en)
 
             answer_record = {
@@ -352,7 +382,7 @@ def get_test_results_export(visit: Visit, test_kinds=None):
         if not result:
             output[f"{test_kind.name}"] = "no_result"
             continue
-        output[f"{test_kind.name}"] = result.result_option.label
+        output[f"{test_kind.name}"] = result.result_option.label_en
         if test_kind.interpretation_needed:
             output[f"{test_kind.name} [{test_kind.note}]"] = result.note
 

@@ -11,7 +11,9 @@ from django.db import models
 from django.forms import Form
 from django.http.request import HttpRequest
 from django.shortcuts import redirect
-from django.urls import reverse
+
+from django.utils.translation import gettext_lazy as _
+from django.urls import URLPattern, path, reverse
 from django_agent_trust.admin import AgentSettings
 from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
 from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
@@ -44,7 +46,11 @@ from unfold import widgets
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
 from unfold.components import BaseComponent, register_component
 from unfold.decorators import action
-from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from unfold.forms import (
+    AdminPasswordChangeForm,
+    UserChangeForm,
+    UserCreationForm,
+)
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
 from sure.cases import case_cohort_by_location, case_cohort_by_tenants
@@ -61,9 +67,12 @@ from sure.models import (
     TestCategory,
     TestKind,
     TestResultOption,
+    Visit,
     VisitExport,
     VisitExportDownload,
+    VisitStatus,
 )
+from sure.views import GenerateCaseBatchView
 from sure.tasks import create_export, generate_pdf_task
 from labor.models import TestProfile
 
@@ -269,11 +278,11 @@ class VisitExportAdmin(ModelAdmin):
     @action
     def start_export(self, request: HttpRequest, queryset):
         for export in queryset.values_list("id", flat=True):
-            create_export(export.pk)
+            create_export.delay(export.pk)
 
     @action(description="Start Export")  # ty:ignore[call-non-callable]
     def start_export_obj(self, request, object_id):
-        create_export(object_id)
+        create_export.delay(object_id)
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:
@@ -559,3 +568,95 @@ class CaseCohortComponent(BaseComponent):
             tenant = consultant.tenant
             context["data"] = case_cohort_by_location(tenant, filter)
         return context
+
+
+class TagListFilter(admin.SimpleListFilter):
+    title = _("Tag")
+    parameter_name = "tag"
+
+    def lookups(self, request, model_admin):
+        qs = model_admin.get_queryset(request)
+        tags_set = set()
+        for tags in qs.exclude(tags=[]).values_list("tags", flat=True):
+            if tags:
+                tags_set.update(tags)
+        return sorted([(tag, tag) for tag in tags_set if tag])
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(tags__contains=[self.value()])
+        return queryset
+
+
+@admin.register(Visit)
+class VisitAdmin(ModelAdmin):
+    list_display = (
+        "case_human_id",
+        "case_external_id",
+        "case_location",
+        "questionnaire",
+        "status",
+        "created_at",
+        "display_tags",
+    )
+    list_filter = ("status", "created_at", "questionnaire", TagListFilter)
+    search_fields = ("case__id", "case__external_id", "tags")
+    readonly_fields = ("created_at",)
+
+    actions_list = ["generate_batch"]
+    actions = ["cancel_cases"]
+
+    def case_human_id(self, obj: Visit) -> str:
+        return obj.case.human_id
+
+    case_human_id.short_description = "Case ID"  # ty:ignore[unresolved-attribute]
+
+    def case_location(self, obj: Visit) -> str:
+        return obj.case.location.name
+
+    def case_external_id(self, obj: Visit) -> str:
+        return obj.case.external_id
+
+    case_external_id.short_description = "Internal ID"  # ty:ignore[unresolved-attribute]
+
+    def display_tags(self, obj: Visit) -> str:
+        return ", ".join(obj.tags) if obj.tags else ""
+
+    display_tags.short_description = "Tags"  # ty:ignore[unresolved-attribute]
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Visit]:
+        queryset = super().get_queryset(request)
+        if getattr(request.user, "is_superuser", False):
+            return queryset
+        # If staff but not superuser, they must be a tenant admin
+        tenants = request.user.tenants.all()  # ty:ignore[unresolved-attribute]
+        return queryset.filter(case__location__tenant__in=tenants)
+
+    @action(description="Generate Batch", icon="layers")  # ty:ignore[call-non-callable]
+    def generate_batch(self, request: HttpRequest):
+        return redirect(reverse("admin:sure_visit_generate_batch_view"))
+
+    def get_urls(self) -> list[URLPattern]:
+        generate_view = self.admin_site.admin_view(
+            GenerateCaseBatchView.as_view(model_admin=self)
+        )
+        return [
+            path(
+                "generate-batch/", generate_view, name="sure_visit_generate_batch_view"
+            ),
+        ] + super().get_urls()
+
+    @action(description="Cancel cases")  # ty:ignore[call-non-callable]
+    def cancel_cases(self, request: HttpRequest, queryset: models.QuerySet[Visit]):
+        for visit in queryset:
+            visit.status = VisitStatus.CANCELED
+            visit.save()
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
+        return False
+
+    def has_delete_permission(self, request: HttpRequest, obj=None) -> bool:
+        return False

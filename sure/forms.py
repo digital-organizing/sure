@@ -4,8 +4,8 @@ from django import forms
 from unfold import widgets
 from unfold.layout import Submit
 
-from sure.models import VisitStatus
-from tenants.models import Tag
+from sure.models import Questionnaire, VisitStatus, TestKind
+from tenants.models import Location, Tag
 
 
 class ExportCaseForm(forms.Form):
@@ -96,3 +96,101 @@ class CohortFilterForm(forms.Form):
         if self.cleaned_data.get("end_date"):
             filter_dict["created_at__lte"] = self.cleaned_data["end_date"]
         return filter_dict
+
+
+class GenerateCaseBatchForm(forms.Form):
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.none(),
+        label="Location",
+        widget=widgets.UnfoldAdminSelect2Widget(),
+    )
+    questionnaire = forms.ModelChoiceField(
+        queryset=Questionnaire.objects.none(),
+        label="Questionnaire",
+        widget=widgets.UnfoldAdminSelect2Widget(),
+    )
+    tag = forms.CharField(
+        max_length=50,
+        required=True,
+        label="Tag",
+        help_text="Tag to apply to all generated cases in this batch.",
+        widget=widgets.UnfoldAdminTextInputWidget(),
+    )
+    quantity = forms.IntegerField(
+        min_value=1,
+        max_value=1000,
+        initial=10,
+        label="Quantity",
+        help_text="Number of cases to generate (max 1000).",
+        widget=widgets.UnfoldAdminTextInputWidget(),
+    )
+    tests = forms.ModelMultipleChoiceField(
+        queryset=TestKind.objects.all(),
+        required=False,
+        label="Pre-selected Tests",
+        help_text="Tests to automatically associate with the generated cases.",
+        widget=widgets.UnfoldAdminSelect2MultipleWidget(
+            {
+                "class": "w-full",
+            }
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+
+        if self.request.user.is_superuser:
+            self.fields["location"].queryset = Location.objects.all()  # ty:ignore[unresolved-attribute]
+            self.fields["questionnaire"].queryset = Questionnaire.objects.all()  # ty:ignore[unresolved-attribute]
+        else:
+            tenants = self.request.user.tenants.all()
+            self.fields["location"].queryset = Location.objects.filter(  # ty:ignore[unresolved-attribute]
+                tenant__in=tenants
+            )
+            self.fields["questionnaire"].queryset = Questionnaire.objects.filter(  # ty:ignore[unresolved-attribute]
+                locations__tenant__in=tenants
+            ).distinct()
+
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.form_show_labels = True
+
+        self.helper.layout = Layout(
+            Row(
+                Column(
+                    "location",
+                    "questionnaire",
+                    css_class="w-1/2",
+                ),
+                Column(
+                    "tag",
+                    "quantity",
+                    css_class="w-1/2",
+                ),
+            ),
+            Row(
+                Column(
+                    "tests",
+                    css_class="w-full",
+                ),
+            ),
+            Row(
+                Div(
+                    Submit("submit", "Generate Batch"),
+                    css_class="mt-4",
+                )
+            ),
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data is not None:
+            location = cleaned_data.get("location")
+            questionnaire = cleaned_data.get("questionnaire")
+            if location and questionnaire:
+                if not questionnaire.locations.filter(pk=location.pk).exists():
+                    raise forms.ValidationError(
+                        "The selected questionnaire is not available at the selected location."
+                    )
+        return cleaned_data

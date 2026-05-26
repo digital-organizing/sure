@@ -37,6 +37,6 @@ onMounted(async () => {
   <section v-if="!loading">
     <RouterLink :to="{ name: 'consultant-dashboard' }">Go to Dashboard</RouterLink>
 
-    <a href="/admin/" v-if="user?.is_staff">Go to Admin</a>
+    <a href="/admin/" target="_blank" v-if="user?.is_staff">Go to Admin</a>
   </section>
 </template>

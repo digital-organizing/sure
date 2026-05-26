@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0052_testresult_note_lab"),
         ("tenants", "0027_remove_advertisement_severity_and_more"),

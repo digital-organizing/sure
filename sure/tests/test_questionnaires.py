@@ -300,3 +300,42 @@ class TestQuestionnaireDuplication(TestCase):
         expected_url = reverse("admin:sure_questionnaire_change", args=[new_q.pk])
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, expected_url)
+
+    def test_duplicate_questionnaire_action_permissions(self):
+        admin_site = admin.AdminSite()
+        from sure.admin import QuestionaireAdmin
+
+        q_admin = QuestionaireAdmin(Questionnaire, admin_site)
+
+        # 1. User without add permission
+        from unittest.mock import MagicMock
+
+        request = MagicMock()
+        request.user = MagicMock()
+
+        # Mock has_add_permission
+        q_admin.has_add_permission = MagicMock(return_value=False)
+
+        actions = q_admin.get_actions_detail(request, object_id=1)
+        action_names = [a.action_name for a in actions]
+
+        # The duplicate questionnaire action should not be visible
+        self.assertNotIn(
+            "sure_questionnaire_duplicate_questionnaire_action", action_names
+        )
+
+        # 2. User with add permission
+        q_admin.has_add_permission = MagicMock(return_value=True)
+
+        actions = q_admin.get_actions_detail(request, object_id=1)
+        action_names = [a.action_name for a in actions]
+
+        # The duplicate questionnaire action should be visible
+        self.assertIn("sure_questionnaire_duplicate_questionnaire_action", action_names)
+
+        # 3. Direct execution check for security
+        q_admin.has_add_permission = MagicMock(return_value=False)
+        from django.core.exceptions import PermissionDenied
+
+        with self.assertRaises(PermissionDenied):
+            q_admin.duplicate_questionnaire_action(request, object_id=1)

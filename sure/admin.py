@@ -275,11 +275,18 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
     @action(description=_("Duplicate questionnaire"))  # ty:ignore[call-non-callable]
     def duplicate_questionnaire_action(self, request, object_id):
+        if not self.has_add_permission(request):
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+
         original = Questionnaire.objects.get(pk=object_id)
         new_q = self._duplicate_single_questionnaire(original)
 
         self.message_user(request, _("Successfully duplicated the questionnaire."))
         return redirect(reverse("admin:sure_questionnaire_change", args=[new_q.pk]))
+
+    duplicate_questionnaire_action.allowed_permissions = ["add"]
 
 
 @admin.register(

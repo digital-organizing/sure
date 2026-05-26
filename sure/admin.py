@@ -278,11 +278,11 @@ class VisitExportAdmin(ModelAdmin):
     @action
     def start_export(self, request: HttpRequest, queryset):
         for export in queryset.values_list("id", flat=True):
-            create_export(export.pk)
+            create_export.delay(export.pk)
 
     @action(description="Start Export")  # ty:ignore[call-non-callable]
     def start_export_obj(self, request, object_id):
-        create_export(object_id)
+        create_export.delay(object_id)
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:

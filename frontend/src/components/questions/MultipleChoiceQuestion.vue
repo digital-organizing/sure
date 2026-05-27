@@ -6,6 +6,8 @@ import {
   type ClientQuestionSchema,
   type ConsultantAnswerSchema,
   type ConsultantQuestionSchema,
+  type ClientOptionSchema,
+  type ConsultantOptionSchema,
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 
@@ -29,7 +31,7 @@ const selectedChoices = computed<string[]>({
   },
 })
 
-const isOptionDisabled = (option: any) => {
+const isOptionDisabled = (option: ClientOptionSchema | ConsultantOptionSchema) => {
   const selectedOpts = props.question.options?.filter((opt) => selectedChoices.value.includes(opt.code!)) || []
   const hasSelectedExclusive = selectedOpts.some((opt) => opt.exclusive)
   const hasSelectedNonExclusive = selectedOpts.some((opt) => !opt.exclusive)

@@ -12,10 +12,10 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'next'): void
-  (e: 'previous'): void
-  (e: 'submit'): void
-  (e: 'edit-section', index: number): void
+  (_e: 'next'): void
+  (_e: 'previous'): void
+  (_e: 'submit'): void
+  (_e: 'edit-section', _index: number): void
 }>()
 
 // const answersStore = userAnswersStore()

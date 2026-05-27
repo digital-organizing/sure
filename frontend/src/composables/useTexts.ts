@@ -128,9 +128,9 @@ export const useTexts = createGlobalState(() => {
     return rightToLeft.value
   }
 
-  const callbacks: ((lang: string | null) => void)[] = []
+  const callbacks: ((_lang: string | null) => void)[] = []
 
-  function onLanguageChange(callback: (lang: string | null) => void) {
+  function onLanguageChange(callback: (_lang: string | null) => void) {
     callbacks.push(callback)
   }
 

@@ -16,9 +16,9 @@ const bottomVisible = useElementVisibility(bottomSpacer, {
 })
 
 const emits = defineEmits<{
-  (e: 'next'): void
-  (e: 'previous'): void
-  (e: 'submit'): void
+  (_e: 'next'): void
+  (_e: 'previous'): void
+  (_e: 'submit'): void
 }>()
 
 const visibleQuestions = computed(() => {

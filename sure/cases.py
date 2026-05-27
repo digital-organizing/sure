@@ -298,7 +298,7 @@ def get_client_answers_export(visit: Visit):
     output = {}
     for question_code, answer in answers.items():
         output[f"{question_code}_codes"] = get_answer_codes(answer["codes"])
-        output[f"{question_code}_texts"] = ";".join(answer["texts"])
+        output[f"{question_code}_texts"] = ";".join(answer["texts"])  # ty: ignore[no-matching-overload]
     return output
 
 
@@ -477,7 +477,7 @@ def _build_cohort_data(
                 "total": 0,
             }
 
-        group_data[group_id]["counts"][status] = count
+        group_data[group_id]["counts"][status] = count  # ty: ignore[invalid-assignment]
         group_data[group_id]["total"] += count
 
     # If all_groups provided, ensure all groups are included (even with 0 counts)
@@ -517,7 +517,7 @@ def _build_cohort_data(
                     "subtitle": f"Total {data['total']}",
                 },
                 "cols": [
-                    _get_col(data["counts"].get(status[0], 0), total)
+                    _get_col(data["counts"].get(status[0], 0), total)  # ty: ignore[unresolved-attribute]
                     for status in status_choices
                 ],
             }

@@ -273,7 +273,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
             return new_q
 
-    @action(description=_("Duplicate questionnaire"))  # ty:ignore[call-non-callable]
+    @action(description=_("Duplicate questionnaire"))  # ty:ignore[call-non-callable,invalid-argument-type]
     def duplicate_questionnaire_action(self, request, object_id):
         if not self.has_add_permission(request):
             from django.core.exceptions import PermissionDenied

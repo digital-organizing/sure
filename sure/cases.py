@@ -273,19 +273,19 @@ def get_client_answers_export(visit: Visit):
                     option = options.get(str(code))
                     if not option:
                         text_en = text
-                    elif option.choices_en: # type: ignore
+                    elif option.choices_en:  # type: ignore
                         original_choices = getattr(option, f"choices_{lang}", [])
                         try:
                             idx = original_choices.index(text)
-                            text_en = option.choices_en[idx] # type: ignore
+                            text_en = option.choices_en[idx]  # type: ignore
                         except ValueError:
                             text_en = text
                     elif option.allow_text:
                         text_en = (
-                            option.text_en + ": " + text if option.text_en else text # type: ignore
+                            option.text_en + ": " + text if option.text_en else text  # type: ignore
                         )
                     else:
-                        text_en = option.text_en if option.text_en else text # type: ignore
+                        text_en = option.text_en if option.text_en else text  # type: ignore
                     answers_en.append(text_en)
 
                 answer_record = {
@@ -298,7 +298,7 @@ def get_client_answers_export(visit: Visit):
     output = {}
     for question_code, answer in answers.items():
         output[f"{question_code}_codes"] = get_answer_codes(answer["codes"])
-        output[f"{question_code}_texts"] = ";".join(answer["texts"])
+        output[f"{question_code}_texts"] = ";".join(answer["texts"])  # ty: ignore[no-matching-overload]
     return output
 
 
@@ -324,24 +324,26 @@ def get_consultant_answers_export(visit: Visit):
             }
         else:
             # Use prefetched options from the question
-            options: dict[str, ClientOption] = {opt.code: opt for opt in question.options.all()}  # type: ignore
+            options: dict[str, ClientOption] = {
+                opt.code: opt for opt in question.options.all()
+            }  # type: ignore
 
             answers_en = []
             for code, text in zip(answer.choices, answer.texts):
                 option = options.get(code)
                 if option is None:
                     text_en = text
-                elif option.choices_en: # type: ignore
+                elif option.choices_en:  # type: ignore
                     original_choices = getattr(option, f"choices_{lang}", [])
                     try:
                         idx = original_choices.index(code)
-                        text_en = option.choices_en[idx] # type: ignore
+                        text_en = option.choices_en[idx]  # type: ignore
                     except ValueError:
                         text_en = text
                 elif option.allow_text:
-                    text_en = option.text_en + ": " + text # type: ignore
+                    text_en = option.text_en + ": " + text  # type: ignore
                 else:
-                    text_en = option.text_en if option.text_en else text # type: ignore
+                    text_en = option.text_en if option.text_en else text  # type: ignore
                 answers_en.append(text_en)
 
             answer_record = {
@@ -475,7 +477,7 @@ def _build_cohort_data(
                 "total": 0,
             }
 
-        group_data[group_id]["counts"][status] = count
+        group_data[group_id]["counts"][status] = count  # ty: ignore[invalid-assignment]
         group_data[group_id]["total"] += count
 
     # If all_groups provided, ensure all groups are included (even with 0 counts)
@@ -515,7 +517,7 @@ def _build_cohort_data(
                     "subtitle": f"Total {data['total']}",
                 },
                 "cols": [
-                    _get_col(data["counts"].get(status[0], 0), total)
+                    _get_col(data["counts"].get(status[0], 0), total)  # ty: ignore[unresolved-attribute]
                     for status in status_choices
                 ],
             }

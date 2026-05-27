@@ -64,6 +64,7 @@ class ClientOptionSchema(ModelSchema):
             "code",
             "choices",
             "allow_text",
+            "exclusive",
             "text_for_consultant",
         ]
 
@@ -144,6 +145,7 @@ class ConsultantOptionSchema(ModelSchema):
             "code",
             "choices",
             "allow_text",
+            "exclusive",
         ]
 
 

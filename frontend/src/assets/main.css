@@ -21,6 +21,11 @@
   flex-wrap: wrap;
 }
 
+.client-option-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .client-option-label {
   cursor: pointer;
   flex: 1;

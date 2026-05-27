@@ -1,3 +1,4 @@
+/* eslint-disable unused-imports/no-unused-vars */
 import { ref, computed } from 'vue'
 import { jsPDF } from 'jspdf'
 import JsBarcode from 'jsbarcode'

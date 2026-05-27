@@ -115,6 +115,12 @@ export type ClientOptionSchema = {
      */
     allow_text?: boolean;
     /**
+     * Exclusive
+     *
+     * If checked, all other options are disabled when this option is selected
+     */
+    exclusive?: boolean;
+    /**
      * Text for Consultant
      *
      * Text to be shown to the consultant when this option is selected
@@ -358,6 +364,12 @@ export type ConsultantOptionSchema = {
      * Allow text input for this option
      */
     allow_text?: boolean;
+    /**
+     * Exclusive
+     *
+     * If checked, all other options are disabled when this option is selected
+     */
+    exclusive?: boolean;
 };
 
 /**

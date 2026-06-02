@@ -64,7 +64,7 @@ class TestExportWithShowForOptions(TestCase):
         ClientAnswer.objects.create(
             visit=visit,
             question=self.question_b,
-            choices=[],
+            choices=[1],
             texts=["Some description of symptom X"],
         )
 

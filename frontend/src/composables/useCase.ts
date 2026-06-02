@@ -60,8 +60,8 @@ export const useCase = createGlobalState(() => {
 
   const selectedVisitId = ref<string | null>(null)
   const loading = ref(false)
-  const callbacks = ref<((caseId: string | null) => void)[]>([])
-  const refreshCallbacks = ref<((caseId: string) => void)[]>([])
+  const callbacks = ref<((_caseId: string | null) => void)[]>([])
+  const refreshCallbacks = ref<((_caseId: string) => void)[]>([])
   const historyOffset = computed(() => {
     return Math.max(
       history.value.client_answers.length,
@@ -187,7 +187,7 @@ export const useCase = createGlobalState(() => {
       })
   }
 
-  function onCaseId(callback: (caseId: string | null) => void) {
+  function onCaseId(callback: (_caseId: string | null) => void) {
     if (selectedVisitId.value) {
       callback(selectedVisitId.value)
       return
@@ -196,7 +196,7 @@ export const useCase = createGlobalState(() => {
     callbacks.value.push(callback)
   }
 
-  function onCaseRefresh(callback: (caseId: string) => void, instant = false) {
+  function onCaseRefresh(callback: (_caseId: string) => void, instant = false) {
     refreshCallbacks.value.push(callback)
     if (instant && selectedVisitId.value) {
       callback(selectedVisitId.value)

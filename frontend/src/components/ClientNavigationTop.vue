@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'select-section', index: number): void
+  (_e: 'select-section', _index: number): void
 }>()
 
 const menu = ref()

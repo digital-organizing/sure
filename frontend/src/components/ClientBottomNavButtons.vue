@@ -18,9 +18,9 @@ const questions = ref<(typeof ClientQuestion)[]>([])
 const answersStore = userAnswersStore()
 
 const emits = defineEmits<{
-  (e: 'next'): void
-  (e: 'previous'): void
-  (e: 'submit'): void
+  (_e: 'next'): void
+  (_e: 'previous'): void
+  (_e: 'submit'): void
 }>()
 
 const { getText: t } = useTexts()

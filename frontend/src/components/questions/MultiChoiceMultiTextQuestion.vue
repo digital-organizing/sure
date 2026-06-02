@@ -6,6 +6,8 @@ import {
   type ClientQuestionSchema,
   type ConsultantAnswerSchema,
   type ConsultantQuestionSchema,
+  type ClientOptionSchema,
+  type ConsultantOptionSchema,
 } from '@/client'
 import { useQuestionAnswer } from '@/composables/useQuestionAnswer'
 import type { ComputedRef } from 'vue'
@@ -97,6 +99,20 @@ const textInputs = computed<Record<string, string[]>>({
   },
 })
 
+const isOptionDisabled = (option: ClientOptionSchema | ConsultantOptionSchema) => {
+  const selectedOpts = props.question.options?.filter((opt) => selectedChoices.value.includes(opt.code!)) || []
+  const hasSelectedExclusive = selectedOpts.some((opt) => opt.exclusive)
+  const hasSelectedNonExclusive = selectedOpts.some((opt) => !opt.exclusive)
+
+  if (hasSelectedExclusive) {
+    return !selectedChoices.value.includes(option.code!)
+  }
+  if (hasSelectedNonExclusive) {
+    return !!option.exclusive
+  }
+  return false
+}
+
 function getAnswer() {
   return answer.value
 }
@@ -137,6 +153,7 @@ defineExpose({
       :class="{
         'with-text-input': option.allow_text,
         active: selectedChoices.includes(option.code),
+        disabled: isOptionDisabled(option),
       }"
     >
       <Checkbox
@@ -144,6 +161,7 @@ defineExpose({
         :value="option.code"
         :inputId="`option-${option.id}`"
         :name="`question-${question.id}`"
+        :disabled="isOptionDisabled(option)"
       />
       <label :for="`option-${option.id}`">
         {{ option.text }}
@@ -193,6 +211,10 @@ defineExpose({
   align-items: center;
   margin-bottom: 0.5rem;
   gap: 0.5rem;
+}
+.option-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .option-item .text-inputs {
   grid-area: textinput;

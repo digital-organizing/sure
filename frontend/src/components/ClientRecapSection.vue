@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'edit-section', index: number): void
+  (_e: 'edit-section', _index: number): void
 }>()
 
 const { getText: t } = useTexts()

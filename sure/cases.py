@@ -213,7 +213,8 @@ def show_question(question, answers):
         answer = answers.get(option.question.code, None)
         if not answer:
             continue
-        if option.code in answer["codes"]:
+        # Convert choice integers to strings to match option.code (a CharField)
+        if any(str(choice) == option.code for choice in answer["codes"]):
             return True
 
     return False

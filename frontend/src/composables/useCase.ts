@@ -287,9 +287,10 @@ export const useCase = createGlobalState(() => {
     try {
       await apiCall()
       await onSuccess()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(errorMessagePrefix, err)
-      error.value = `${errorMessagePrefix}: ${err.message || err}`
+      const message = err instanceof Error ? err.message : String(err)
+      error.value = `${errorMessagePrefix}: ${message}`
     }
   }
 

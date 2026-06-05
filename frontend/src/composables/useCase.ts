@@ -274,6 +274,25 @@ export const useCase = createGlobalState(() => {
         loading.value = false
       })
   }
+  async function executeApiCall<T>(
+    apiCall: () => Promise<T>,
+    errorMessagePrefix: string,
+    onSuccess: () => Promise<void> | void
+  ) {
+    if (!visit.value) {
+      error.value = 'No visit selected.'
+      return
+    }
+    error.value = null
+    try {
+      await apiCall()
+      await onSuccess()
+    } catch (err: any) {
+      console.error(errorMessagePrefix, err)
+      error.value = `${errorMessagePrefix}: ${err.message || err}`
+    }
+  }
+
   async function fetchCaseNotes() {
     if (!visit.value) {
       notes.value = []
@@ -298,36 +317,22 @@ export const useCase = createGlobalState(() => {
   }
 
   async function createCaseNote(content: string) {
-    if (!visit.value) {
-      error.value = 'No visit selected.'
-      return
-    }
-    await sureApiAddCaseNote({ path: { pk: visit.value.case }, body: { content } })
-      .catch((error) => {
-        console.error('Failed to create case note:', error)
-        error.value = 'Failed to create case note: ' + error.message
-      })
-      .then(async () => {
-        await fetchCaseNotes()
-      })
+    await executeApiCall(
+      () => sureApiAddCaseNote({ path: { pk: visit.value!.case }, body: { content } }),
+      'Failed to create case note',
+      fetchCaseNotes
+    )
   }
 
   async function setCaseNoteHidden(id: number, hidden: boolean) {
-    if (!visit.value) {
-      error.value = 'No visit selected.'
-      return
-    }
-    await sureApiSetCaseNoteHidden({
-      path: { pk: visit.value.case, note_pk: id },
-      body: { hidden },
-    })
-      .catch((error) => {
-        console.error('Failed to set case note hidden:', error)
-        error.value = 'Failed to set case note hidden: ' + error.message
-      })
-      .then(async () => {
-        await fetchCaseNotes()
-      })
+    await executeApiCall(
+      () => sureApiSetCaseNoteHidden({
+        path: { pk: visit.value!.case, note_pk: id },
+        body: { hidden },
+      }),
+      'Failed to set case note hidden',
+      fetchCaseNotes
+    )
   }
 
   async function fetchDocuments() {
@@ -377,21 +382,14 @@ export const useCase = createGlobalState(() => {
   }
 
   async function setDocumentHidden(documentId: number, hidden: boolean) {
-    if (!visit.value) {
-      error.value = 'No visit selected.'
-      return
-    }
-    await sureApiSetDocumentHidden({
-      path: { pk: visit.value.case, doc_pk: documentId },
-      body: { hidden },
-    })
-      .catch((error) => {
-        console.error('Failed to set document hidden:', error)
-        error.value = 'Failed to set document hidden: ' + error.message
-      })
-      .then(async () => {
-        await fetchDocuments()
-      })
+    await executeApiCall(
+      () => sureApiSetDocumentHidden({
+        path: { pk: visit.value!.case, doc_pk: documentId },
+        body: { hidden },
+      }),
+      'Failed to set document hidden',
+      fetchDocuments
+    )
   }
 
   async function fetchRelatedCases() {

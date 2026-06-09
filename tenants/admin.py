@@ -325,84 +325,59 @@ class TagAdmin(ModelAdmin):
         )
 
 
-@admin.register(InformationBanner)
-class InformationBannerAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
-    """Admin for information banners."""
+class BaseTenantContentAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
+    """Base admin class for tenant-specific content that can be assigned to locations."""
 
     list_display = ("name", "created_at", "published_at", "expires_at", "tenant")
     search_fields = ("content", "tenant__name")
-
     actions_detail = ["clear_locations", "select_all_locations"]
-
     autocomplete_fields = ("tenant", "locations")
 
     @action(description="Clear locations")  # ty:ignore[call-non-callable]
     def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
-        """Admin action to clear locations for selected information banners."""
-        banner = self.get_queryset(request).get(pk=object_id)
-        banner.locations.clear()
+        """Admin action to clear locations for the selected content."""
+        obj = self.get_queryset(request).get(pk=object_id)
+        obj.locations.clear()
 
-        return redirect("admin:tenants_informationbanner_change", object_id)
+        return redirect(
+            f"admin:{self.opts.app_label}_{self.opts.model_name}_change", object_id
+        )
 
     @action(description="Select all locations")  # ty:ignore[call-non-callable]
     def select_all_locations(
         self, request: HttpRequest, object_id: int
     ) -> HttpResponse:
-        """Admin action to select all locations for selected information banners."""
+        """Admin action to select all locations for the selected content."""
         if getattr(request.user, "is_superuser", False):
             locations = Location.objects.all()
         else:
             locations = Location.objects.filter(tenant__admins=request.user)
-        banner = self.get_queryset(request).get(pk=object_id)
-        banner.locations.set(locations)
+        obj = self.get_queryset(request).get(pk=object_id)
+        obj.locations.set(locations)
 
-        return redirect("admin:tenants_informationbanner_change", object_id)
+        return redirect(
+            f"admin:{self.opts.app_label}_{self.opts.model_name}_change", object_id
+        )
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""
         if getattr(request.user, "is_superuser", False):
             return super().get_queryset(request)
         return super().get_queryset(request).filter(tenant__admins=request.user)
+
+
+@admin.register(InformationBanner)
+class InformationBannerAdmin(BaseTenantContentAdmin):
+    """Admin for information banners."""
+
+    pass
 
 
 @admin.register(Advertisement)
-class AdvertisementAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
+class AdvertisementAdmin(BaseTenantContentAdmin):
     """Admin for advertisements."""
 
-    list_display = ("name", "created_at", "published_at", "expires_at", "tenant")
-    search_fields = ("content", "tenant__name")
-
-    actions_detail = ["clear_locations", "select_all_locations"]
-
-    autocomplete_fields = ("tenant", "locations")
-
-    @action(description="Clear locations")  # ty:ignore[call-non-callable]
-    def clear_locations(self, request: HttpRequest, object_id: int) -> HttpResponse:
-        """Admin action to clear locations for selected advertisements."""
-        advertisement = self.get_queryset(request).get(pk=object_id)
-        advertisement.locations.clear()
-
-        return redirect("admin:tenants_advertisement_change", object_id)
-
-    @action(description="Select all locations")  # ty:ignore[call-non-callable]
-    def select_all_locations(
-        self, request: HttpRequest, object_id: int
-    ) -> HttpResponse:
-        """Admin action to select all locations for selected advertisements."""
-        if getattr(request.user, "is_superuser", False):
-            locations = Location.objects.all()
-        else:
-            locations = Location.objects.filter(tenant__admins=request.user)
-        advertisement = self.get_queryset(request).get(pk=object_id)
-        advertisement.locations.set(locations)
-
-        return redirect("admin:tenants_advertisement_change", object_id)
-
-    def get_queryset(self, request):
-        """Limit queryset based on user permissions."""
-        if getattr(request.user, "is_superuser", False):
-            return super().get_queryset(request)
-        return super().get_queryset(request).filter(tenant__admins=request.user)
+    pass
 
 
 @admin.register(APIToken)

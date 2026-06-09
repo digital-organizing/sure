@@ -349,38 +349,28 @@ def get_filter_for_mode(
     if match_mode.startswith("date"):
         value = to_date(value)
 
-    if match_mode == MatchModes.STARTS_WITH:
-        return {f"{field_name}__istartswith": value}
-    if match_mode == MatchModes.CONTAINS:
-        return {f"{field_name}__contains": value}
-    if match_mode == MatchModes.NOT_CONTAINS:
-        return {f"{field_name}__icontains__not": value}
-    if match_mode == MatchModes.ENDS_WITH:
-        return {f"{field_name}__iendswith": value}
-    if match_mode == MatchModes.EQUALS:
-        return {f"{field_name}": value}
-    if match_mode == MatchModes.NOT_EQUALS:
-        return {f"{field_name}__ne": value}
-    if match_mode == MatchModes.IN:
-        return {f"{field_name}__in": value}
-    if match_mode == MatchModes.LESS_THAN:
-        return {f"{field_name}__lt": value}
-    if match_mode == MatchModes.LESS_THAN_EQUAL:
-        return {f"{field_name}__lte": value}
-    if match_mode == MatchModes.GREATER_THAN:
-        return {f"{field_name}__gt": value}
-    if match_mode == MatchModes.GREATER_THAN_EQUAL:
-        return {f"{field_name}__gte": value}
-    if match_mode == MatchModes.BETWEEN:
-        return {f"{field_name}__range": value}
-    if match_mode == MatchModes.DATE_IS:
-        return {f"{field_name}__date": value}
-    if match_mode == MatchModes.DATE_IS_NOT:
-        return {f"{field_name}__date__ne": value}
-    if match_mode == MatchModes.DATE_BEFORE:
-        return {f"{field_name}__lt": value}
-    if match_mode == MatchModes.DATE_AFTER:
-        return {f"{field_name}__gt": value}
+    lookup_map = {
+        MatchModes.STARTS_WITH: "__istartswith",
+        MatchModes.CONTAINS: "__contains",
+        MatchModes.NOT_CONTAINS: "__icontains__not",
+        MatchModes.ENDS_WITH: "__iendswith",
+        MatchModes.EQUALS: "",
+        MatchModes.NOT_EQUALS: "__ne",
+        MatchModes.IN: "__in",
+        MatchModes.LESS_THAN: "__lt",
+        MatchModes.LESS_THAN_EQUAL: "__lte",
+        MatchModes.GREATER_THAN: "__gt",
+        MatchModes.GREATER_THAN_EQUAL: "__gte",
+        MatchModes.BETWEEN: "__range",
+        MatchModes.DATE_IS: "__date",
+        MatchModes.DATE_IS_NOT: "__date__ne",
+        MatchModes.DATE_BEFORE: "__lt",
+        MatchModes.DATE_AFTER: "__gt",
+    }
+
+    if match_mode in lookup_map:
+        suffix = lookup_map[match_mode]
+        return {f"{field_name}{suffix}": value}
 
     raise ValueError(f"Unsupported match mode: {match_mode}")
 

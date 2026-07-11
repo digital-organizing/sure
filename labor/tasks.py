@@ -47,6 +47,12 @@ def upload_orders_task():
 
 
 @shared_task
+def upload_single_order(pk):
+    order = LabOrder.objects.get(pk=pk)
+    process_order(order)
+
+
+@shared_task
 def retrieve_results_task(lab_id: int):
     laboratory = Laboratory.objects.get(id=lab_id)
     match laboratory.implementation:

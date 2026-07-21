@@ -189,3 +189,119 @@ class ParseHl7ToDbTests(TestCase):
         self.assertEqual(len(notes), 2)
         self.assertIn("Lab Note (HIV-1 quantitativ (RNA) - PCR)", notes[0])
         self.assertIn("Lab Note (Neisseria gonorrhoeae (DNA))", notes[1])
+
+
+from django.core.exceptions import ValidationError
+from unittest.mock import MagicMock, patch
+from labor.schema import PatientDataSchema
+from labor.service import generate_hl7_order
+from labor.team_w import upload_order
+from labor.models import FTPConnection
+
+
+class HL7OrderGenerationAndUploadTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(username="owner2", password="pw")
+        self.tenant = Tenant.objects.create(name="Tenant2", owner=self.owner)
+        self.location = Location.objects.create(tenant=self.tenant, name="Center B")
+        self.case = Case.objects.create(id="1234567", location=self.location)
+        self.questionnaire = Questionnaire.objects.create(name="Q2")
+        self.visit = Visit.objects.create(
+            case=self.case, questionnaire=self.questionnaire
+        )
+        self.laboratory = Laboratory.objects.create(name="Lab B")
+        self.counter = LabOrderCounter.objects.create(
+            nr_kreis="9610",
+            base_number="0001297740",
+            last_index=1,
+        )
+        LocationToLab.objects.create(
+            labor=self.laboratory,
+            location=self.location,
+            client_code="TEAMW",
+            nr_kreis="9610",
+        )
+        category = TestCategory.objects.create(number=800, name="Lab2")
+        self.kind = TestKind.objects.create(
+            category=category,
+            number=801,
+            name="Test Kind 1",
+        )
+        Test.objects.create(visit=self.visit, test_kind=self.kind)
+
+        self.profile = TestProfile.objects.create(
+            laboratory=self.laboratory,
+            test_kind=self.kind,
+            profile_name="Profile 1",
+            profile_code="100",
+            materials=["Serum", "EDTA"],
+            material_codes=["S", "E"],
+        )
+
+        FTPConnection.objects.create(
+            laboratory=self.laboratory,
+            host="ftp.example.com",
+            user="user",
+            password="password",
+            upload_directory="/upload",
+            results_directory="/results",
+        )
+
+    def test_spm_segment_has_no_linebreaks(self):
+        patient_data = PatientDataSchema(
+            birth_year="1990",
+            gender="m",
+            note="",
+        )
+        order = generate_hl7_order(self.visit, patient_data)
+        lines = order.content.split("\n")
+
+        spm_lines = [line for line in lines if line.startswith("SPM|")]
+        self.assertEqual(len(spm_lines), 2)
+        # Verify SPM|2| segment specifically has no internal linebreaks
+        spm_2 = spm_lines[1]
+        self.assertTrue(spm_2.startswith("SPM|2|"))
+        self.assertNotIn("\r", spm_2)
+        self.assertNotIn("\n", spm_2)
+        self.assertIn("E^EDTA", spm_2)
+
+    def test_profile_clean_raises_validation_error_on_newlines(self):
+        invalid_profile = TestProfile(
+            laboratory=self.laboratory,
+            profile_name="Invalid Profile",
+            profile_code="101",
+            materials=["Serum\nSerum"],
+            material_codes=["E\nE"],
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            invalid_profile.clean()
+
+        self.assertIn("material_codes", ctx.exception.message_dict)
+        self.assertIn("materials", ctx.exception.message_dict)
+        self.assertIn(
+            "comma-separated without line breaks",
+            ctx.exception.message_dict["material_codes"][0],
+        )
+
+    @patch("labor.team_w.WindowsFTP_TLS")
+    def test_upload_order_uses_hl7_extension(self, mock_ftp_class):
+        mock_ftp_instance = MagicMock()
+        mock_ftp_class.return_value.__enter__.return_value = mock_ftp_instance
+
+        upload_order("MSH|...", self.laboratory)
+
+        mock_ftp_instance.storbinary.assert_called_once()
+        stor_arg = mock_ftp_instance.storbinary.call_args[0][0]
+        self.assertTrue(
+            stor_arg.startswith("STOR order_"),
+            f"Expected command to start with STOR order_, got {stor_arg}",
+        )
+        self.assertTrue(
+            stor_arg.endswith(".hl7"),
+            f"Expected command to end with .hl7, got {stor_arg}",
+        )
+        self.assertFalse(
+            stor_arg.endswith(".txt"),
+            f"Command should not end with .txt, got {stor_arg}",
+        )
+

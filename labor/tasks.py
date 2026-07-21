@@ -21,7 +21,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def process_order(order: LabOrder):
+def process_order(order: LabOrder | int):
+    if isinstance(order, int):
+        order = LabOrder.objects.get(id=order)
     location = order.visit.case.location
     laboratory = LocationToLab.objects.filter(location=location).first()
     if not laboratory:

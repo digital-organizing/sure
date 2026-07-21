@@ -38,7 +38,7 @@ def upload_order(content: str, laboratory: Laboratory):
         timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
         buffer = BytesIO(content.encode("utf-8"))
 
-        ftp.storbinary(f"STOR order_{timestamp}.txt", buffer)
+        ftp.storbinary(f"STOR order_{timestamp}.hl7", buffer)
 
 
 def retrieve_results(laboratory: Laboratory):

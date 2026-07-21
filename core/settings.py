@@ -706,3 +706,8 @@ CLAMD_FAIL_BY_DEFAULT = not DEBUG
 TEAM_W_FTP_HOST = env.str("TEAM_W_FTP_HOST", default="ftp.team-w.ch")
 TEAM_W_FTP_USER = env.str("TEAM_W_FTP_USER", default="sure")
 TEAM_W_FTP_PASSWORD = env.str("TEAM_W_FTP_PASSWORD", default="password")
+
+
+# Modeltranslation custom jQuery settings (locally hosted versions)
+JQUERY_URL = "vendor/jquery/jquery.min.js"
+JQUERY_UI_URL = "vendor/jquery-ui/jquery-ui.min.js"

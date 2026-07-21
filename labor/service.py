@@ -238,8 +238,8 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
 
     obr_index = 1
     for profile in test_profiles:
-        lab_code = profile.profile_code
-        lab_name = profile.profile_name
+        lab_code = str(profile.profile_code).replace("\r", "").replace("\n", "").strip()
+        lab_name = str(profile.profile_name).replace("\r", "").replace("\n", "").strip()
 
         obr_segment = f"OBR|{obr_index}|{full_order_number}||{lab_code}^{lab_name}|||{timestamp}|{timestamp}|||||||||{client_code}|"
         segments.append(obr_segment)
@@ -265,7 +265,12 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
     for material_name, material_code in materials:
         # Construct specimen barcode
         # Beispiel Serum also S und aufgefüllt auf 8 Stellen mit Nullen
-        material_code = material_code.strip()
+        material_code = (
+            str(material_code).replace("\r", "").replace("\n", "").strip()
+        )
+        material_name = (
+            str(material_name).replace("\r", "").replace("\n", "").strip()
+        )
         barcode = f"{full_order_number}{material_code:0<8}"
         barcodes.append(barcode)
 

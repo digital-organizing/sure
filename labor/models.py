@@ -268,6 +268,26 @@ class TestProfile(models.Model):
         return f"{self.profile_name} ({self.laboratory.name})"
 
     def clean(self):
+        errors = {}
+        if self.materials:
+            if any("\n" in m or "\r" in m for m in self.materials):
+                errors["materials"] = (
+                    "Materials must be comma-separated without line breaks (e.g. 'Serum, EDTA')."
+                )
+            else:
+                self.materials = [m.strip() for m in self.materials]
+
+        if self.material_codes:
+            if any("\n" in c or "\r" in c for c in self.material_codes):
+                errors["material_codes"] = (
+                    "Material codes must be comma-separated without line breaks (e.g. 'S, E')."
+                )
+            else:
+                self.material_codes = [c.strip() for c in self.material_codes]
+
+        if errors:
+            raise ValidationError(errors)
+
         if (
             self.materials
             and self.material_codes

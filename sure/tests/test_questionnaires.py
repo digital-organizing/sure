@@ -1,4 +1,4 @@
-# ty: ignore[invalid-assignment,unresolved-attribute]
+# ty: ignore[invalid-assignment]
 import pandas as pd
 from django.contrib import admin
 from django.contrib.auth.models import User

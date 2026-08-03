@@ -112,7 +112,9 @@ def create_export(export_id: int) -> None:
     df.write_excel(buffer)
     buffer.seek(0)
 
-    filename = f"visit_export_{export.start_date}_{export.end_date}.xlsx"
+    now = timezone.now()
+
+    filename = f"visit_export_{now.isoformat('T', timespec='minutes')}_{export.start_date}_{export.end_date}.xlsx"
     export.file.save(filename, ContentFile(buffer.read()), save=True)
     export.status = ExportStatus.COMPLETED
     export.save(update_fields=["status"])

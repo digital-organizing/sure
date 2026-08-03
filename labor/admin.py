@@ -17,7 +17,7 @@ from labor.models import (
     TestProfile,
     LocationToLab,
 )
-from labor.tasks import process_order, retrieve_results_task
+from labor.tasks import upload_single_order, retrieve_results_task
 from sure.models import TestResultOption
 
 from simple_history.admin import SimpleHistoryAdmin
@@ -173,7 +173,7 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
                 level="error",
             )
             return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
-        process_order(obj.id)
+        upload_single_order.delay(obj.pk)
         self.message_user(request, "Lab order upload started.", level="success")
         return redirect(reverse("admin:labor_laborder_change", args=[object_id]))
 

@@ -157,6 +157,59 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;')
 }
 
+
+function generateBarcodeSvg(code: string): string {
+  const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+  JsBarcode(svgElement, code, {
+    format: 'CODE128',
+    width: 2,
+    height: 80,
+    displayValue: true,
+    fontSize: 14,
+    margin: 10,
+    background: '#ffffff',
+    lineColor: '#000000',
+  })
+
+  return new XMLSerializer().serializeToString(svgElement)
+}
+
+async function svgToDataUrl(svgString: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
+    const url = URL.createObjectURL(svgBlob)
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('Canvas context nicht verfügbar'))
+        return
+      }
+
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0)
+
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/png'))
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Fehler beim Laden des Barcode-Bildes'))
+    }
+
+    img.src = url
+  })
+}
+
+
 export function usePrinter() {
   const isInitialized = ref(false)
   const isLoading = ref(false)
@@ -330,62 +383,7 @@ export function usePrinter() {
     return window.dymo.label.framework.renderLabel(labelXml, renderParamsXml, printer)
   }
 
-  /**
-   * Generate a barcode as SVG string
-   */
-  function generateBarcodeSvg(code: string): string {
-    const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
-    JsBarcode(svgElement, code, {
-      format: 'CODE128',
-      width: 2,
-      height: 80,
-      displayValue: true,
-      fontSize: 14,
-      margin: 10,
-      background: '#ffffff',
-      lineColor: '#000000',
-    })
-
-    return new XMLSerializer().serializeToString(svgElement)
-  }
-
-  /**
-   * Convert SVG string to base64 data URL via canvas
-   */
-  async function svgToDataUrl(svgString: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
-      const url = URL.createObjectURL(svgBlob)
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
-
-        const ctx = canvas.getContext('2d')
-        if (!ctx) {
-          reject(new Error('Canvas context nicht verfügbar'))
-          return
-        }
-
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-        ctx.drawImage(img, 0, 0)
-
-        URL.revokeObjectURL(url)
-        resolve(canvas.toDataURL('image/png'))
-      }
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url)
-        reject(new Error('Fehler beim Laden des Barcode-Bildes'))
-      }
-
-      img.src = url
-    })
-  }
 
   /**
    * Generate a PDF with barcodes as individual pages (fallback for users without printer)

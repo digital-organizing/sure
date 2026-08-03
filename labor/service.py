@@ -68,6 +68,68 @@ def _process_nte(seg, visit, last_test_name):
     return comment_text
 
 
+def _handle_obr_segment(seg, laboratory):
+    """Handles an OBR segment and returns the active test profile."""
+    profile_code = str(seg[4][0][0]).strip()
+    return (
+        TestProfile.objects.filter(laboratory=laboratory, profile_code=profile_code)
+        .select_related("test_kind", "fallback_result_option")
+        .first()
+    )
+
+
+def _handle_obx_segment(seg, visit, active_profile):
+    """Handles an OBX segment, creating the Test and TestResult if profile is active.
+    Returns a tuple of (test_name, test_result).
+    """
+    _, test_name = _extract_test_info(seg[3])
+
+    if not active_profile:
+        return test_name, None
+
+    value = str(seg[5][0]).strip()
+    if not value:
+        return test_name, None
+
+    mapping = (
+        ResultMapping.objects.filter(
+            profile=active_profile,
+            result_text=value,
+        )
+        .select_related("result_option")
+        .first()
+    )
+
+    # Exact mapping preferred, fallback_result_option is used for non-matches.
+    result_option = (
+        mapping.result_option if mapping else active_profile.fallback_result_option
+    )
+    if not result_option:
+        return test_name, None
+
+    test, _ = Test.objects.get_or_create(
+        visit=visit,
+        test_kind=active_profile.test_kind,
+    )
+    test_result = TestResult.objects.create(
+        test=test,
+        result_option=result_option,
+        note=value,
+    )
+    return test_name, test_result
+
+
+def _handle_nte_segment(seg, visit, last_test_name, last_test_result):
+    """Handles an NTE segment by processing comments and attaching them to the last test result."""
+    comment_text = _process_nte(seg, visit, last_test_name)
+    if comment_text and last_test_result:
+        if last_test_result.note_lab:
+            last_test_result.note_lab += f"\n{comment_text}"
+        else:
+            last_test_result.note_lab = comment_text
+        last_test_result.save(update_fields=["note_lab"])
+
+
 @transaction.atomic
 def parse_hl7_to_db(content):
     h = hl7.parse(content)
@@ -97,65 +159,13 @@ def parse_hl7_to_db(content):
         seg_id = str(seg[0])
 
         if seg_id == "OBR":
-            profile_code = str(seg[4][0][0]).strip()
-
-            active_profile = (
-                TestProfile.objects.filter(
-                    laboratory=laboratory, profile_code=profile_code
-                )
-                .select_related("test_kind", "fallback_result_option")
-                .first()
-            )
-
+            active_profile = _handle_obr_segment(seg, laboratory)
         elif seg_id == "OBX":
-            _, test_name = _extract_test_info(seg[3])
-            last_test_name = test_name
-            last_test_result = None
-
-            if not active_profile:
-                continue
-
-            value = str(seg[5][0]).strip()
-
-            if not value:
-                continue
-
-            mapping = (
-                ResultMapping.objects.filter(
-                    profile=active_profile,
-                    result_text=value,
-                )
-                .select_related("result_option")
-                .first()
+            last_test_name, last_test_result = _handle_obx_segment(
+                seg, visit, active_profile
             )
-
-            # Exact mapping preferred, fallback_result_option is used for non-matches.
-            result_option = (
-                mapping.result_option
-                if mapping
-                else active_profile.fallback_result_option
-            )
-            if not result_option:
-                continue
-
-            test, _ = Test.objects.get_or_create(
-                visit=visit,
-                test_kind=active_profile.test_kind,
-            )
-            last_test_result = TestResult.objects.create(
-                test=test,
-                result_option=result_option,
-                note=value,
-            )
-
         elif seg_id == "NTE":
-            comment_text = _process_nte(seg, visit, last_test_name)
-            if comment_text and last_test_result:
-                if last_test_result.note_lab:
-                    last_test_result.note_lab += f"\n{comment_text}"
-                else:
-                    last_test_result.note_lab = comment_text
-                last_test_result.save(update_fields=["note_lab"])
+            _handle_nte_segment(seg, visit, last_test_name, last_test_result)
 
     visit.status = VisitStatus.RESULTS_RECORDED
     order.status = OrderStatus.COMPLETED

@@ -181,6 +181,7 @@ def get_case_tests_with_latest_results(
 def get_export_dict(visit: Visit, test_kinds=None):
     record = {
         "id": visit.pk,
+        "case_id": visit.case.human_id,
         "created_at": make_naive(visit.created_at),
         "internal_id": visit.case.external_id,
         "status": visit.status,
@@ -240,6 +241,30 @@ def get_answer_texts(texts):
     return ";".join(map(str, texts))
 
 
+def _translate_answer_choices(choices, texts, options, lang):
+    """
+    Translates answer choices back to English using option metadata and language mapping.
+    """
+    answers_en = []
+    for code, text in zip(choices, texts):
+        option = options.get(str(code))
+        if not option:
+            text_en = text
+        elif option.choices_en:
+            original_choices = getattr(option, f"choices_{lang}", [])
+            try:
+                idx = original_choices.index(text)
+                text_en = option.choices_en[idx]
+            except ValueError:
+                text_en = text
+        elif option.allow_text:
+            text_en = option.text_en + ": " + text if option.text_en else text
+        else:
+            text_en = option.text_en if option.text_en else text
+        answers_en.append(text_en)
+    return answers_en
+
+
 def get_client_answers_export(visit: Visit):
     # Pre-group answers by question_id to avoid N queries per visit
     all_answers = list(visit.client_answers.all())
@@ -268,26 +293,9 @@ def get_client_answers_export(visit: Visit):
             else:
                 # Use prefetched options from the question
                 options = {opt.code: opt for opt in question.options.all()}
-
-                answers_en = []
-                for code, text in zip(answer.choices, answer.texts):
-                    option = options.get(str(code))
-                    if not option:
-                        text_en = text
-                    elif option.choices_en:  # type: ignore
-                        original_choices = getattr(option, f"choices_{lang}", [])
-                        try:
-                            idx = original_choices.index(text)
-                            text_en = option.choices_en[idx]  # type: ignore
-                        except ValueError:
-                            text_en = text
-                    elif option.allow_text:
-                        text_en = (
-                            option.text_en + ": " + text if option.text_en else text  # type: ignore
-                        )
-                    else:
-                        text_en = option.text_en if option.text_en else text  # type: ignore
-                    answers_en.append(text_en)
+                answers_en = _translate_answer_choices(
+                    answer.choices, answer.texts, options, lang
+                )
 
                 answer_record = {
                     "codes": answer.choices,
@@ -328,24 +336,9 @@ def get_consultant_answers_export(visit: Visit):
             options: dict[str, ClientOption] = {
                 opt.code: opt for opt in question.options.all()
             }  # type: ignore
-
-            answers_en = []
-            for code, text in zip(answer.choices, answer.texts):
-                option = options.get(code)
-                if option is None:
-                    text_en = text
-                elif option.choices_en:  # type: ignore
-                    original_choices = getattr(option, f"choices_{lang}", [])
-                    try:
-                        idx = original_choices.index(code)
-                        text_en = option.choices_en[idx]  # type: ignore
-                    except ValueError:
-                        text_en = text
-                elif option.allow_text:
-                    text_en = option.text_en + ": " + text  # type: ignore
-                else:
-                    text_en = option.text_en if option.text_en else text  # type: ignore
-                answers_en.append(text_en)
+            answers_en = _translate_answer_choices(
+                answer.choices, answer.texts, options, lang
+            )
 
             answer_record = {
                 "codes": answer.choices,
@@ -393,21 +386,15 @@ def get_test_results_export(visit: Visit, test_kinds=None):
 
 
 def _color_for_status(status):
-    match status:
-        case VisitStatus.CREATED:
-            return "bg-green-100"
-        case VisitStatus.CLIENT_SUBMITTED:
-            return "bg-yellow-100"
-        case VisitStatus.CONSULTANT_SUBMITTED:
-            return "bg-blue-600"
-        case VisitStatus.TESTS_RECORDED:
-            return "bg-blue-100"
-        case VisitStatus.RESULTS_RECORDED:
-            return "bg-primary-500"
-        case VisitStatus.CLOSED:
-            return "bg-gray-50"
-        case _:
-            return "bg-gray-500"
+    status_colors = {
+        VisitStatus.CREATED: "bg-green-100",
+        VisitStatus.CLIENT_SUBMITTED: "bg-yellow-100",
+        VisitStatus.CONSULTANT_SUBMITTED: "bg-blue-600",
+        VisitStatus.TESTS_RECORDED: "bg-blue-100",
+        VisitStatus.RESULTS_RECORDED: "bg-primary-500",
+        VisitStatus.CLOSED: "bg-gray-50",
+    }
+    return status_colors.get(status, "bg-gray-500")
 
 
 def color_for_percentage(percentage: float) -> str:

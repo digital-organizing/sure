@@ -156,21 +156,4 @@ def import_consultant_questions(df: pd.DataFrame, questionnaire: Questionnaire):
             },
         )
 
-        options = str(row["Answer-Options"]).split("\n")
-        for opt_index, option in enumerate(options):
-            if option.strip() == "":  # Skip empty options
-                continue
-            option_code, _, text = option.partition(": ")
-            if not option_code or not text:
-                logger.warning("Invalid option format: %s", option)
-                continue
-            allow_text = TEXT_ALLOWED in text
-            text = text.replace("_", "").strip()
-            question.options.update_or_create(
-                code=option_code.strip(),
-                defaults={
-                    "text": text,
-                    "order": opt_index,
-                    "allow_text": allow_text,
-                },
-            )
+        create_options(row, question)

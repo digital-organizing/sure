@@ -384,10 +384,21 @@ def _handle_obx_segment(seg, visit, active_profile):
     if not result_option:
         return test_name, None
 
-    test, _ = Test.objects.get_or_create(
+    # all_objects: a test the consultant marked as deleted still owns its
+    # (visit, test_kind) slot, so get_or_create on the default manager would
+    # break the unique constraint. The result is attached to it and the test
+    # stays deleted -- the log entry makes that visible to consultants.
+    test, _ = Test.all_objects.get_or_create(
         visit=visit,
         test_kind=active_profile.test_kind,
     )
+    if test.is_deleted:
+        visit.logs.create(
+            action=(
+                f"Received lab result for deleted test: {test.test_kind.name}. "
+                "The result is not shown or exported while the test is deleted."
+            )
+        )
     test_result = TestResult.objects.create(
         test=test,
         result_option=result_option,

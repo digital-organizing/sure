@@ -348,7 +348,12 @@ def get_visit_history(request, pk: str, offset: int = 0, limit: int = 100):
         .order_by("-created_at")
         .select_related("question")
     )
-    tests = visit.tests.all().order_by("-created_at").select_related("test_kind")
+    # The history is an audit trail, so deleted tests stay visible here.
+    tests = (
+        Test.all_objects.filter(visit=visit)
+        .order_by("-created_at")
+        .select_related("test_kind")
+    )
 
     results = (
         TestResult.objects.filter(test__visit=visit)
@@ -404,11 +409,18 @@ def update_case_tests(request, pk: str, data: SubmitTestsSchema):
     visit = get_case(request, pk)
     warnings = []
 
-    test_pks = data.test_kind_ids
+    test_pks = set(data.test_kind_ids)
 
     existing = set(visit.tests.values_list("test_kind_id", flat=True))
-    new = set(test_pks) - existing
-    removed = existing - set(test_pks)
+    # Deleted tests keep occupying their (visit, test_kind) slot, so re-selecting
+    # one has to restore it instead of creating a duplicate.
+    deleted = dict(
+        Test.all_objects.deleted().filter(visit=visit).values_list("test_kind_id", "pk")
+    )
+
+    new = test_pks - existing - set(deleted)
+    restored = test_pks & set(deleted)
+    removed = existing - test_pks
 
     tests = [
         Test(visit=visit, test_kind_id=test_kind_id, user=request.user)
@@ -416,21 +428,24 @@ def update_case_tests(request, pk: str, data: SubmitTestsSchema):
     ]
     Test.objects.bulk_create(tests)
 
-    to_remove = (
-        Test.objects.filter(visit=visit, test_kind_id__in=removed).exclude(
-            results__isnull=False
-        )
-        if removed
-        else Test.objects.none()
-    )
-
-    if to_remove.exists():
-        names = list(to_remove.values_list("test_kind__name", flat=True))
-        to_remove.delete()
+    if restored:
+        to_restore = Test.all_objects.filter(pk__in=[deleted[pk] for pk in restored])
+        names = list(to_restore.values_list("test_kind__name", flat=True))
+        to_restore.update(deleted_at=None, deleted_by=None)
         visit.logs.create(
-            action=f"Removed tests: {', '.join(map(str, names))}",
+            action=f"Restored tests: {', '.join(map(str, names))}",
             user=request.user,
         )
+
+    if removed:
+        to_remove = Test.objects.filter(visit=visit, test_kind_id__in=removed)
+        names = list(to_remove.values_list("test_kind__name", flat=True))
+        if names:
+            to_remove.update(deleted_at=timezone.now(), deleted_by=request.user)
+            visit.logs.create(
+                action=f"Marked tests as deleted: {', '.join(map(str, names))}",
+                user=request.user,
+            )
 
     free_form_tests = data.free_form_tests
     for test_name in free_form_tests:

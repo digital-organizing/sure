@@ -713,6 +713,12 @@ export type FlatTestSchema = {
      * Created At
      */
     created_at: string;
+    /**
+     * Deleted At
+     *
+     * Timestamp when the test was marked as deleted
+     */
+    deleted_at?: string | null;
 };
 
 /**
@@ -948,6 +954,12 @@ export type TestSchema = {
      * Created At
      */
     created_at: string;
+    /**
+     * Deleted At
+     *
+     * Timestamp when the test was marked as deleted
+     */
+    deleted_at?: string | null;
 };
 
 /**

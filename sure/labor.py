@@ -114,7 +114,10 @@ def read_result(message: hl7.Message):
     for obr in message.segments("OBR"):
         lab_code = obr[4][0]
 
-        test = Test.objects.filter(visit=visit, test_kind__lab_code=lab_code).first()
+        # all_objects: deleted tests still occupy their (visit, test_kind) slot.
+        test = Test.all_objects.filter(
+            visit=visit, test_kind__lab_code=lab_code
+        ).first()
 
         if not test:
             test = visit.tests.create(

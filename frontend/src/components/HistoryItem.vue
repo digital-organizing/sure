@@ -72,11 +72,20 @@ const value = computed(() => {
   }
   return ''
 })
+
+// Deleted tests stay in the history as an audit trail, marked as such.
+const deleted = computed(() => {
+  if (props.type !== 'test') {
+    return false
+  }
+  return !!(props.item as FlatTestSchema).deleted_at
+})
 </script>
 
 <template>
-  <div class="history-entry">
+  <div class="history-entry" :class="{ deleted }">
     <span class="label">{{ label }}</span>
+    <Tag v-if="deleted" severity="danger" value="deleted" class="deleted-tag" />
     <span class="value">{{ value }}</span>
     <div class="meta">
       <span class="date">{{ formatDate(props.date) }}</span>
@@ -93,6 +102,15 @@ const value = computed(() => {
 
 .history-entry .label {
   font-weight: bold;
+}
+
+.history-entry.deleted .label {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.deleted-tag {
+  align-self: flex-start;
 }
 
 .history-entry .meta {

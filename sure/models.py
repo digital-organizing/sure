@@ -966,6 +966,28 @@ class VisitDocument(models.Model):
         ordering = ["uploaded_at"]
 
 
+class TestQuerySet(models.QuerySet):
+    def deleted(self):
+        return self.filter(deleted_at__isnull=False)
+
+    def not_deleted(self):
+        return self.filter(deleted_at__isnull=True)
+
+
+class ActiveTestManager(models.Manager):
+    """Default manager hiding tests a consultant marked as deleted.
+
+    Tests are never removed from the database, so this manager is what keeps
+    them out of exports, lab orders, result recording and client-facing views.
+    Use ``Test.all_objects`` when deleted tests must be visible (history, HL7
+    ingestion, admin). It deliberately does not expose ``deleted()``, which
+    could only ever return an empty queryset here.
+    """
+
+    def get_queryset(self):
+        return TestQuerySet(self.model, using=self._db).not_deleted()
+
+
 class Test(models.Model):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
     test_kind = models.ForeignKey(
@@ -988,9 +1010,46 @@ class Test(models.Model):
         help_text=_("The user who recorded the test"),
     )
 
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name=_("Deleted At"),
+        help_text=_("Timestamp when the test was marked as deleted"),
+    )
+    deleted_by = models.ForeignKey(
+        "auth.User",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="deleted_tests",
+        verbose_name=_("Deleted By"),
+        help_text=_("The user who marked the test as deleted"),
+    )
+
+    objects = ActiveTestManager()
+    all_objects = models.Manager.from_queryset(TestQuerySet)()
+
     results: models.QuerySet["TestResult"]
 
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
+
+    def mark_deleted(self, user=None):
+        """Mark the test as deleted without removing any data."""
+        self.deleted_at = timezone.now()
+        self.deleted_by = user
+        self.save(update_fields=["deleted_at", "deleted_by"])
+
+    def restore(self):
+        """Undo a previous mark_deleted()."""
+        self.deleted_at = None
+        self.deleted_by = None
+        self.save(update_fields=["deleted_at", "deleted_by"])
+
     class Meta:
+        base_manager_name = "all_objects"
         constraints = [
             models.UniqueConstraint(
                 fields=["visit", "test_kind"],

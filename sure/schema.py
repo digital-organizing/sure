@@ -588,6 +588,7 @@ class TestSchema(ModelSchema):
             "note",
             "user",
             "created_at",
+            "deleted_at",
         ]
 
     results: list[TestResultSchema]
@@ -603,6 +604,7 @@ class FlatTestSchema(ModelSchema):
             "note",
             "user",
             "created_at",
+            "deleted_at",
         ]
 
     label: str = Field(..., alias="test_kind.name")

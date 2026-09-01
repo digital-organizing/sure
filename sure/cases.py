@@ -54,7 +54,9 @@ def annotate_last_modified(queryset: QuerySet[Visit]) -> QuerySet[Visit]:
     )
 
     latest_test_result = (
-        TestResult.objects.filter(test__visit=OuterRef("pk"))
+        TestResult.objects.filter(
+            test__visit=OuterRef("pk"), test__deleted_at__isnull=True
+        )
         .order_by("-created_at")
         .values("created_at")[:1]
     )
@@ -122,7 +124,7 @@ def prefetch_questionnaire(location: Location, internal=False):
 
 def get_test_results(visit):
     return (
-        TestResult.objects.filter(test__visit=visit)
+        TestResult.objects.filter(test__visit=visit, test__deleted_at__isnull=True)
         .annotate(
             is_latest=Subquery(
                 TestResult.objects.filter(test_id=OuterRef("test_id"))

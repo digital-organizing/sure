@@ -218,6 +218,31 @@ class ParseHl7ToDbTests(TestCase):
 
                 self.assertEqual(TestResult.objects.count(), 4)
 
+    def test_parse_hl7_to_db_keeps_deleted_tests_deleted(self):
+        """A result arriving for a test the consultant deleted is stored on that
+        test, but must not resurrect it -- a visit log flags the situation."""
+        deleted_test = Test.objects.create(
+            visit=self.visit,
+            test_kind=self.kind_hiv,
+        )
+        deleted_test.mark_deleted(user=self.owner)
+
+        parse_hl7_to_db(self._load_sample_hl7())
+
+        deleted_test.refresh_from_db()
+        self.assertIsNotNone(deleted_test.deleted_at)
+        self.assertEqual(deleted_test.results.count(), 1)
+        # No duplicate was created next to the deleted one.
+        self.assertEqual(
+            Test.all_objects.filter(visit=self.visit, test_kind=self.kind_hiv).count(),
+            1,
+        )
+
+        log = self.visit.logs.filter(
+            action__startswith="Received lab result for deleted test"
+        ).get()
+        self.assertIn("HIV PCR", log.action)
+
     def test_parse_hl7_to_db_sets_visit_status(self):
         parse_hl7_to_db(self._load_sample_hl7())
 

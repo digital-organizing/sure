@@ -157,7 +157,6 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;')
 }
 
-
 function generateBarcodeSvg(code: string): string {
   const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 
@@ -208,7 +207,6 @@ async function svgToDataUrl(svgString: string): Promise<string> {
     img.src = url
   })
 }
-
 
 export function usePrinter() {
   const isInitialized = ref(false)
@@ -382,8 +380,6 @@ export function usePrinter() {
 
     return window.dymo.label.framework.renderLabel(labelXml, renderParamsXml, printer)
   }
-
-
 
   /**
    * Generate a PDF with barcodes as individual pages (fallback for users without printer)

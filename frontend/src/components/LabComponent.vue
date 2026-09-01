@@ -164,7 +164,7 @@ function submitOrder() {
 }
 
 async function printBarcodes(codes: string[]) {
-console.log('Printing barcodes:', codes)
+  console.log('Printing barcodes:', codes)
   if (hasConnectedPrinter.value) {
     await printLabels(codes)
     return
@@ -194,9 +194,11 @@ function codeForProfile(profile: string): string[] {
   console.log(order.codes)
   console.log(order.materials)
 
-
-  return requiredMaterialCodes?.map((code) => order.codes[order.materials.findIndex((c) => c === code)] || '') || []
-
+  return (
+    requiredMaterialCodes?.map(
+      (code) => order.codes[order.materials.findIndex((c) => c === code)] || '',
+    ) || []
+  )
 }
 
 function openDialog() {
@@ -289,19 +291,17 @@ defineExpose({
               severity="secondary"
               rounded
               @click="printBarcodes(codeForProfile(profile.profile_code))"
-              :label="t('print').value + ' (' + codeForProfile(profile.profile_code).length + ')' "
+              :label="t('print').value + ' (' + codeForProfile(profile.profile_code).length + ')'"
             />
           </span>
           <span class="code">
             {{ profile.profile_code }}
           </span>
           <div class="materials">
-          <div class="material" v-for="code, idx in profile.material_codes" :key="code">
-            <strong>{{ t('material') }}:</strong> {{ profile.materials![idx] }} ({{
-              code
-            }})
+            <div class="material" v-for="(code, idx) in profile.material_codes" :key="code">
+              <strong>{{ t('material') }}:</strong> {{ profile.materials![idx] }} ({{ code }})
+            </div>
           </div>
-        </div>
           <span class="note">
             {{ profile.note }}
           </span>
@@ -332,16 +332,24 @@ defineExpose({
           <div class="codes">
             <strong>{{ t('barcodes') }}:</strong>
             <ul>
-              <li v-for="code, idx in order.codes" :key="'' + code">
+              <li v-for="(code, idx) in order.codes" :key="'' + code">
                 {{ code }}
                 ({{ order.materials[idx] }})
-                <Button v-if="order.status != 'cancelled'" size="small" icon="pi pi-print" severity="secondary" rounded @click="printBarcodes([code])" :label="t('print').value" />
+                <Button
+                  v-if="order.status != 'cancelled'"
+                  size="small"
+                  icon="pi pi-print"
+                  severity="secondary"
+                  rounded
+                  @click="printBarcodes([code])"
+                  :label="t('print').value"
+                />
               </li>
             </ul>
           </div>
-          
+
           <div class="note">
-           {{ order.note }}
+            {{ order.note }}
           </div>
 
           <div class="actions">

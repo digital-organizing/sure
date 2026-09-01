@@ -277,7 +277,7 @@ export const useCase = createGlobalState(() => {
   async function executeApiCall<T>(
     apiCall: () => Promise<T>,
     errorMessagePrefix: string,
-    onSuccess: () => Promise<void> | void
+    onSuccess: () => Promise<void> | void,
   ) {
     if (!visit.value) {
       error.value = 'No visit selected.'
@@ -321,18 +321,19 @@ export const useCase = createGlobalState(() => {
     await executeApiCall(
       () => sureApiAddCaseNote({ path: { pk: visit.value!.case }, body: { content } }),
       'Failed to create case note',
-      fetchCaseNotes
+      fetchCaseNotes,
     )
   }
 
   async function setCaseNoteHidden(id: number, hidden: boolean) {
     await executeApiCall(
-      () => sureApiSetCaseNoteHidden({
-        path: { pk: visit.value!.case, note_pk: id },
-        body: { hidden },
-      }),
+      () =>
+        sureApiSetCaseNoteHidden({
+          path: { pk: visit.value!.case, note_pk: id },
+          body: { hidden },
+        }),
       'Failed to set case note hidden',
-      fetchCaseNotes
+      fetchCaseNotes,
     )
   }
 
@@ -384,12 +385,13 @@ export const useCase = createGlobalState(() => {
 
   async function setDocumentHidden(documentId: number, hidden: boolean) {
     await executeApiCall(
-      () => sureApiSetDocumentHidden({
-        path: { pk: visit.value!.case, doc_pk: documentId },
-        body: { hidden },
-      }),
+      () =>
+        sureApiSetDocumentHidden({
+          path: { pk: visit.value!.case, doc_pk: documentId },
+          body: { hidden },
+        }),
       'Failed to set document hidden',
-      fetchDocuments
+      fetchDocuments,
     )
   }
 

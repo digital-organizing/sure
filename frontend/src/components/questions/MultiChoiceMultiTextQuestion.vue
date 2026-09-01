@@ -100,7 +100,8 @@ const textInputs = computed<Record<string, string[]>>({
 })
 
 const isOptionDisabled = (option: ClientOptionSchema | ConsultantOptionSchema) => {
-  const selectedOpts = props.question.options?.filter((opt) => selectedChoices.value.includes(opt.code!)) || []
+  const selectedOpts =
+    props.question.options?.filter((opt) => selectedChoices.value.includes(opt.code!)) || []
   const hasSelectedExclusive = selectedOpts.some((opt) => opt.exclusive)
   const hasSelectedNonExclusive = selectedOpts.some((opt) => !opt.exclusive)
 

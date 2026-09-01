@@ -1030,7 +1030,7 @@ export type TestResultInputSchema = {
  * DocumentSchema
  */
 export type DocumentSchema = {
-    user: UserSchema;
+    user?: UserSchema | null;
     /**
      * Link
      */

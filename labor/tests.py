@@ -1,7 +1,9 @@
+import base64
 from pathlib import Path
 
+import hl7
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from labor.models import (
     LabOrder,
@@ -12,7 +14,12 @@ from labor.models import (
     ResultMapping,
     TestProfile,
 )
-from labor.service import parse_hl7_to_db
+from labor.service import (
+    _normalize_segments,
+    _unescape_hl7_text,
+    extract_embedded_documents,
+    parse_hl7_to_db,
+)
 from sure.models import (
     Case,
     Questionnaire,
@@ -23,6 +30,7 @@ from sure.models import (
     TestResultOption,
     Visit,
     VisitNote,
+    VisitStatus,
 )
 from tenants.models import Location, Tenant
 
@@ -128,10 +136,14 @@ class ParseHl7ToDbTests(TestCase):
         )
 
     def _load_sample_hl7(self):
+        """Returns the sample exactly as retrieve_results delivers it.
+
+        Read as bytes and decoded, so the file's CRLF separators survive as-is
+        instead of being folded by universal newlines. parse_hl7_to_db is
+        responsible for normalizing them.
+        """
         sample_path = Path(__file__).resolve().parents[0] / "bsp_result.hl7"
-        content = sample_path.read_text(encoding="iso-8859-1")
-        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
-        return normalized.replace("\n", "\r")
+        return sample_path.read_bytes().decode("utf-8")
 
     def test_parse_hl7_to_db_imports_mappings_and_profile_fallback(self):
         content = self._load_sample_hl7()
@@ -142,7 +154,8 @@ class ParseHl7ToDbTests(TestCase):
 
         self.assertEqual(lab_result.order, self.order)
         self.assertEqual(lab_result.visit, self.visit)
-        self.assertEqual(lab_result.content, content)
+        self.assertEqual(lab_result.content, _normalize_segments(content))
+        self.assertNotIn("\n", lab_result.content)
         self.assertEqual(self.order.status, OrderStatus.COMPLETED)
 
         # One HIV result + one serology fallback + two PCR results.
@@ -189,6 +202,190 @@ class ParseHl7ToDbTests(TestCase):
         self.assertEqual(len(notes), 2)
         self.assertIn("Lab Note (HIV-1 quantitativ (RNA) - PCR)", notes[0])
         self.assertIn("Lab Note (Neisseria gonorrhoeae (DNA))", notes[1])
+
+    def test_parse_hl7_to_db_accepts_lf_and_crlf_separators(self):
+        """The lab ships CRLF; other senders ship bare LF. Both must ingest."""
+        crlf = self._load_sample_hl7()
+        lf = crlf.replace("\r\n", "\n")
+
+        for label, content in (("CRLF", crlf), ("LF", lf)):
+            with self.subTest(separator=label):
+                TestResult.objects.all().delete()
+                Test.objects.filter(visit=self.visit).delete()
+                VisitNote.objects.filter(visit=self.visit).delete()
+
+                parse_hl7_to_db(content)
+
+                self.assertEqual(TestResult.objects.count(), 4)
+
+    def test_parse_hl7_to_db_sets_visit_status(self):
+        parse_hl7_to_db(self._load_sample_hl7())
+
+        self.visit.refresh_from_db()
+        self.assertEqual(self.visit.status, VisitStatus.RESULTS_RECORDED)
+
+    def test_parse_hl7_to_db_rejects_non_result_messages(self):
+        """Our own OML orders land in the results directory; they must not
+        be ingested as results and silently complete the order."""
+        order_path = Path(__file__).resolve().parents[0] / "bsp_order.hl7"
+        content = order_path.read_bytes().decode("utf-8")
+
+        with self.assertRaises(ValueError) as ctx:
+            parse_hl7_to_db(content)
+
+        self.assertIn("expected ORU", str(ctx.exception))
+
+        self.order.refresh_from_db()
+        self.visit.refresh_from_db()
+        self.assertNotEqual(self.order.status, OrderStatus.COMPLETED)
+        self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_RECORDED)
+        self.assertEqual(TestResult.objects.count(), 0)
+
+    def test_unescape_hl7_text_turns_br_escapes_into_newlines(self):
+        """The lab puts \\.br\\ inside OBX-5 values, not only in NTE segments."""
+        raw = (
+            "Crescita abbondante di Actinotignum schaalii\\.br\\ "
+            "Crescita moderata di Streptococcus anginosus\\.br\\\\.br\\"
+            "S=Sensibel, R=Resistent\\.br\\"
+        )
+
+        unescaped = _unescape_hl7_text(raw)
+
+        self.assertEqual(
+            unescaped,
+            "Crescita abbondante di Actinotignum schaalii\n "
+            "Crescita moderata di Streptococcus anginosus\n\n"
+            "S=Sensibel, R=Resistent\n",
+        )
+        # No stray backslashes or half-eaten escapes left behind.
+        self.assertNotIn("\\", unescaped)
+        self.assertNotIn(".br", unescaped)
+
+    def test_unescape_hl7_text_handles_missing_closing_backslash(self):
+        self.assertEqual(_unescape_hl7_text("erste\\.brzweite"), "erste\nzweite")
+
+    def test_unescape_hl7_text_leaves_plain_values_untouched(self):
+        for value in ("negativ", "0.8", ">1000000 germi/ml", "<1.0"):
+            with self.subTest(value=value):
+                self.assertEqual(_unescape_hl7_text(value), value)
+
+    def test_normalize_segments_drops_blank_segments(self):
+        normalized = _normalize_segments("MSH|^~\\&|A\n\nPID|1\r\n\r\nORC|NW|1\n")
+
+        self.assertEqual(normalized, "MSH|^~\\&|A\rPID|1\rORC|NW|1")
+
+
+IN_MEMORY_STORAGE = {
+    "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
+
+@override_settings(STORAGES=IN_MEMORY_STORAGE)
+class EmbeddedDocumentTests(TestCase):
+    """MDM^T02 messages carry the report as a base64 PDF instead of results."""
+
+    def setUp(self):
+        self.owner = User.objects.create_user(username="doc_owner", password="pw")
+        self.tenant = Tenant.objects.create(name="Tenant Doc", owner=self.owner)
+        self.location = Location.objects.create(tenant=self.tenant, name="Center Doc")
+        self.case = Case.objects.create(id="9184722", location=self.location)
+        self.questionnaire = Questionnaire.objects.create(name="Q Doc")
+        self.visit = Visit.objects.create(
+            case=self.case, questionnaire=self.questionnaire
+        )
+
+        self.laboratory = Laboratory.objects.create(name="Lab Doc")
+        self.counter = LabOrderCounter.objects.create(
+            nr_kreis="9611",
+            base_number="0001297740",
+            last_index=59,
+        )
+        LocationToLab.objects.create(
+            labor=self.laboratory,
+            location=self.location,
+            client_code="TEAMW",
+            nr_kreis="9611",
+        )
+        # The sample only names our order number inside the document file name;
+        # its ORC-2 carries the laboratory's own number.
+        self.order = LabOrder.objects.create(
+            visit=self.visit,
+            lab_order_counter=self.counter,
+            order_number="96100001297799",
+        )
+
+    def _load_sample_hl7(self):
+        sample_path = Path(__file__).resolve().parents[0] / "bsp_document.hl7"
+        return sample_path.read_bytes().decode("utf-8")
+
+    def test_extract_embedded_documents_returns_named_pdf(self):
+        h = hl7.parse(_normalize_segments(self._load_sample_hl7()))
+
+        documents = extract_embedded_documents(h)
+
+        self.assertEqual(len(documents), 1)
+        self.assertEqual(
+            documents[0].filename,
+            "XXWPET.ANONYM_SUF-91FK6GJ__96100001297799__Y260668679.pdf",
+        )
+        self.assertTrue(documents[0].content.startswith(b"%PDF-"))
+
+    def test_parse_hl7_to_db_attaches_document_to_visit(self):
+        lab_result = parse_hl7_to_db(self._load_sample_hl7())
+
+        self.assertEqual(lab_result.order, self.order)
+
+        document = self.visit.documents.get()
+        self.assertTrue(document.hidden)
+        self.assertIsNone(document.user)
+        self.assertEqual(document.document.read()[:5], b"%PDF-")
+
+    def test_parse_hl7_to_db_leaves_status_untouched_for_documents(self):
+        """A report PDF accompanies the results, it does not replace them."""
+        parse_hl7_to_db(self._load_sample_hl7())
+
+        self.visit.refresh_from_db()
+        self.order.refresh_from_db()
+        self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_RECORDED)
+        self.assertNotEqual(self.order.status, OrderStatus.COMPLETED)
+        self.assertEqual(TestResult.objects.count(), 0)
+
+    def test_parse_hl7_to_db_does_not_duplicate_redelivered_documents(self):
+        content = self._load_sample_hl7()
+
+        parse_hl7_to_db(content)
+        parse_hl7_to_db(content)
+
+        self.assertEqual(self.visit.documents.count(), 1)
+
+    def test_parse_hl7_to_db_rejects_document_without_matching_order(self):
+        self.order.delete()
+
+        with self.assertRaises(ValueError) as ctx:
+            parse_hl7_to_db(self._load_sample_hl7())
+
+        self.assertIn("Lab order not found", str(ctx.exception))
+
+    def test_result_message_attaches_embedded_report(self):
+        """An ORU may carry the report inline; it must not become a result."""
+        pdf = b"%PDF-1.5\n" + b"0" * 200
+        encoded = base64.b64encode(pdf).decode("ascii")
+        content = "\r".join(
+            [
+                "MSH|^~\\&|LX|TEAMW|LTW||20260303112942||ORU^R01|1|P|2.4||||||8859/1",
+                "PID|1|SUF-iar9ar7|9184722^^^^^TEAMW||ANONYM^SUF-IAR9AR7||19970101|M",
+                "ORC|NW|96100001297799|Y26019305734^LX|Y260193057^LX|CM",
+                f"OBX|1|ED|REPORT^Befund^LX||^application^PDF^Base64^{encoded}|||||||F",
+            ]
+        )
+
+        parse_hl7_to_db(content)
+
+        self.assertEqual(TestResult.objects.count(), 0)
+        document = self.visit.documents.get()
+        self.assertEqual(document.name, "lab_report_1.pdf")
+        self.assertEqual(document.document.read(), pdf)
 
 
 from django.core.exceptions import ValidationError

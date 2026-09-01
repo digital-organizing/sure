@@ -690,7 +690,8 @@ class DocumentSchema(ModelSchema):
             "hidden",
         ]
 
-    user: UserSchema
+    # Documents ingested from HL7 lab results have no uploading user.
+    user: UserSchema | None = None
     link: str
 
     @staticmethod

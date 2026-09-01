@@ -57,11 +57,13 @@ function onSelect(event: unknown) {
           {{ document.name }}
         </span>
         <span class="small"
-          >{{ formatDate(new Date(document.uploaded_at), 'YYYY-MM-DD HH:mm') }} -
-          {{ document.user.first_name }} {{ document.user.last_name }} ({{
-            document.user.tenant
-          }})</span
-        >
+          >{{ formatDate(new Date(document.uploaded_at), 'YYYY-MM-DD HH:mm') }}
+          <template v-if="document.user">
+            - {{ document.user.first_name }} {{ document.user.last_name }} ({{
+              document.user.tenant
+            }})
+          </template>
+        </span>
       </div>
       <div class="actions">
         <label :for="'toggle_' + document.id!">{{

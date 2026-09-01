@@ -51,7 +51,8 @@ async function loadQuestionnaire(lang: string) {
     query: { lang },
   })
 
-  if (response.response.status === 302) {
+  // response is undefined on a network error; fall through to the error handling below.
+  if (response.response?.status === 302) {
     router.push(`/client/${props.caseId}/phone`)
     return
   }

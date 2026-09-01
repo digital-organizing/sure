@@ -142,7 +142,7 @@ async function startVerification() {
     error.value = translate('client-phone-error-invalid')
     return
   }
-  if (response.response.status !== 200) {
+  if (response.response?.status !== 200) {
     error.value = translate('client-phone-error-invalid')
     return
   }

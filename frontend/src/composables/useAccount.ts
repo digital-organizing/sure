@@ -52,7 +52,8 @@ export const useAccount = createGlobalState(() => {
     if (response === null) {
       return null
     }
-    if (response.response.status !== 200) {
+    // response is undefined when the request never reached the server.
+    if (response.response?.status !== 200) {
       error.value = 'Failed to set initial password'
       return response.error as LoginResponse
     }

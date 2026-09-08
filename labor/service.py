@@ -510,7 +510,9 @@ def parse_hl7_to_db(content):
 
     _store_documents(visit, extract_embedded_documents(h))
 
-    visit.status = VisitStatus.RESULTS_RECORDED
+    # Results are in, but a consultant has to review and publish them.
+    # Ingestion must never move a visit into a state that can notify a client.
+    visit.status = VisitStatus.RESULTS_INGESTED
     visit.save(update_fields=["status"])
 
     order.status = OrderStatus.COMPLETED

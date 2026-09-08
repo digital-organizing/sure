@@ -393,6 +393,7 @@ def _color_for_status(status):
         VisitStatus.CLIENT_SUBMITTED: "bg-yellow-100",
         VisitStatus.CONSULTANT_SUBMITTED: "bg-blue-600",
         VisitStatus.TESTS_RECORDED: "bg-blue-100",
+        VisitStatus.RESULTS_INGESTED: "bg-orange-100",
         VisitStatus.RESULTS_RECORDED: "bg-primary-500",
         VisitStatus.CLOSED: "bg-gray-50",
     }

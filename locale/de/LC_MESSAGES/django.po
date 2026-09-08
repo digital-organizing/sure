@@ -357,6 +357,10 @@ msgid "Tests Recorded"
 msgstr ""
 
 #: sure/models.py:652
+msgid "Results Received from Lab"
+msgstr ""
+
+#: sure/models.py:652
 msgid "Results Recorded"
 msgstr ""
 

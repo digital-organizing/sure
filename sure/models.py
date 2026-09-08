@@ -774,6 +774,10 @@ class VisitStatus(models.TextChoices):
     CONSULTANT_SUBMITTED = "consultant_submitted", _("Consultant Submitted")
     TESTS_RECORDED = "tests_recorded", _("Tests Recorded")
 
+    #: Results arrived from the laboratory and await a consultant's review.
+    #: Ingestion never publishes anything, so this status must not be treated
+    #: as "ready for the client" anywhere.
+    RESULTS_INGESTED = "results_ingested", _("Results Received from Lab")
     RESULTS_RECORDED = "results_recorded", _("Results Recorded")
     RESULTS_SENT = "results_sent", _("Results Sent")
     RESULTS_MISSED = "results_missed", _("Client missed results")

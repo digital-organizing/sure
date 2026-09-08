@@ -245,10 +245,12 @@ class ParseHl7ToDbTests(TestCase):
         self.assertIn("HIV PCR", log.action)
 
     def test_parse_hl7_to_db_sets_visit_status(self):
+        """Ingestion parks the visit for review; it never marks it publishable."""
         parse_hl7_to_db(self._load_sample_hl7())
 
         self.visit.refresh_from_db()
-        self.assertEqual(self.visit.status, VisitStatus.RESULTS_RECORDED)
+        self.assertEqual(self.visit.status, VisitStatus.RESULTS_INGESTED)
+        self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_SENT)
 
     def test_parse_hl7_to_db_rejects_non_result_messages(self):
         """Our own OML orders land in the results directory; they must not
@@ -265,6 +267,7 @@ class ParseHl7ToDbTests(TestCase):
         self.visit.refresh_from_db()
         self.assertNotEqual(self.order.status, OrderStatus.COMPLETED)
         self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_RECORDED)
+        self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_INGESTED)
         self.assertEqual(TestResult.objects.count(), 0)
 
     def test_unescape_hl7_text_turns_br_escapes_into_newlines(self):
@@ -374,6 +377,7 @@ class EmbeddedDocumentTests(TestCase):
         self.visit.refresh_from_db()
         self.order.refresh_from_db()
         self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_RECORDED)
+        self.assertNotEqual(self.visit.status, VisitStatus.RESULTS_INGESTED)
         self.assertNotEqual(self.order.status, OrderStatus.COMPLETED)
         self.assertEqual(TestResult.objects.count(), 0)
 

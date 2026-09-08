@@ -161,6 +161,8 @@ onMounted(async () => {
       router.replace({ name: 'consultant-tests', params: { caseId: props.caseId } })
       break
     case 'tests_recorded':
+    // Lab results arrived: the consultant reviews them before publishing.
+    case 'results_ingested':
       router.replace({ name: 'consultant-results', params: { caseId: props.caseId } })
       break
     case 'results_seen':

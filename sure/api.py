@@ -955,7 +955,11 @@ def get_result_info(request, pk: str, key: Form[str] = ""):
 def publish_case_results(request, pk: str):
     """Publish case results to the client."""
     visit = get_case(request, pk)
-    if visit.status not in [VisitStatus.RESULTS_RECORDED, VisitStatus.TESTS_RECORDED]:
+    if visit.status not in [
+        VisitStatus.RESULTS_INGESTED,
+        VisitStatus.RESULTS_RECORDED,
+        VisitStatus.TESTS_RECORDED,
+    ]:
         raise HttpError(
             400,
             translate("cannot-publish-results-status"),

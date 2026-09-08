@@ -355,11 +355,40 @@ def _handle_obr_segment(seg, laboratory):
     )
 
 
-def _handle_obx_segment(seg, visit, active_profile):
-    """Handles an OBX segment, creating the Test and TestResult if profile is active.
+def _resolve_profile(laboratory, test_code, active_profile):
+    """Finds the profile a single OBX belongs to.
+
+    OBR-4 carries the laboratory's *department* code (26 Hormone, 35
+    Infektserologie), not the analysis we ordered, so one OBR can cover seven
+    unrelated analyses. The analysis itself is identified by the OBX-3 code,
+    which is what ``TestProfile.result_label`` holds. Matching on it keeps each
+    result attached to its own test kind; the OBR profile stays as a fallback
+    for laboratories whose result labels are not maintained yet.
+    """
+    if test_code:
+        profile = (
+            TestProfile.objects.filter(laboratory=laboratory, result_label=test_code)
+            .select_related("test_kind", "fallback_result_option")
+            .first()
+        )
+        if profile:
+            return profile
+
+    if not active_profile:
+        logger.warning(
+            "No test profile for OBX-3 code %r at laboratory %s; result skipped",
+            test_code,
+            laboratory,
+        )
+    return active_profile
+
+
+def _handle_obx_segment(seg, visit, laboratory, active_profile):
+    """Handles an OBX segment, creating the Test and TestResult if a profile matches.
     Returns a tuple of (test_name, test_result).
     """
-    _, test_name = _extract_test_info(seg[3])
+    test_code, test_name = _extract_test_info(seg[3])
+    active_profile = _resolve_profile(laboratory, test_code, active_profile)
 
     if not active_profile:
         return test_name, None
@@ -464,7 +493,7 @@ def parse_hl7_to_db(content):
                 # The encoded report is attached below, not read as a value.
                 continue
             last_test_name, last_test_result = _handle_obx_segment(
-                seg, visit, active_profile
+                seg, visit, laboratory, active_profile
             )
         elif seg_id == "NTE":
             _handle_nte_segment(seg, visit, last_test_name, last_test_result)

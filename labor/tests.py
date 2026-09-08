@@ -413,6 +413,126 @@ class EmbeddedDocumentTests(TestCase):
         self.assertEqual(document.document.read(), pdf)
 
 
+
+class GroupedResultProfileTests(TestCase):
+    """The lab groups analyses under department OBRs (26 Hormone, 35
+    Infektserologie). Each OBX must still reach its own test kind, matched on
+    the OBX-3 code via TestProfile.result_label.
+    """
+
+    #: OBX-3 code -> (test kind name, OBR department code it arrives under)
+    ANALYSES = [
+        ("HCGS", "beta-hCG", "26"),
+        ("HIVDUO", "HIV Ag/Ak", "34"),
+        ("HIV1SQ", "HIV-1 RNA", "34"),
+        ("AHA", "Hepatitis A", "35"),
+        ("HBSAG", "Hepatitis B HBsAg", "35"),
+        ("AHBC", "Hepatitis B anti-HBc", "35"),
+        ("AHBSI", "Hepatitis B anti-HBs", "35"),
+        ("AHC", "Hepatitis C", "35"),
+        ("CMT", "Lues VDRL", "35"),
+        ("TRES", "Lues TP Screen", "35"),
+        ("CHTPCR", "Chlamydia trachomatis", "53"),
+        ("GOPCR", "Neisseria gonorrhoeae", "53"),
+    ]
+
+    def setUp(self):
+        self.owner = User.objects.create_user(username="owner3", password="pw")
+        self.tenant = Tenant.objects.create(name="Tenant3", owner=self.owner)
+        self.location = Location.objects.create(tenant=self.tenant, name="Center C")
+        self.case = Case.objects.create(id="9182736", location=self.location)
+        self.questionnaire = Questionnaire.objects.create(name="Q3")
+        self.visit = Visit.objects.create(
+            case=self.case, questionnaire=self.questionnaire
+        )
+        self.laboratory = Laboratory.objects.create(name="Lab C")
+        self.counter = LabOrderCounter.objects.create(
+            nr_kreis="9611", base_number="0001297740", last_index=0
+        )
+        LocationToLab.objects.create(
+            labor=self.laboratory,
+            location=self.location,
+            client_code="XXWPET",
+            nr_kreis="9611",
+        )
+        self.order = LabOrder.objects.create(
+            visit=self.visit,
+            lab_order_counter=self.counter,
+            order_number="96100001297799",
+        )
+
+        category = TestCategory.objects.create(number=910, name="Lab C")
+        self.kinds = {}
+        for number, (code, name, _department) in enumerate(self.ANALYSES, start=910):
+            kind = TestKind.objects.create(
+                category=category, number=number, name=name
+            )
+            self.kinds[code] = kind
+            option = TestResultOption.objects.create(test_kind=kind, label="Erfasst")
+            TestProfile.objects.create(
+                laboratory=self.laboratory,
+                test_kind=kind,
+                profile_name=name,
+                # The code we send when ordering, not the one the lab returns.
+                profile_code=f"order-{code}",
+                result_label=code,
+                fallback_result_option=option,
+            )
+
+    def _load(self):
+        path = Path(__file__).resolve().parents[0] / "bsp_result_grouped.hl7"
+        return path.read_bytes().decode("utf-8")
+
+    def test_every_analysis_reaches_its_own_test_kind(self):
+        parse_hl7_to_db(self._load())
+
+        self.assertEqual(Test.objects.filter(visit=self.visit).count(), 12)
+        self.assertEqual(TestResult.objects.count(), 12)
+
+        for code, name, _department in self.ANALYSES:
+            with self.subTest(analysis=code):
+                test = Test.objects.get(visit=self.visit, test_kind=self.kinds[code])
+                self.assertEqual(test.results.count(), 1)
+
+    def test_department_grouping_does_not_collapse_results(self):
+        """The seven Infektserologie analyses must not share one test kind."""
+        parse_hl7_to_db(self._load())
+
+        serology = [c for c, _n, d in self.ANALYSES if d == "35"]
+        kinds = {self.kinds[c].pk for c in serology}
+
+        self.assertEqual(len(serology), 7)
+        self.assertEqual(
+            Test.objects.filter(visit=self.visit, test_kind__pk__in=kinds).count(), 7
+        )
+
+    def test_values_are_stored_verbatim(self):
+        parse_hl7_to_db(self._load())
+
+        expected = {
+            "HCGS": "<5",
+            "HIVDUO": "negativ",
+            "HIV1SQ": "0",
+            "AHA": "120.0",
+            "AHBSI": "15",
+            "CMT": "1:0",
+            "GOPCR": "negativ",
+        }
+        for code, value in expected.items():
+            with self.subTest(analysis=code):
+                test = Test.objects.get(visit=self.visit, test_kind=self.kinds[code])
+                self.assertEqual(test.results.get().note, value)
+
+    def test_notes_attach_to_the_preceding_analysis(self):
+        parse_hl7_to_db(self._load())
+
+        hep_a = Test.objects.get(visit=self.visit, test_kind=self.kinds["AHA"])
+        anti_hbs = Test.objects.get(visit=self.visit, test_kind=self.kinds["AHBSI"])
+
+        self.assertIn("Impfschutz vorhanden", hep_a.results.get().note_lab)
+        self.assertIn("Keine weiteren Kontrollen", anti_hbs.results.get().note_lab)
+
+
 from django.core.exceptions import ValidationError
 from unittest.mock import MagicMock, patch
 from labor.schema import PatientDataSchema

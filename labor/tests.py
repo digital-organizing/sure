@@ -32,6 +32,7 @@ from sure.models import (
     VisitNote,
     VisitStatus,
 )
+from sure.cases import get_case_tests_with_latest_results
 from tenants.models import Location, Tenant
 
 
@@ -522,6 +523,43 @@ class GroupedResultProfileTests(TestCase):
             with self.subTest(analysis=code):
                 test = Test.objects.get(visit=self.visit, test_kind=self.kinds[code])
                 self.assertEqual(test.results.get().note, value)
+
+    def test_numeric_values_are_recorded_without_being_interpreted(self):
+        """A number carries no verdict, so it must not reach the client.
+
+        The system may map text the lab already decided ("negativ"), but it may
+        not read 120.0 and conclude anything. The unassessed values keep the
+        profile's fallback option, which is information_by_sms=False, and that
+        blocks client release until a professional records a real result.
+        """
+        parse_hl7_to_db(self._load())
+
+        hep_a = Test.objects.get(visit=self.visit, test_kind=self.kinds["AHA"])
+        result = hep_a.results.get()
+
+        self.assertEqual(result.note, "120.0")
+        self.assertFalse(result.result_option.information_by_sms)
+
+        # The client sees nothing at all while any result is unassessed.
+        self.assertFalse(
+            get_case_tests_with_latest_results(self.visit, filter_client=True).exists()
+        )
+
+    def test_exact_text_mapping_is_still_applied(self):
+        """Mapping a value the lab already assessed is allowed."""
+        negative = TestResultOption.objects.create(
+            test_kind=self.kinds["HIVDUO"], label="Negativ", information_by_sms=True
+        )
+        ResultMapping.objects.create(
+            profile=TestProfile.objects.get(result_label="HIVDUO"),
+            result_text="negativ",
+            result_option=negative,
+        )
+
+        parse_hl7_to_db(self._load())
+
+        hiv = Test.objects.get(visit=self.visit, test_kind=self.kinds["HIVDUO"])
+        self.assertEqual(hiv.results.get().result_option, negative)
 
     def test_notes_attach_to_the_preceding_analysis(self):
         parse_hl7_to_db(self._load())

@@ -406,11 +406,21 @@ def _handle_obx_segment(seg, visit, laboratory, active_profile):
         .first()
     )
 
-    # Exact mapping preferred, fallback_result_option is used for non-matches.
+    # Only an exact mapping may assert a clinical result. Everything else - a
+    # measured number the lab reports without a verdict - is recorded verbatim
+    # under the profile's fallback option, which must mean "not yet assessed"
+    # so a professional decides. Interpreting the number here would be a
+    # medical decision the system is not allowed to make.
     result_option = (
         mapping.result_option if mapping else active_profile.fallback_result_option
     )
     if not result_option:
+        logger.warning(
+            "Profile %s has no fallback result option; value %r for %s dropped",
+            active_profile.profile_code,
+            value,
+            test_name,
+        )
         return test_name, None
 
     # all_objects: a test the consultant marked as deleted still owns its

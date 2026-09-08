@@ -166,7 +166,27 @@ class HL7Result(models.Model):
         Laboratory, on_delete=models.CASCADE, related_name="hl7_results"
     )
 
+    attempts = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of failed processing attempts. Once the limit is "
+        "reached the result is left alone until someone retries it.",
+    )
+
     logs = models.TextField(blank=True, help_text="Processing logs and errors")
+
+    def __str__(self):
+        return f"HL7 result #{self.pk} ({self.laboratory})"
+
+    @property
+    def is_abandoned(self) -> bool:
+        from labor.tasks import MAX_PROCESSING_ATTEMPTS
+
+        return self.processed_at is None and self.attempts >= MAX_PROCESSING_ATTEMPTS
+
+    class Meta:
+        verbose_name = "HL7 Result"
+        verbose_name_plural = "HL7 Results"
+        ordering = ["-created_at"]
 
 
 class LabResult(models.Model):

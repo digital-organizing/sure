@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
 from labor.models import (
+    HL7Result,
     LabOrder,
     LabOrderCounter,
     Laboratory,
@@ -579,6 +580,7 @@ from django.core.exceptions import ValidationError
 from unittest.mock import MagicMock, patch
 from labor.schema import PatientDataSchema
 from labor.service import generate_hl7_order
+from labor.tasks import MAX_PROCESSING_ATTEMPTS, process_results
 from labor.team_w import upload_order
 from labor.models import FTPConnection
 
@@ -689,3 +691,71 @@ class HL7OrderGenerationAndUploadTests(TestCase):
             f"Command should not end with .txt, got {stor_arg}",
         )
 
+
+
+class ProcessResultsRetryTests(TestCase):
+    """A permanently unprocessable message must stop consuming every run."""
+
+    def setUp(self):
+        self.laboratory = Laboratory.objects.create(name="Lab R")
+
+    def _pending(self, content="not a valid hl7 message"):
+        return HL7Result.objects.create(content=content, laboratory=self.laboratory)
+
+    def test_failure_counts_up_and_keeps_the_result_pending(self):
+        result = self._pending()
+
+        process_results()
+
+        result.refresh_from_db()
+        self.assertEqual(result.attempts, 1)
+        self.assertIsNone(result.processed_at)
+        self.assertIn("Attempt 1:", result.logs)
+
+    def test_processing_stops_after_the_attempt_limit(self):
+        result = self._pending()
+
+        for _ in range(MAX_PROCESSING_ATTEMPTS + 3):
+            process_results()
+
+        result.refresh_from_db()
+        self.assertEqual(result.attempts, MAX_PROCESSING_ATTEMPTS)
+        self.assertTrue(result.is_abandoned)
+        self.assertIn("Giving up after", result.logs)
+        # The log must not keep growing once we have given up.
+        self.assertEqual(result.logs.count("Attempt "), MAX_PROCESSING_ATTEMPTS)
+
+    def test_abandoned_results_are_skipped_by_later_runs(self):
+        result = self._pending()
+        result.attempts = MAX_PROCESSING_ATTEMPTS
+        result.save(update_fields=["attempts"])
+
+        process_results()
+
+        result.refresh_from_db()
+        self.assertEqual(result.attempts, MAX_PROCESSING_ATTEMPTS)
+
+    def test_retry_after_reset_processes_again(self):
+        """What the admin action does: clear the counter and try once more."""
+        result = self._pending()
+        for _ in range(MAX_PROCESSING_ATTEMPTS):
+            process_results()
+
+        result.attempts = 0
+        result.save(update_fields=["attempts"])
+        process_results()
+
+        result.refresh_from_db()
+        self.assertEqual(result.attempts, 1)
+
+    def test_successful_result_is_marked_processed(self):
+        with patch("labor.tasks.parse_hl7_to_db") as parse:
+            parse.return_value = None
+            result = self._pending()
+
+            process_results()
+
+        result.refresh_from_db()
+        self.assertIsNotNone(result.processed_at)
+        self.assertEqual(result.attempts, 0)
+        self.assertFalse(result.is_abandoned)

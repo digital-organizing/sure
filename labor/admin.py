@@ -9,6 +9,7 @@ from unfold.decorators import action
 from unfold.admin import ModelAdmin, TabularInline
 from labor.models import (
     FTPConnection,
+    HL7Result,
     Laboratory,
     LabOrder,
     LabOrderCounter,
@@ -17,7 +18,12 @@ from labor.models import (
     TestProfile,
     LocationToLab,
 )
-from labor.tasks import upload_single_order, retrieve_results_task
+from labor.tasks import (
+    MAX_PROCESSING_ATTEMPTS,
+    process_single_result,
+    retrieve_results_task,
+    upload_single_order,
+)
 from sure.models import TestResultOption
 
 from simple_history.admin import SimpleHistoryAdmin
@@ -195,3 +201,59 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
         if not consultant:
             return qs.none()
         return qs.filter(visit__case__location__tenant=consultant.tenant)
+
+
+@admin.register(HL7Result)
+class HL7ResultAdmin(ModelAdmin):
+    """Visibility into what the lab sent and why processing failed.
+
+    Without this the scheduled task wrote errors into a field nobody could
+    read, and a message that failed for a fixable reason had no way back in.
+    """
+
+    list_display = (
+        "__str__",
+        "laboratory",
+        "created_at",
+        "processed_at",
+        "attempts",
+        "processing_state",
+    )
+    list_filter = ("laboratory", "processed_at", "created_at")
+    search_fields = ("content", "logs")
+    readonly_fields = ("created_at", "processed_at", "attempts", "content", "logs")
+    date_hierarchy = "created_at"
+
+    actions_detail = ["reprocess"]
+
+    @admin.display(description="State")
+    def processing_state(self, obj: HL7Result) -> str:
+        if obj.processed_at:
+            return "Processed"
+        if obj.attempts >= MAX_PROCESSING_ATTEMPTS:
+            return f"Given up after {obj.attempts} attempts"
+        if obj.attempts:
+            return f"Failed {obj.attempts}x, will retry"
+        return "Pending"
+
+    def has_add_permission(self, *args, **kwargs) -> bool:
+        return False
+
+    def has_change_permission(self, *args, **kwargs) -> bool:
+        return False
+
+    @action(description="Process again", icon="refresh")  # ty:ignore[call-non-callable]
+    def reprocess(self, request, object_id):
+        result = self.get_object(request, object_id)
+        if not result:
+            self.message_user(request, "HL7 result not found.", level="error")
+            return redirect(reverse("admin:labor_hl7result_changelist"))
+
+        # Clear the attempt count so a message abandoned earlier gets a fresh
+        # run once the underlying cause (a missing profile, say) is fixed.
+        result.attempts = 0
+        result.save(update_fields=["attempts"])
+        process_single_result.delay(result.pk)
+
+        self.message_user(request, "Processing started.", level="success")
+        return redirect(reverse("admin:labor_hl7result_change", args=[object_id]))

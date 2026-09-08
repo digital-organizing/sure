@@ -64,17 +64,46 @@ def retrieve_results_task(lab_id: int):
             retrieve_results_team_w(laboratory)
 
 
+#: A result that keeps failing is a permanent problem - a message we cannot
+#: map, or one of our own orders the lab left in the results directory. Retrying
+#: it forever grew ``logs`` without bound on every scheduled run, so give up
+#: after this many attempts and let someone look at it in the admin.
+MAX_PROCESSING_ATTEMPTS = 5
+
+
+def _process_result(result: HL7Result) -> bool:
+    """Processes one result, recording the failure on the row itself."""
+    try:
+        parse_hl7_to_db(result.content)
+    except Exception as e:
+        result.attempts += 1
+        result.logs += f"\nAttempt {result.attempts}: {e}"
+        if result.attempts >= MAX_PROCESSING_ATTEMPTS:
+            result.logs += (
+                f"\nGiving up after {MAX_PROCESSING_ATTEMPTS} attempts. "
+                "Retry from the admin once the cause is fixed."
+            )
+        result.save(update_fields=["attempts", "logs"])
+
+        logging.error(f"Error processing HL7 result {result.pk}: {e}")
+        return False
+
+    result.processed_at = timezone.now()
+    result.save(update_fields=["processed_at"])
+    return True
+
+
 @shared_task
 def process_results():
-    results = HL7Result.objects.filter(processed_at=None)
+    results = HL7Result.objects.filter(
+        processed_at=None, attempts__lt=MAX_PROCESSING_ATTEMPTS
+    )
 
     for result in results:
-        try:
-            parse_hl7_to_db(result.content)
-            result.processed_at = timezone.now()
-            result.save(update_fields=["processed_at"])
-        except Exception as e:
-            result.logs += f"\nError: {e}"
-            result.save(update_fields=["logs"])
+        _process_result(result)
 
-            logging.error(f"Error processing HL7 result {result.pk}: {e}")
+
+@shared_task
+def process_single_result(pk):
+    """Processes one result on demand, used by the admin retry action."""
+    _process_result(HL7Result.objects.get(pk=pk))

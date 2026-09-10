@@ -179,6 +179,28 @@ class Location(models.Model):
         limit_choices_to={"extra_for_centers": True},
     )
 
+    excluded_consultant_questions = models.ManyToManyField(
+        "sure.ConsultantQuestion",
+        blank=True,
+        related_name="excluded_in_centers",
+        verbose_name=_("Not visible consultant questions at this center."),
+        help_text=_(
+            "The selected consultant questions will not be asked for cases at this center."
+        ),
+        limit_choices_to={"optional_for_centers": True},
+    )
+
+    included_consultant_questions = models.ManyToManyField(
+        "sure.ConsultantQuestion",
+        blank=True,
+        related_name="included_in_centers",
+        verbose_name=_("Visible consultant questions at this center."),
+        help_text=_(
+            "These consultant questions will be asked for cases at this center."
+        ),
+        limit_choices_to={"extra_for_centers": True},
+    )
+
     def get_next_opening(
         self, from_datetime: datetime.datetime
     ) -> datetime.datetime | None:

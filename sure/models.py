@@ -433,6 +433,22 @@ class BaseQuestion(models.Model):
         help_text=_("Regex validation for open text questions"),
     )
 
+    optional_for_centers = models.BooleanField(
+        default=False,
+        verbose_name=_("Optional for Centers"),
+        help_text=_(
+            "Whether this question is optional for centers, centers can opt-out of asking it."
+        ),
+    )
+
+    extra_for_centers = models.BooleanField(
+        default=False,
+        verbose_name=_("Extra for Centers"),
+        help_text=_(
+            "Whether this question is extra for centers, centers can opt-in to asking it."
+        ),
+    )
+
     class Meta:
         abstract = True
         ordering = ["order"]
@@ -491,22 +507,6 @@ class ClientQuestion(BaseQuestion):
         default=False,
         verbose_name=_("Do Not Show Directly"),
         help_text=_("Do not show this question directly to the client"),
-    )
-
-    optional_for_centers = models.BooleanField(
-        default=False,
-        verbose_name=_("Optional for Centers"),
-        help_text=_(
-            "Whether this question is optional for centers, centers can opt-out of asking it."
-        ),
-    )
-
-    extra_for_centers = models.BooleanField(
-        default=False,
-        verbose_name=_("Extra for Centers"),
-        help_text=_(
-            "Whether this question is extra for centers, centers can opt-in to asking it."
-        ),
     )
 
     show_for_options = models.ManyToManyField(

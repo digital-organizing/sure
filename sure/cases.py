@@ -85,16 +85,24 @@ def annotate_latest_result(queryset: QuerySet[Test]) -> QuerySet[Test]:
     return queryset.annotate(latest_result=Subquery(latest_result_subquery[:1]))
 
 
-def prefetch_questionnaire(location: Location, internal=False):
-    client_questions_qs = ClientQuestion.objects.order_by("order").prefetch_related(
-        Prefetch("options", queryset=ClientOption.objects.order_by("order"))
-    )
-    excluded_question_ids = location.excluded_questions.values_list("id", flat=True)
-    included_question_ids = location.included_questions.values_list("id", flat=True)
+def filter_questions_for_location(queryset, excluded, included):
+    """Remove optional questions the location opted out of and extra questions it did not opt in to."""
+    excluded_ids = excluded.values_list("id", flat=True)
+    included_ids = included.values_list("id", flat=True)
 
-    client_questions_qs = client_questions_qs.exclude(
-        id__in=excluded_question_ids, optional_for_centers=True
-    ).filter(Q(extra_for_centers=False) | Q(id__in=included_question_ids))
+    return queryset.exclude(id__in=excluded_ids, optional_for_centers=True).filter(
+        Q(extra_for_centers=False) | Q(id__in=included_ids)
+    )
+
+
+def prefetch_questionnaire(location: Location, internal=False):
+    client_questions_qs = filter_questions_for_location(
+        ClientQuestion.objects.order_by("order").prefetch_related(
+            Prefetch("options", queryset=ClientOption.objects.order_by("order"))
+        ),
+        location.excluded_questions,
+        location.included_questions,
+    )
 
     query = Questionnaire.objects.prefetch_related(
         Prefetch(
@@ -112,10 +120,15 @@ def prefetch_questionnaire(location: Location, internal=False):
         query = query.prefetch_related(
             Prefetch(
                 "consultant_questions",
-                queryset=ConsultantQuestion.objects.order_by("order").prefetch_related(
-                    Prefetch(
-                        "options", queryset=ConsultantOption.objects.order_by("order")
-                    )
+                queryset=filter_questions_for_location(
+                    ConsultantQuestion.objects.order_by("order").prefetch_related(
+                        Prefetch(
+                            "options",
+                            queryset=ConsultantOption.objects.order_by("order"),
+                        )
+                    ),
+                    location.excluded_consultant_questions,
+                    location.included_consultant_questions,
                 ),
             )
         )

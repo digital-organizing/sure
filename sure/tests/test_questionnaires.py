@@ -108,6 +108,64 @@ class TestQuestionnaireImport(TestCase):
                 self.assertNotEqual(question.id, excluded_ids[1])
                 self.assertNotEqual(question.id, excluded_ids[2])
 
+    def test_optional_and_extra_consultant_questions(self):
+        questionnaire = Questionnaire.objects.create(name="Test Questionnaire")
+        regular = ConsultantQuestion.objects.create(
+            questionnaire=questionnaire, question_text="Regular", code="C1", order=0
+        )
+        optional_kept = ConsultantQuestion.objects.create(
+            questionnaire=questionnaire,
+            question_text="Optional kept",
+            code="C2",
+            order=1,
+            optional_for_centers=True,
+        )
+        optional_excluded = ConsultantQuestion.objects.create(
+            questionnaire=questionnaire,
+            question_text="Optional excluded",
+            code="C3",
+            order=2,
+            optional_for_centers=True,
+        )
+        extra_included = ConsultantQuestion.objects.create(
+            questionnaire=questionnaire,
+            question_text="Extra included",
+            code="C4",
+            order=3,
+            extra_for_centers=True,
+        )
+        ConsultantQuestion.objects.create(
+            questionnaire=questionnaire,
+            question_text="Extra not included",
+            code="C5",
+            order=4,
+            extra_for_centers=True,
+        )
+
+        user = User.objects.create_user(username="testuser", password="testpass")
+        tenant = Tenant.objects.create(name="Test Tenant", owner=user)
+        location = Location.objects.create(name="Test Location", tenant=tenant)
+        other_location = Location.objects.create(name="Other Location", tenant=tenant)
+        location.excluded_consultant_questions.set([optional_excluded])
+        location.included_consultant_questions.set([extra_included])
+
+        result = prefetch_questionnaire(location=location, internal=True).get(
+            pk=questionnaire.pk
+        )
+        self.assertEqual(
+            list(result.consultant_questions.all()),
+            [regular, optional_kept, extra_included],
+        )
+
+        # Settings of one location do not affect other locations
+        result = prefetch_questionnaire(location=other_location, internal=True).get(
+            pk=questionnaire.pk
+        )
+        self.assertEqual(
+            list(result.consultant_questions.all()),
+            [regular, optional_kept, optional_excluded],
+        )
+
 
 class TestQuestionnaireDuplication(TestCase):
     def test_duplicate_questionnaire_logic(self):

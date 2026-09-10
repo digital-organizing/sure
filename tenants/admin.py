@@ -56,7 +56,12 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
     search_fields = ("name", "tenant__name")
 
     autocomplete_fields = ("tenant",)
-    filter_horizontal = ("excluded_questions", "included_questions")
+    filter_horizontal = (
+        "excluded_questions",
+        "included_questions",
+        "excluded_consultant_questions",
+        "included_consultant_questions",
+    )
 
     inlines = [LocationToLabInline]
 
@@ -78,7 +83,12 @@ class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
         (
             _("Visible questions"),
             {
-                "fields": ("excluded_questions", "included_questions"),
+                "fields": (
+                    "excluded_questions",
+                    "included_questions",
+                    "excluded_consultant_questions",
+                    "included_consultant_questions",
+                ),
                 "classes": ("tab",),
             },
         ),

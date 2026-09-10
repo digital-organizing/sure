@@ -1,5 +1,8 @@
-from django.shortcuts import redirect
-from .models import Test, VisitExport, VisitExportDownload
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.functional import cached_property
+from .models import ReportFormFile, Test, VisitExport, VisitExportDownload
 from django.core.exceptions import PermissionDenied
 from core.auth import require_2fa_or_trusted
 
@@ -13,7 +16,12 @@ from django.views.generic.edit import FormView
 from unfold.views import UnfoldModelAdminViewMixin
 
 from sure.client_service import create_case, create_visit, get_case_link
-from sure.forms import GenerateCaseBatchForm
+from sure.forms import (
+    GenerateCaseBatchForm,
+    ReportCopyMappingForm,
+    ReportTestFillForm,
+)
+from sure.report_forms import copy_mapping, fill_report
 
 
 @require_2fa_or_trusted
@@ -112,3 +120,76 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
         )
         response["Content-Disposition"] = f"attachment; filename={filename}"
         return response
+
+
+class ReportFormFileActionView(UnfoldModelAdminViewMixin, FormView):
+    """Base of the admin views that act on one report form file."""
+
+    permission_required = ("sure.change_reportformfile",)
+    template_name = "admin/sure/report_form_file_action.html"
+    description = ""
+
+    @cached_property
+    def file(self) -> ReportFormFile:
+        return get_object_or_404(
+            ReportFormFile.objects.select_related("form"), pk=self.kwargs["object_id"]
+        )
+
+    def get_change_url(self) -> str:
+        return reverse("admin:sure_reportformfile_change", args=[self.file.pk])
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "title": f"{self.title}: {self.file}",
+                "description": self.description,
+                "file": self.file,
+                "change_url": self.get_change_url(),
+            }
+        )
+        return context
+
+
+class ReportTestFillView(ReportFormFileActionView):
+    """Download a report form filled with the data of any case to check its mapping."""
+
+    title = "Test fill"
+    description = (
+        "Download the form filled with the data of a case to check the mapping."
+    )
+    form_class = ReportTestFillForm
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        visit = form.cleaned_data["case_id"]
+        pdf = fill_report(self.file, visit, self.request.user)
+        visit.logs.create(
+            action=f"Report form test fill: {self.file}", user=self.request.user
+        )
+        filename = f"test-{self.file.pk}-{visit.case.human_id}.pdf"
+        return HttpResponse(
+            pdf,
+            content_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+
+class ReportCopyMappingView(ReportFormFileActionView):
+    """Copy the mapping of another report form file, e.g. another language version."""
+
+    title = "Copy mapping"
+    description = (
+        "Fields with the same name get the source, question code and value of the "
+        "chosen file. The other fields stay as they are."
+    )
+    form_class = ReportCopyMappingForm
+
+    def get_form_kwargs(self) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+        kwargs["target"] = self.file
+        return kwargs
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        copied = copy_mapping(form.cleaned_data["source"], self.file)
+        messages.success(self.request, f"Copied the mapping of {copied} fields.")
+        return redirect(self.get_change_url())

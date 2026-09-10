@@ -1398,6 +1398,24 @@ export type ResultInformationSchema = {
 };
 
 /**
+ * AvailableReportFormSchema
+ */
+export type AvailableReportFormSchema = {
+    /**
+     * Id
+     */
+    id: number;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Languages
+     */
+    languages: Array<string>;
+};
+
+/**
  * LaboratorySchema
  */
 export type LaboratorySchema = {
@@ -3320,6 +3338,61 @@ export type SureApiPublishCaseResultsResponses = {
 };
 
 export type SureApiPublishCaseResultsResponse = SureApiPublishCaseResultsResponses[keyof SureApiPublishCaseResultsResponses];
+
+export type SureApiListCaseReportFormsData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/reports/';
+};
+
+export type SureApiListCaseReportFormsResponses = {
+    /**
+     * Response
+     *
+     * OK
+     */
+    200: Array<AvailableReportFormSchema>;
+};
+
+export type SureApiListCaseReportFormsResponse = SureApiListCaseReportFormsResponses[keyof SureApiListCaseReportFormsResponses];
+
+export type SureApiDownloadCaseReportFormData = {
+    body?: never;
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+        /**
+         * Form Pk
+         */
+        form_pk: number;
+        /**
+         * Language
+         */
+        language: string;
+    };
+    query?: never;
+    url: '/api/sure/case/{pk}/reports/{form_pk}/{language}/';
+};
+
+export type SureApiDownloadCaseReportFormResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type LaborApiGetLaboratoryData = {
     body?: never;

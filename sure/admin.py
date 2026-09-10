@@ -3,17 +3,19 @@ from axes.admin import AccessAttemptAdmin as BaseAccessAttemptAdmin
 from axes.admin import AccessFailureLogAdmin as BaseAccessFailureLogAdmin
 from axes.admin import AccessLogAdmin as BaseAccessLogAdmin
 from axes.models import AccessAttempt, AccessFailureLog, AccessLog
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group, User
 from django.db import models
 from django.forms import Form
+from django.http import Http404, HttpResponse
 from django.http.request import HttpRequest
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 
 from django.utils.translation import gettext_lazy as _
 from django.urls import URLPattern, path, reverse
+from django.utils.html import format_html, format_html_join
 from django_agent_trust.admin import AgentSettings
 from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
 from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
@@ -61,6 +63,9 @@ from sure.models import (
     ConsultantOption,
     ConsultantQuestion,
     Questionnaire,
+    ReportField,
+    ReportForm,
+    ReportFormFile,
     ResultInformation,
     Section,
     TestBundle,
@@ -72,7 +77,12 @@ from sure.models import (
     VisitExportDownload,
     VisitStatus,
 )
-from sure.views import GenerateCaseBatchView
+from sure.report_forms import render_preview, sync_fields
+from sure.views import (
+    GenerateCaseBatchView,
+    ReportCopyMappingView,
+    ReportTestFillView,
+)
 from sure.tasks import create_export, generate_pdf_task
 from labor.models import TestProfile
 
@@ -478,6 +488,177 @@ class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
         return (
             super().get_queryset(request).filter(locations__tenant__admins=request.user)
         )
+
+
+class SuperuserOnlyAdminMixin:
+    """For global configuration that only superusers manage."""
+
+    def has_module_permission(self, request: HttpRequest) -> bool:
+        return getattr(request.user, "is_superuser", False)
+
+    def has_view_permission(self, request: HttpRequest, obj=None) -> bool:
+        return getattr(request.user, "is_superuser", False)
+
+    def has_add_permission(self, request: HttpRequest, *args) -> bool:
+        return getattr(request.user, "is_superuser", False)
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
+        return getattr(request.user, "is_superuser", False)
+
+    def has_delete_permission(self, request: HttpRequest, obj=None) -> bool:
+        return getattr(request.user, "is_superuser", False)
+
+
+def _mapped_fields(file: ReportFormFile) -> str:
+    if not file.pk:
+        return "-"
+    report_fields = file.report_fields
+    return f"{report_fields.exclude(source='').count()} / {report_fields.count()}"
+
+
+class ReportFormFileInline(TabularInline):
+    model = ReportFormFile
+    fields = ("language", "pdf", "mapped_fields")
+    readonly_fields = ("mapped_fields",)
+    extra = 0
+    show_change_link = True
+
+    @admin.display(description=_("Mapped fields"))
+    def mapped_fields(self, obj: ReportFormFile) -> str:
+        return _mapped_fields(obj)
+
+
+@admin.register(ReportForm)
+class ReportFormAdmin(SuperuserOnlyAdminMixin, ModelAdmin, TabbedTranslationAdmin):
+    list_display = ("name", "languages")
+    search_fields = ("name", "name_en")
+    autocomplete_fields = ("result_options",)
+    inlines = [ReportFormFileInline]
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[ReportForm]:
+        return super().get_queryset(request).prefetch_related("files")
+
+    @admin.display(description=_("Languages"))
+    def languages(self, obj: ReportForm) -> str:
+        return ", ".join(file.language for file in obj.files.all())
+
+
+class ReportFieldInline(TabularInline):
+    model = ReportField
+    fields = ("number", "name", "kind_display", "source", "question_code", "value")
+    readonly_fields = ("number", "name", "kind_display")
+    extra = 0
+    can_delete = False
+
+    def has_add_permission(self, request: HttpRequest, obj=None) -> bool:
+        # The fields come from the PDF.
+        return False
+
+    @admin.display(description=_("Kind"))
+    def kind_display(self, obj: ReportField) -> str:
+        kind = obj.get_kind_display()
+        return f"{kind} ({obj.date_format})" if obj.date_format else kind
+
+
+@admin.register(ReportFormFile)
+class ReportFormFileAdmin(SuperuserOnlyAdminMixin, ModelAdmin):
+    list_display = ("__str__", "mapped_fields", "updated_at")
+    list_filter = ("form", "language")
+    fields = ("form", "language", "pdf", "preview")
+    inlines = [ReportFieldInline]
+    actions_detail = ["test_fill", "copy_mapping", "reread_fields"]
+
+    def get_readonly_fields(self, request: HttpRequest, obj=None) -> tuple[str, ...]:
+        return ("form", "preview") if obj else ("preview",)
+
+    @admin.display(description=_("Mapped fields"))
+    def mapped_fields(self, obj: ReportFormFile) -> str:
+        return _mapped_fields(obj)
+
+    @admin.display(description=_("Preview"))
+    def preview(self, obj: ReportFormFile) -> str:
+        if not obj.pk or not obj.page_count:
+            return _("The preview is shown once the PDF is saved.")
+        pages = format_html_join(
+            "",
+            '<a href="{0}" target="_blank" title="{1}"><img src="{0}" alt="{1}" '
+            'class="border border-base-200 mb-4 dark:border-base-700" loading="lazy"></a>',
+            (
+                (
+                    reverse("admin:sure_reportformfile_preview", args=[obj.pk, page]),
+                    _("Page %(page)s") % {"page": page + 1},
+                )
+                for page in range(obj.page_count)
+            ),
+        )
+        return format_html(
+            '<p class="mb-4">{}</p>{}',
+            _(
+                "The numbers match the fields below. Green fields are mapped, orange "
+                "ones are not. Click a page to open it in full size."
+            ),
+            pages,
+        )
+
+    def get_urls(self) -> list[URLPattern]:
+        preview_view = self.admin_site.admin_view(self.preview_image_view)
+        test_fill_view = self.admin_site.admin_view(
+            ReportTestFillView.as_view(model_admin=self)
+        )
+        copy_mapping_view = self.admin_site.admin_view(
+            ReportCopyMappingView.as_view(model_admin=self)
+        )
+        return [
+            path(
+                "<int:object_id>/preview/<int:page>/",
+                preview_view,
+                name="sure_reportformfile_preview",
+            ),
+            path(
+                "<int:object_id>/test-fill/",
+                test_fill_view,
+                name="sure_reportformfile_test_fill_view",
+            ),
+            path(
+                "<int:object_id>/copy-mapping/",
+                copy_mapping_view,
+                name="sure_reportformfile_copy_mapping_view",
+            ),
+        ] + super().get_urls()
+
+    def preview_image_view(
+        self, request: HttpRequest, object_id: int, page: int
+    ) -> HttpResponse:
+        file = self.get_object(request, str(object_id))
+        if file is None or not self.has_view_permission(request, file):
+            raise Http404
+        if not 0 <= page < file.page_count:
+            raise Http404
+        return HttpResponse(render_preview(file, page), content_type="image/png")
+
+    @action(
+        description=_("Test fill"), url_path="test-fill-action", icon="picture_as_pdf"
+    )  # ty:ignore[call-non-callable]
+    def test_fill(self, request: HttpRequest, object_id: int):
+        return redirect(
+            reverse("admin:sure_reportformfile_test_fill_view", args=[object_id])
+        )
+
+    @action(
+        description=_("Copy mapping"),
+        url_path="copy-mapping-action",
+        icon="content_copy",
+    )  # ty:ignore[call-non-callable]
+    def copy_mapping(self, request: HttpRequest, object_id: int):
+        return redirect(
+            reverse("admin:sure_reportformfile_copy_mapping_view", args=[object_id])
+        )
+
+    @action(description=_("Re-read fields"), url_path="reread-fields", icon="refresh")  # ty:ignore[call-non-callable]
+    def reread_fields(self, request: HttpRequest, object_id: int):
+        sync_fields(get_object_or_404(ReportFormFile, pk=object_id))
+        messages.success(request, _("The fields were read again from the PDF."))
+        return redirect(reverse("admin:sure_reportformfile_change", args=[object_id]))
 
 
 admin.site.unregister(PeriodicTask)

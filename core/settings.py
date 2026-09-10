@@ -393,6 +393,12 @@ UNFOLD = {
                         "icon": "info",
                         "link": reverse_lazy("admin:sure_resultinformation_changelist"),
                     },
+                    {
+                        "title": "Report forms",
+                        "icon": "picture_as_pdf",
+                        "link": reverse_lazy("admin:sure_reportform_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
                 ],
             },
             {

@@ -7,6 +7,7 @@ from sure.models import (
     ConsultantOption,
     ConsultantQuestion,
     Questionnaire,
+    ReportForm,
     ResultInformation,
     Section,
     TestBundle,
@@ -103,3 +104,10 @@ class TestResultInformationTranslationOptions(TranslationOptions):
 
 translator.register(ResultInformation, TestResultInformationTranslationOptions)
 simple_history.register(ResultInformation)
+
+
+class ReportFormTranslationOptions(TranslationOptions):
+    fields = ("name",)
+
+
+translator.register(ReportForm, ReportFormTranslationOptions)

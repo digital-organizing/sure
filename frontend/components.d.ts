@@ -76,6 +76,7 @@ declare module 'vue' {
     ProgressBar: typeof import('./src/components/ProgressBar.vue')['default']
     PublicMenuBar: typeof import('./src/components/PublicMenuBar.vue')['default']
     RadioButton: typeof import('primevue/radiobutton')['default']
+    ReportFormsComponent: typeof import('./src/components/ReportFormsComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']

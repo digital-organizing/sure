@@ -54,6 +54,7 @@ const drawerVisible = ref(false)
       <Button
         as="a"
         :href="'/admin/'"
+        target="_blank"
         v-if="account.is_staff"
         icon="pi pi-cog"
         :label="t('administration').value"

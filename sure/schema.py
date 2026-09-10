@@ -752,3 +752,9 @@ class CaseHistory(Schema):
     tests: list[FlatTestSchema]
     test_results: list[FlatTestResultSchema]
     log: list[LogEntrySchema]
+
+
+class AvailableReportFormSchema(Schema):
+    id: int
+    name: str
+    languages: list[str]

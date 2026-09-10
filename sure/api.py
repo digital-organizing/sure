@@ -4,9 +4,10 @@ import phonenumbers
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Func
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.translation import get_language
 from django.views.decorators.csrf import csrf_exempt
 from ninja import File, Form, Router
@@ -41,6 +42,7 @@ from sure.client_service import (
 from sure.client_service import send_token as send_token_service
 from sure.client_service import strip_id, verify_access_to_location
 from sure.lang import inject_language
+from sure.report_forms import available_report_forms, fill_report
 from sure.models import (
     Case,
     ConsentChoice,
@@ -57,6 +59,7 @@ from sure.models import (
     VisitStatus,
 )
 from sure.schema import (
+    AvailableReportFormSchema,
     CaseFilters,
     CaseHistory,
     CaseListingSchema,
@@ -990,3 +993,38 @@ def publish_case_results(request, pk: str):
     send_results_link(visit.case)
 
     return {"success": True}
+
+
+@router.get("/case/{pk}/reports/", response=list[AvailableReportFormSchema])
+@inject_language
+def list_case_report_forms(request, pk: str):
+    """List the report forms that can be prefilled for the latest results of a case."""
+    visit = get_case(request, pk)
+    return [
+        AvailableReportFormSchema(
+            id=form.pk,
+            name=form.name,
+            languages=[file.language for file in form.files.all()],
+        )
+        for form in available_report_forms(visit)
+    ]
+
+
+@router.get("/case/{pk}/reports/{form_pk}/{language}/")
+def download_case_report_form(request, pk: str, form_pk: int, language: str):
+    """Download a report form prefilled with the data of a case."""
+    visit = get_case(request, pk)
+    form = get_object_or_404(available_report_forms(visit), pk=form_pk)
+    file = get_object_or_404(form.files, language=language)
+    pdf = fill_report(file, visit, request.user)
+    VisitLog.objects.create(
+        visit=visit,
+        action=f"Report form downloaded: {form.name} ({language})",
+        user=request.user,
+    )
+    filename = f"{slugify(form.name)}-{visit.case.human_id}.pdf"
+    return HttpResponse(
+        pdf,
+        content_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )

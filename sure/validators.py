@@ -2,6 +2,7 @@ import mimetypes
 import os
 
 import magic
+import pymupdf
 from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
@@ -43,3 +44,20 @@ class MimeTypeValidator:
                 ),
                 params={"mime_type": mime_type, "extension": actual_extension},
             )
+
+
+def validate_fillable_pdf(file):
+    """Reject files that are not PDFs with form fields, they cannot be prefilled."""
+    initial_pos = file.tell()
+    file.seek(0)
+    data = file.read()
+    file.seek(initial_pos)
+
+    try:
+        document = pymupdf.open(stream=data, filetype="pdf")
+    except (pymupdf.FileDataError, RuntimeError) as e:
+        raise ValidationError(_("The file is not a readable PDF.")) from e
+
+    with document:
+        if not document.is_form_pdf:
+            raise ValidationError(_("The PDF has no fillable form fields."))

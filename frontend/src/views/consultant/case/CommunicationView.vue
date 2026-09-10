@@ -3,6 +3,7 @@ import { sureApiGetNonSmsResults, sureApiGetPhoneNumber, type TestSchema } from 
 import CaseNoteComponent from '@/components/CaseNoteComponent.vue'
 import ClientResult from '@/components/ClientResult.vue'
 import DocumentUploadComponent from '@/components/DocumentUploadComponent.vue'
+import ReportFormsComponent from '@/components/ReportFormsComponent.vue'
 import { useCase } from '@/composables/useCase'
 import { useResults } from '@/composables/useResults'
 import { useTexts } from '@/composables/useTexts'
@@ -106,6 +107,8 @@ function makeCall(number: string) {
         </span>
       </div>
     </section>
+
+    <ReportFormsComponent class="row" :caseId="props.caseId" />
 
     <section class="row">
       <CaseNoteComponent class="row" />

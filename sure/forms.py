@@ -4,7 +4,7 @@ from django import forms
 from unfold import widgets
 from unfold.layout import Submit
 
-from sure.models import Questionnaire, VisitStatus, TestKind
+from sure.models import Questionnaire, ReportFormFile, TestKind, Visit, VisitStatus
 from tenants.models import Location, Tag
 
 
@@ -194,3 +194,54 @@ class GenerateCaseBatchForm(forms.Form):
                         "The selected questionnaire is not available at the selected location."
                     )
         return cleaned_data
+
+
+class ReportTestFillForm(forms.Form):
+    case_id = forms.CharField(
+        label="Case ID",
+        help_text="The form is filled with the data of this case, e.g. SUF-abc1234. "
+        "Result fields stay empty if none of its latest results is linked to the form.",
+        widget=widgets.UnfoldAdminTextInputWidget(),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.layout = Layout(
+            "case_id",
+            Div(Submit("submit", "Download filled PDF"), css_class="mt-4"),
+        )
+
+    def clean_case_id(self) -> Visit:
+        # sure.cases imports this module and client_service imports sure.cases.
+        from sure.client_service import strip_id
+
+        visit = (
+            Visit.objects.select_related("case__location")
+            .filter(case_id=strip_id(self.cleaned_data["case_id"]))
+            .first()
+        )
+        if visit is None:
+            raise forms.ValidationError("There is no case with this ID.")
+        return visit
+
+
+class ReportCopyMappingForm(forms.Form):
+    source = forms.ModelChoiceField(
+        queryset=ReportFormFile.objects.none(),
+        label="Copy from",
+        widget=widgets.UnfoldAdminSelect2Widget(),
+    )
+
+    def __init__(self, *args, target: ReportFormFile, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["source"].queryset = ReportFormFile.objects.exclude(  # ty:ignore[unresolved-attribute]
+            pk=target.pk
+        ).select_related("form")
+        self.helper = FormHelper()
+        self.helper.form_method = "post"
+        self.helper.layout = Layout(
+            "source",
+            Div(Submit("submit", "Copy mapping"), css_class="mt-4"),
+        )

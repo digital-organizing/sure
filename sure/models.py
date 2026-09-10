@@ -16,6 +16,7 @@ from django.contrib.auth.password_validation import (
     validate_password,
 )
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
 from django.utils import timezone
@@ -26,7 +27,7 @@ from html_sanitizer import Sanitizer
 from markdown import markdown
 from simple_history.models import HistoricalRecords
 
-from sure.validators import MimeTypeValidator
+from sure.validators import MimeTypeValidator, validate_fillable_pdf
 
 BASE_34 = "1234567890abcdefghijkmnopqrstuvwxyz"
 DIGITS = "0123456789"
@@ -1205,3 +1206,182 @@ class VisitExportDownload(models.Model):
 
     def __str__(self):
         return f"Download of Visit Export {self.visit_export.pk} by {self.user.get_full_name()} at {self.downloaded_at}"
+
+
+class ReportForm(models.Model):
+    """A clinical report form, e.g. the BAG report of an HIV infection.
+
+    Consultants can download it prefilled with what SURE knows about a visit
+    whenever the latest result of one of the visit's tests is one of
+    ``result_options``. See ``sure.report_forms``."""
+
+    name = models.CharField(max_length=255, verbose_name=_("Name"))
+    result_options = models.ManyToManyField(
+        TestResultOption,
+        blank=True,
+        related_name="report_forms",
+        verbose_name=_("Result options"),
+        help_text=_(
+            "The form is offered for visits where the latest result of a test is one of these options."
+        ),
+    )
+
+    files: models.QuerySet["ReportFormFile"]
+
+    class Meta:
+        verbose_name = _("Report form")
+        verbose_name_plural = _("Report forms")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class ReportFormFile(models.Model):
+    """The PDF of a report form in one language.
+
+    Every language version has its own field mapping: the versions are separate
+    PDFs and nothing guarantees that they share their field names."""
+
+    form = models.ForeignKey(ReportForm, on_delete=models.CASCADE, related_name="files")
+    language = models.CharField(
+        max_length=10, choices=settings.LANGUAGES, verbose_name=_("Language")
+    )
+    pdf = models.FileField(
+        upload_to="report_forms/",
+        verbose_name=_("PDF"),
+        help_text=_(
+            "A fillable PDF. Its fields are read on upload; fields that keep their name in a new version keep their mapping."
+        ),
+        validators=[
+            FileExtensionValidator(allowed_extensions=["pdf"]),
+            MimeTypeValidator(allowed_mimetypes=["application/pdf"]),
+            validate_fillable_pdf,
+            validate_file_infection,
+        ],
+    )
+    page_count = models.PositiveIntegerField(default=0, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+
+    report_fields: models.QuerySet["ReportField"]
+
+    class Meta:
+        verbose_name = _("Report form file")
+        verbose_name_plural = _("Report form files")
+        ordering = ["form__name", "language"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["form", "language"], name="unique_report_form_file_language"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.form.name} ({self.language})"
+
+    def save(self, *args, **kwargs):
+        # A newly assigned upload stays uncommitted until the storage has it.
+        pdf_replaced = bool(self.pdf) and not self.pdf._committed
+        super().save(*args, **kwargs)
+        if pdf_replaced:
+            # The service module imports the models, so it cannot be imported at the top.
+            from sure.report_forms import sync_fields
+
+            sync_fields(self)
+
+
+class ReportFieldKind(models.TextChoices):
+    TEXT = "text", _("Text")
+    CHECKBOX = "checkbox", _("Checkbox")
+    UNSUPPORTED = "unsupported", _("Not supported")
+
+
+class ReportSource(models.TextChoices):
+    """Where the value of a report field comes from, see ``sure.report_forms``."""
+
+    GENDER = "gender", _("Client gender (w, m, mtf, ftm)")
+    CLIENT_ANSWER = "client_answer", _("Client answer")
+    CONSULTANT_ANSWER = "consultant_answer", _("Consultant answer")
+    RESULT_DATE = "result_date", _("Date of the result")
+    RESULT_OPTION = "result_option", _("Result option (ID)")
+    LABORATORY = "laboratory", _("Laboratory of the location")
+    DOCTOR = "doctor", _("Doctor (location and user)")
+    TODAY = "today", _("Today")
+    FIXED = "fixed", _("Fixed value")
+
+
+ANSWER_SOURCES = (ReportSource.CLIENT_ANSWER, ReportSource.CONSULTANT_ANSWER)
+
+
+class ReportField(models.Model):
+    """A field of a report form PDF and where its value comes from."""
+
+    file = models.ForeignKey(
+        ReportFormFile, on_delete=models.CASCADE, related_name="report_fields"
+    )
+    number = models.PositiveIntegerField(
+        verbose_name=_("Number"), help_text=_("Number of the field in the preview")
+    )
+    name = models.CharField(max_length=255, verbose_name=_("Field name"))
+    kind = models.CharField(
+        max_length=20, choices=ReportFieldKind.choices, verbose_name=_("Kind")
+    )
+    date_format = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name=_("Date format"),
+        help_text=_("Date format the PDF expects, e.g. dd/mm/yyyy"),
+    )
+
+    source = models.CharField(
+        max_length=30,
+        choices=ReportSource.choices,
+        blank=True,
+        verbose_name=_("Source"),
+    )
+    question_code = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name=_("Question code"),
+        help_text=_("Answer sources: code of the question"),
+    )
+    value = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Value"),
+        help_text=_(
+            "Checkboxes: tick when the source has one of these comma-separated values "
+            "(option codes, gender, result option IDs), leave empty to tick whenever the "
+            "source has a value. Fixed value: the text to fill in."
+        ),
+    )
+
+    class Meta:
+        verbose_name = _("Report field")
+        verbose_name_plural = _("Report fields")
+        ordering = ["number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["file", "name"], name="unique_report_field_name"
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        if self.source and self.kind == ReportFieldKind.UNSUPPORTED:
+            raise ValidationError({"source": _("This kind of field cannot be filled.")})
+        if self.source in ANSWER_SOURCES:
+            questions = (
+                ClientQuestion
+                if self.source == ReportSource.CLIENT_ANSWER
+                else ConsultantQuestion
+            )
+            if not self.question_code:
+                raise ValidationError(
+                    {"question_code": _("Answer sources need a question code.")}
+                )
+            if not questions.objects.filter(code=self.question_code).exists():
+                raise ValidationError(
+                    {"question_code": _("There is no question with this code.")}
+                )

@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+
+{% load crispy_forms_tags %}
+
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% url 'admin:jsi18n' %}"></script>
+    {{ form.media }}
+{% endblock %}
+
+
+{% block content %}
+    <div class="flex flex-col gap-6 mb-8 max-w-2xl">
+        {% if description %}
+            <p>{{ description }}</p>
+        {% endif %}
+
+        {% crispy form "unfold_crispy" %}
+
+        <a href="{{ change_url }}" class="text-primary-600 dark:text-primary-500">&larr; {{ file }}</a>
+    </div>
+{% endblock %}

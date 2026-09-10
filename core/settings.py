@@ -13,10 +13,10 @@ import os
 import re
 from pathlib import Path
 
+import kombu
 import sentry_sdk
 from django.urls import reverse_lazy
 from environ import Env
-import kombu
 
 env = Env()
 

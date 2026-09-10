@@ -1,7 +1,7 @@
-from ninja.schema import Schema
 from ninja import Field, ModelSchema
+from ninja.schema import Schema
 
-from labor.models import LabOrder, Laboratory, TestProfile
+from labor.models import Laboratory, LabOrder, TestProfile
 
 
 class PatientDataSchema(Schema):

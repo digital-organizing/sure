@@ -7,9 +7,8 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils import translation
 from django.views.decorators.csrf import csrf_exempt
-from django_otp import devices_for_user
+from django_otp import devices_for_user, user_has_device, verify_token
 from django_otp import login as otp_login
-from django_otp import user_has_device, verify_token
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from ninja import Form, NinjaAPI, Schema
@@ -17,10 +16,10 @@ from ninja.security import django_auth
 from ninja.throttling import AnonRateThrottle, AuthRateThrottle
 from sesame.utils import get_user
 
+import labor.api
 import sure.api
 import tenants.api
 import texts.api
-import labor.api
 from core.auth import auth_2fa, auth_2fa_or_trusted
 
 api = NinjaAPI(

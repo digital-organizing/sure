@@ -1,10 +1,10 @@
+import hl7
 from django.conf import settings
 from fabric import Connection
-import hl7
 
 from sure.models import Test, TestKind, Visit
 
-"""
+r"""
 Interface for labor
 
 Upload HL7 files via SFTP for ordering tests.

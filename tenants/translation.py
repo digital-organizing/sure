@@ -1,7 +1,7 @@
 import simple_history
 from modeltranslation.translator import TranslationOptions, translator
 
-from .models import InformationBanner, Advertisement, Location
+from .models import Advertisement, InformationBanner, Location
 
 
 class InformationBannerTranslationOptions(TranslationOptions):

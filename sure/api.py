@@ -23,9 +23,8 @@ from sure.cases import (
     get_test_results,
     prefetch_questionnaire,
 )
-from sure.client_service import can_connect_case
-from sure.client_service import connect_case as connect_case_service
 from sure.client_service import (
+    can_connect_case,
     create_case,
     create_visit,
     generate_token,
@@ -38,11 +37,12 @@ from sure.client_service import (
     record_consultant_answers,
     send_case_link,
     send_results_link,
+    strip_id,
+    verify_access_to_location,
 )
+from sure.client_service import connect_case as connect_case_service
 from sure.client_service import send_token as send_token_service
-from sure.client_service import strip_id, verify_access_to_location
 from sure.lang import inject_language
-from sure.report_forms import available_report_forms, fill_report
 from sure.models import (
     Case,
     ConsentChoice,
@@ -58,6 +58,7 @@ from sure.models import (
     VisitLog,
     VisitStatus,
 )
+from sure.report_forms import available_report_forms, fill_report
 from sure.schema import (
     AvailableReportFormSchema,
     CaseFilters,

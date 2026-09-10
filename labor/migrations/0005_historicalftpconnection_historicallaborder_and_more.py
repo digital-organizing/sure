@@ -2,10 +2,11 @@
 
 import django.contrib.postgres.fields
 import django.db.models.deletion
-import labor.models
 import simple_history.models
 from django.conf import settings
 from django.db import migrations, models
+
+import labor.models
 
 
 class Migration(migrations.Migration):

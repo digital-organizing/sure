@@ -1,20 +1,19 @@
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
-from django.utils.functional import cached_property
-from .models import ReportFormFile, Test, VisitExport, VisitExportDownload
-from django.core.exceptions import PermissionDenied
-from core.auth import require_2fa_or_trusted
-
 import io
-import polars as pl
 from typing import Any
+
+import polars as pl
+from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.views.generic.edit import FormView
 from unfold.views import UnfoldModelAdminViewMixin
 
+from core.auth import require_2fa_or_trusted
 from sure.client_service import create_case, create_visit, get_case_link
 from sure.forms import (
     GenerateCaseBatchForm,
@@ -22,6 +21,8 @@ from sure.forms import (
     ReportTestFillForm,
 )
 from sure.report_forms import copy_mapping, fill_report
+
+from .models import ReportFormFile, Test, VisitExport, VisitExportDownload
 
 
 @require_2fa_or_trusted

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from django.db.models import Count, F, OuterRef, Prefetch, Q, QuerySet, Subquery
 from django.db.models.functions import Greatest
@@ -411,7 +411,7 @@ def dashboard_callback(request, context):
     return context
 
 
-def _get_col(count: int, total: int) -> Dict[str, Any]:
+def _get_col(count: int, total: int) -> dict[str, Any]:
     """Helper to format a single cell in the cohort table."""
     return {
         "value": count,
@@ -423,10 +423,10 @@ def _get_col(count: int, total: int) -> Dict[str, Any]:
 
 def _build_cohort_data(
     query,
-    group_by_fields: List[str],
-    status_choices: List[Tuple],
-    all_groups: Optional[List[Dict]] = None,
-) -> Dict[str, Any]:
+    group_by_fields: list[str],
+    status_choices: list[tuple],
+    all_groups: list[dict] | None = None,
+) -> dict[str, Any]:
     """
     Generic cohort data builder that aggregates visits by status and a grouping field.
 
@@ -527,7 +527,7 @@ def _build_cohort_data(
     }
 
 
-def case_cohort_by_tenants(filter: Optional[Dict] = None) -> Dict[str, Any]:
+def case_cohort_by_tenants(filter: dict | None = None) -> dict[str, Any]:
     """Generate cohort data grouped by tenants."""
     if filter is None:
         filter = {}
@@ -546,8 +546,8 @@ def case_cohort_by_tenants(filter: Optional[Dict] = None) -> Dict[str, Any]:
 
 
 def case_cohort_by_location(
-    tenant: Tenant, filter: Optional[Dict] = None
-) -> Dict[str, Any]:
+    tenant: Tenant, filter: dict | None = None
+) -> dict[str, Any]:
     """Generate cohort data grouped by locations for a specific tenant."""
     if filter is None:
         filter = {}

@@ -12,10 +12,9 @@ from django.forms import Form
 from django.http import Http404, HttpResponse
 from django.http.request import HttpRequest
 from django.shortcuts import get_object_or_404, redirect
-
-from django.utils.translation import gettext_lazy as _
 from django.urls import URLPattern, path, reverse
 from django.utils.html import format_html, format_html_join
+from django.utils.translation import gettext_lazy as _
 from django_agent_trust.admin import AgentSettings
 from django_celery_beat.admin import ClockedScheduleAdmin as BaseClockedScheduleAdmin
 from django_celery_beat.admin import CrontabScheduleAdmin as BaseCrontabScheduleAdmin
@@ -55,6 +54,7 @@ from unfold.forms import (
 )
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
+from labor.models import TestProfile
 from sure.cases import case_cohort_by_location, case_cohort_by_tenants
 from sure.forms import CohortFilterForm
 from sure.models import (
@@ -78,13 +78,12 @@ from sure.models import (
     VisitStatus,
 )
 from sure.report_forms import render_preview, sync_fields
+from sure.tasks import create_export, generate_pdf_task
 from sure.views import (
     GenerateCaseBatchView,
     ReportCopyMappingView,
     ReportTestFillView,
 )
-from sure.tasks import create_export, generate_pdf_task
-from labor.models import TestProfile
 
 
 class TestProfileInline(StackedInline):

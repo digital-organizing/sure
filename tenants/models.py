@@ -204,8 +204,7 @@ class Location(models.Model):
                 )
 
                 if (
-                    opening_datetime <= from_datetime
-                    and from_datetime < closing_datetime
+                    opening_datetime <= from_datetime < closing_datetime
                 ):
                     return opening_datetime
 

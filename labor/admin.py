@@ -2,21 +2,22 @@ from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.http.request import HttpRequest
-
 from django.shortcuts import redirect
 from django.urls import reverse
-from unfold.decorators import action
+from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
+from unfold.decorators import action
+
 from labor.models import (
     FTPConnection,
     HL7Result,
     Laboratory,
     LabOrder,
     LabOrderCounter,
+    LocationToLab,
     OrderStatus,
     ResultMapping,
     TestProfile,
-    LocationToLab,
 )
 from labor.tasks import (
     MAX_PROCESSING_ATTEMPTS,
@@ -25,8 +26,6 @@ from labor.tasks import (
     upload_single_order,
 )
 from sure.models import TestResultOption
-
-from simple_history.admin import SimpleHistoryAdmin
 
 from .forms import FTPConnectionForm
 

@@ -18,18 +18,18 @@ from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
+from labor.models import LocationToLab
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import (
+    Advertisement,
     APIToken,
     Consultant,
     InformationBanner,
-    Advertisement,
     Location,
     Tag,
     Tenant,
 )
 from tenants.views import ConsultantInviteView
-from labor.models import LocationToLab
 
 
 class LocationToLabInline(TabularInline):
@@ -370,14 +370,12 @@ class BaseTenantContentAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAd
 class InformationBannerAdmin(BaseTenantContentAdmin):
     """Admin for information banners."""
 
-    pass
 
 
 @admin.register(Advertisement)
 class AdvertisementAdmin(BaseTenantContentAdmin):
     """Admin for advertisements."""
 
-    pass
 
 
 @admin.register(APIToken)

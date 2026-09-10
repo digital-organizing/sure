@@ -1,22 +1,24 @@
-from celery import shared_task
+import logging
 
+from celery import shared_task
 from django.utils import timezone
 
-from .service import parse_hl7_to_db
 from labor.models import (
     HL7Result,
-    LabOrder,
+    ImlementationChoices,
     Laboratory,
+    LabOrder,
     LocationToLab,
     OrderStatus,
-    ImlementationChoices,
+)
+
+from .service import parse_hl7_to_db
+from .team_w import (
+    retrieve_results as retrieve_results_team_w,
 )
 from .team_w import (
     upload_order as upload_order_team_w,
-    retrieve_results as retrieve_results_team_w,
 )
-
-import logging
 
 logger = logging.getLogger(__name__)
 

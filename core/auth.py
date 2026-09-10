@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from django.core.exceptions import PermissionDenied as Unauthorized
 from django.http import HttpRequest
@@ -9,7 +9,7 @@ from ninja.security.apikey import APIKeyCookie
 class Auth2FaOrTrusted(APIKeyCookie):
     "Reusing Django session authentication"
 
-    def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+    def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
         return request.user.is_authenticated and (
             request.user.is_verified() or request.agent.is_trusted  # type: ignore
         )
@@ -21,7 +21,7 @@ auth_2fa_or_trusted = Auth2FaOrTrusted()
 class Auth2FA(APIKeyCookie):
     "Reusing Django session authentication"
 
-    def authenticate(self, request: HttpRequest, key: Optional[str]) -> Optional[Any]:
+    def authenticate(self, request: HttpRequest, key: str | None) -> Any | None:
         if request.user.is_authenticated and request.user.is_verified():  # type: ignore
             return request.user
 

@@ -2,11 +2,10 @@ import logging
 
 from ninja import Router
 
-from labor.schema import LabOrderSchema, LaboratorySchema, PatientDataSchema
+from labor.models import LabOrder, LocationToLab, OrderStatus
+from labor.schema import LaboratorySchema, LabOrderSchema, PatientDataSchema
 from labor.service import generate_hl7_order
 from sure.client_service import get_case
-
-from labor.models import LabOrder, LocationToLab, OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ def cancel_order(request, case_id: str, order_number: str):
         return 400, {"error": "Only generated orders can be cancelled"}
 
     lab_order.status = OrderStatus.CANCELLED
-    setattr(lab_order, "_history_user", request.user)
+    lab_order._history_user = request.user
     lab_order.save()
 
     orders = LabOrder.objects.filter(visit=visit).order_by("-created_at")

@@ -64,9 +64,7 @@ def check_block(identifier: str, endpoint: ProtectedEndpoint):
         hit_at__gte=window_start,
     ).count()
 
-    if hit_count >= endpoint.max_errors:
-        return True
-    return False
+    return hit_count >= endpoint.max_errors
 
 
 def block_identifier(identifier: str, endpoint: ProtectedEndpoint):

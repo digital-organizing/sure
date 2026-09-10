@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
 
 from sure.admin import TagListFilter, VisitAdmin
-from sure.models import Visit, Questionnaire, Case
-from tenants.models import Location, Tenant, Consultant
+from sure.models import Case, Questionnaire, Visit
+from tenants.models import Consultant, Location, Tenant
 
 
 class VisitAdminFilterTest(TestCase):

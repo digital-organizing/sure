@@ -10,24 +10,22 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils import timezone
 
-from labor.schema import PatientDataSchema
-from sure.client_service import get_pid
-
-
 from labor.models import (
+    LabOrder,
     LabOrderCounter,
     LabResult,
     LocationToLab,
-    LabOrder,
     OrderStatus,
-    TestProfile,
     ResultMapping,
+    TestProfile,
 )
+from labor.schema import PatientDataSchema
+from sure.client_service import get_pid
 from sure.models import (
+    Test,
+    TestResult,
     VisitDocument,
     VisitNote,
-    TestResult,
-    Test,
     VisitStatus,
 )
 
@@ -643,12 +641,8 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
     for material_name, material_code in materials:
         # Construct specimen barcode
         # Beispiel Serum also S und aufgefüllt auf 8 Stellen mit Nullen
-        material_code = (
-            str(material_code).replace("\r", "").replace("\n", "").strip()
-        )
-        material_name = (
-            str(material_name).replace("\r", "").replace("\n", "").strip()
-        )
+        material_code = str(material_code).replace("\r", "").replace("\n", "").strip()
+        material_name = str(material_name).replace("\r", "").replace("\n", "").strip()
         barcode = f"{full_order_number}{material_code:0<8}"
         barcodes.append(barcode)
 

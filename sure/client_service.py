@@ -1,7 +1,7 @@
 """Functions for creating and managing clients and their cases."""
 
 import logging
-from typing import Iterable
+from collections.abc import Iterable
 
 import phonenumbers
 from django.conf import settings
@@ -127,7 +127,7 @@ def generate_token(phone_number: str, case: Case) -> tuple[Contact, str]:
 
 def send_case_link(case: Case, phone_number: str):
     """Send a link to access the case to the given phone number."""
-    contact, token = Contact.objects.get_or_create(
+    contact, _token = Contact.objects.get_or_create(
         phone_number=canonicalize_phone_number(phone_number),
         active=True,
     )
@@ -194,10 +194,7 @@ def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:
 
 def can_connect_case(case: Case) -> bool:
     """Check if a case can be connected to a client."""
-    if Connection.objects.filter(case=case).exists():
-        return False
-
-    return True
+    return not Connection.objects.filter(case=case).exists()
 
 
 @transaction.atomic

@@ -7,9 +7,9 @@ from django.test import TestCase, override_settings
 
 from labor.models import (
     HL7Result,
+    Laboratory,
     LabOrder,
     LabOrderCounter,
-    Laboratory,
     LocationToLab,
     OrderStatus,
     ResultMapping,
@@ -21,6 +21,7 @@ from labor.service import (
     extract_embedded_documents,
     parse_hl7_to_db,
 )
+from sure.cases import get_case_tests_with_latest_results
 from sure.models import (
     Case,
     Questionnaire,
@@ -33,7 +34,6 @@ from sure.models import (
     VisitNote,
     VisitStatus,
 )
-from sure.cases import get_case_tests_with_latest_results
 from tenants.models import Location, Tenant
 
 
@@ -419,7 +419,6 @@ class EmbeddedDocumentTests(TestCase):
         self.assertEqual(document.document.read(), pdf)
 
 
-
 class GroupedResultProfileTests(TestCase):
     """The lab groups analyses under department OBRs (26 Hormone, 35
     Infektserologie). Each OBX must still reach its own test kind, matched on
@@ -470,9 +469,7 @@ class GroupedResultProfileTests(TestCase):
         category = TestCategory.objects.create(number=910, name="Lab C")
         self.kinds = {}
         for number, (code, name, _department) in enumerate(self.ANALYSES, start=910):
-            kind = TestKind.objects.create(
-                category=category, number=number, name=name
-            )
+            kind = TestKind.objects.create(category=category, number=number, name=name)
             self.kinds[code] = kind
             option = TestResultOption.objects.create(test_kind=kind, label="Erfasst")
             TestProfile.objects.create(
@@ -576,13 +573,15 @@ class GroupedResultProfileTests(TestCase):
         self.assertIn("Keine weiteren Kontrollen", anti_hbs.results.get().note_lab)
 
 
-from django.core.exceptions import ValidationError
 from unittest.mock import MagicMock, patch
+
+from django.core.exceptions import ValidationError
+
+from labor.models import FTPConnection
 from labor.schema import PatientDataSchema
 from labor.service import generate_hl7_order
 from labor.tasks import MAX_PROCESSING_ATTEMPTS, process_results
 from labor.team_w import upload_order
-from labor.models import FTPConnection
 
 
 class HL7OrderGenerationAndUploadTests(TestCase):
@@ -690,7 +689,6 @@ class HL7OrderGenerationAndUploadTests(TestCase):
             stor_arg.endswith(".txt"),
             f"Command should not end with .txt, got {stor_arg}",
         )
-
 
 
 class ProcessResultsRetryTests(TestCase):

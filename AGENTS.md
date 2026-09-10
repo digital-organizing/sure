@@ -50,6 +50,7 @@ You can achieve this by creating a confirmed `TOTPDevice` for the test user and 
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
+
 def test_custom_admin_view(self):
     # 1. Setup user roles
     self.user.is_superuser = True

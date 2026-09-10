@@ -55,7 +55,7 @@ class CohortFilterForm(forms.Form):
         if self.request.user.is_superuser:
             self.fields["tag"].queryset = Tag.objects.all()  # type: ignore
         else:
-            tenant = getattr(self.request.user, "consultant").tenant
+            tenant = self.request.user.consultant.tenant
             self.fields["tag"].queryset = Tag.objects.filter(  # type: ignore
                 available_in__tenant=tenant
             )

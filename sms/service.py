@@ -28,8 +28,7 @@ def _send_sms(to: str, body: str):
         "Accept": "application/json",
     }
 
-    if to.startswith("+"):  # API requires no '+' sign
-        to = to[1:]
+    to = to.removeprefix("+")
 
     params = {
         "to": to,

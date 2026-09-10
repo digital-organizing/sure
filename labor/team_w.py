@@ -1,5 +1,6 @@
 from ftplib import FTP_TLS  # nosec
 from io import BytesIO
+
 from django.utils import timezone
 
 from labor.models import FTPConnection, HL7Result, Laboratory
@@ -20,7 +21,7 @@ class WindowsFTP_TLS(FTP_TLS):
         # We replace that method with a dummy function that does nothing.
         # This skips the polite shutdown handshake and just closes the socket later.
         if hasattr(conn, "unwrap"):
-            setattr(conn, "unwrap", lambda: None)
+            conn.unwrap = lambda: None
 
         return conn, size
 

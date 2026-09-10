@@ -2,8 +2,9 @@
 
 import django.core.validators
 import django_clamd.validators
-import sure.validators
 from django.db import migrations, models
+
+import sure.validators
 
 
 class Migration(migrations.Migration):

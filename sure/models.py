@@ -6,7 +6,6 @@ import secrets
 import uuid
 from datetime import timedelta
 
-from django.urls import reverse
 import phonenumbers
 from colorfield.fields import ColorField
 from django.conf import settings
@@ -19,6 +18,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _

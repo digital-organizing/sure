@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from ninja import Field, ModelSchema
 
-from tenants.models import InformationBanner, Advertisement, Location, Tag, Tenant
+from tenants.models import Advertisement, InformationBanner, Location, Tag, Tenant
 
 
 class TenantSchema(ModelSchema):

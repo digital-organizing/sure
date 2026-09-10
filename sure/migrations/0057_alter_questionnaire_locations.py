@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0056_test_soft_delete"),
         ("tenants", "0027_remove_advertisement_severity_and_more"),

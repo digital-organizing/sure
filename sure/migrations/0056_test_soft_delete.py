@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sure", "0055_clientoption_exclusive_consultantoption_exclusive_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

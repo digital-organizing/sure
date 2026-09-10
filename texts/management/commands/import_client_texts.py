@@ -88,7 +88,7 @@ class Command(BaseCommand):
                     updated += int(exists)
                     continue
 
-                text, created_flag = Text.objects.update_or_create(
+                _text, created_flag = Text.objects.update_or_create(
                     slug=slug,
                     defaults=defaults,
                 )

@@ -1,6 +1,6 @@
 import io
-from datetime import timedelta
 import time
+from datetime import timedelta
 
 import polars as pl
 from celery import shared_task
@@ -14,7 +14,7 @@ from sure.export import generate_pdfs
 from sure.models import Questionnaire
 from sure.reminder import send_reminders
 
-from .models import ExportStatus, Visit, VisitExport, VisitStatus, TestKind
+from .models import ExportStatus, TestKind, Visit, VisitExport, VisitStatus
 
 
 @shared_task

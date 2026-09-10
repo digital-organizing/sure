@@ -90,7 +90,7 @@ from sure.schema import (
     TestSchema,
     VisitDetailSchema,
 )
-from tenants.models import Consultant
+from tenants.models import Consultant, Location
 from texts.translate import translate
 
 logger = logging.getLogger(__name__)
@@ -532,6 +532,35 @@ def update_case_internal_id(request, pk: str, internal_id: Form[str]):
         action=f"Internal ID updated from  {old_id} to {internal_id}",
         user=request.user,
     )
+    return {"success": True}
+
+
+@router.post("/case/{pk}/location/", response=StatusSchema)
+@inject_language
+def update_case_location(request, pk: str, location_id: Form[int]):
+    """Move a case to another location of its tenant the user has access to."""
+    visit = get_case(request, pk)
+    old_location = visit.case.location
+    location = get_object_or_404(Location, pk=location_id)
+
+    # Cases never change tenant, not even for superusers.
+    if location.tenant_id != old_location.tenant_id or not verify_access_to_location(
+        location, request.user
+    ):
+        raise PermissionError(translate("no-access-location"))
+
+    if location.pk == old_location.pk:
+        return {"success": True}
+
+    with transaction.atomic():
+        visit.case.location = location
+        visit.case.save(update_fields=["location"])
+        visit.logs.create(
+            action=f"Location changed from {old_location.name} to {location.name}"[
+                :255
+            ],
+            user=request.user,
+        )
     return {"success": True}
 
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCase } from '@/composables/useCase'
+import { useLocations } from '@/composables/useLocations'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatDate, useClipboard, useTitle } from '@vueuse/core'
@@ -68,7 +69,33 @@ function formatTimestamp(timestamp: string | null | undefined): string {
   return formatDate(new Date(timestamp), 'DD.MM.YYYY HH:mm')
 }
 
-const { visit, setCaseId, relatedCases, loading, setCaseStatus, updateInternalId } = useCase()
+const { visit, setCaseId, relatedCases, loading, setCaseStatus, updateInternalId, updateLocation } =
+  useCase()
+
+const { locations } = useLocations()
+const editLocation = ref(false)
+const newLocationId = ref<number | null>(null)
+
+// A case can only move to locations of its own tenant the user works at.
+const movableLocations = computed(() =>
+  locations.value.filter((location) => location.tenant.id === visit.value?.tenant_id),
+)
+
+const canChangeLocation = computed(() =>
+  movableLocations.value.some((location) => location.id !== visit.value?.location_id),
+)
+
+async function saveLocation() {
+  if (newLocationId.value === null) {
+    return
+  }
+  const detail = await updateLocation(newLocationId.value)
+  if (detail) {
+    toast.add({ severity: 'error', summary: detail, life: 5000 })
+    return
+  }
+  editLocation.value = false
+}
 
 function isStatusDone(status: string): boolean {
   const caseStatusIndex = indexForStatus(visit.value?.status || '')
@@ -212,7 +239,38 @@ watch(
         <div></div>
         <div class="case-field">
           <span class="label">{{ t('location') }}</span>
-          <span class="value">{{ visit?.location }}</span>
+          <div class="inline-edit">
+            <span class="value" v-if="!editLocation">{{ visit?.location }}</span>
+            <Button
+              v-if="!editLocation && canChangeLocation"
+              icon="pi pi-pencil"
+              severity="secondary"
+              size="small"
+              @click="((editLocation = true), (newLocationId = visit?.location_id ?? null))"
+            />
+            <Select
+              v-if="editLocation"
+              v-model="newLocationId"
+              :options="movableLocations"
+              option-label="name"
+              option-value="id"
+              size="small"
+            />
+            <Button
+              v-if="editLocation"
+              icon="pi pi-check"
+              severity="success"
+              size="small"
+              @click="saveLocation()"
+            />
+            <Button
+              v-if="editLocation"
+              icon="pi pi-times"
+              severity="secondary"
+              size="small"
+              @click="editLocation = false"
+            />
+          </div>
         </div>
         <div class="case-field">
           <span class="label">{{ t('last-modification') }}</span>
@@ -353,7 +411,8 @@ article {
   gap: 1rem;
 }
 
-.external-edit {
+.external-edit,
+.inline-edit {
   width: 100%;
   display: flex;
   align-items: center;
@@ -361,7 +420,8 @@ article {
   gap: 0.5rem;
 }
 
-.external-edit .p-inputtext {
+.external-edit .p-inputtext,
+.inline-edit .p-select {
   flex: 1 1 auto;
   width: 0;
 }

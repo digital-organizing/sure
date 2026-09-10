@@ -502,6 +502,14 @@ export type VisitDetailSchema = {
      * Other Tenant
      */
     other_tenant?: boolean;
+    /**
+     * Location Id
+     */
+    location_id: number;
+    /**
+     * Tenant Id
+     */
+    tenant_id: number;
 };
 
 /**
@@ -2585,6 +2593,40 @@ export type SureApiUpdateCaseInternalIdResponses = {
 };
 
 export type SureApiUpdateCaseInternalIdResponse = SureApiUpdateCaseInternalIdResponses[keyof SureApiUpdateCaseInternalIdResponses];
+
+export type SureApiUpdateCaseLocationData = {
+    /**
+     * FormParams
+     */
+    body: {
+        /**
+         * Location Id
+         */
+        location_id: number;
+    };
+    path: {
+        /**
+         * Pk
+         */
+        pk: string;
+    };
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
+    url: '/api/sure/case/{pk}/location/';
+};
+
+export type SureApiUpdateCaseLocationResponses = {
+    /**
+     * OK
+     */
+    200: StatusSchema;
+};
+
+export type SureApiUpdateCaseLocationResponse = SureApiUpdateCaseLocationResponses[keyof SureApiUpdateCaseLocationResponses];
 
 export type SureApiUpdateCaseTestResultsData = {
     body: SubmitTestResultsSchema;

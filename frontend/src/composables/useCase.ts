@@ -34,6 +34,7 @@ import {
   sureApiPublishCaseResults,
   sureApiUpdateCaseStatus,
   sureApiUpdateCaseInternalId,
+  sureApiUpdateCaseLocation,
 } from '@/client'
 import { computed, nextTick, ref } from 'vue'
 import { createGlobalState } from '@vueuse/core'
@@ -687,6 +688,27 @@ export const useCase = createGlobalState(() => {
       })
   }
 
+  // Returns the error detail if the case could not be moved, null otherwise.
+  async function updateLocation(locationId: number): Promise<string | null> {
+    if (!visit.value) {
+      return 'No visit selected.'
+    }
+    if (locationId === visit.value.location_id) {
+      return null
+    }
+    const response = await sureApiUpdateCaseLocation({
+      body: { location_id: locationId },
+      path: { pk: visit.value.case },
+    })
+    if (response.error) {
+      const detail = (response.error as { detail?: string }).detail || 'Failed to update location'
+      error.value = detail
+      return detail
+    }
+    await Promise.all([fetchCaseHistory(), fetchVisitDetails()])
+    return null
+  }
+
   onLanguageChange(async () => {
     if (selectedVisitId.value) {
       await fetchClientSchema()
@@ -738,5 +760,6 @@ export const useCase = createGlobalState(() => {
     publishResults,
     onCaseRefresh,
     updateInternalId,
+    updateLocation,
   }
 })

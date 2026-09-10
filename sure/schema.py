@@ -507,6 +507,8 @@ class VisitDetailSchema(CaseListingSchema):
     #: The case belongs to another tenant than the requesting consultant's.
     #: Set by the view, as it depends on who is asking.
     other_tenant: bool = False
+    location_id: int = Field(..., alias="case.location_id")
+    tenant_id: int = Field(..., alias="case.location.tenant_id")
 
 
 class TestBundleSchema(ModelSchema):

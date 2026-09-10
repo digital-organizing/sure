@@ -455,9 +455,9 @@ export type InternalQuestionnaireSchema = {
 };
 
 /**
- * CaseListingSchema
+ * VisitDetailSchema
  */
-export type CaseListingSchema = {
+export type VisitDetailSchema = {
     /**
      * Location
      */
@@ -498,6 +498,10 @@ export type CaseListingSchema = {
      * Created At
      */
     created_at: string;
+    /**
+     * Other Tenant
+     */
+    other_tenant?: boolean;
 };
 
 /**
@@ -1186,6 +1190,52 @@ export type Input = {
      * Page Size
      */
     page_size?: number | null;
+};
+
+/**
+ * CaseListingSchema
+ */
+export type CaseListingSchema = {
+    /**
+     * Location
+     */
+    location: string;
+    /**
+     * Client
+     */
+    client: string | null;
+    /**
+     * Last Modified At
+     */
+    last_modified_at: string;
+    /**
+     * External Id
+     */
+    external_id: string;
+    /**
+     * Tags
+     */
+    tags: Array<string>;
+    /**
+     * Language
+     */
+    language: string;
+    /**
+     * Case
+     */
+    case: string;
+    /**
+     * ID
+     */
+    id?: number | null;
+    /**
+     * Status
+     */
+    status?: string;
+    /**
+     * Created At
+     */
+    created_at: string;
 };
 
 /**
@@ -2202,7 +2252,7 @@ export type SureApiGetVisitResponses = {
     /**
      * OK
      */
-    200: CaseListingSchema;
+    200: VisitDetailSchema;
 };
 
 export type SureApiGetVisitResponse = SureApiGetVisitResponses[keyof SureApiGetVisitResponses];

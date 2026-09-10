@@ -6,7 +6,7 @@ import {
   sureApiGetVisitClientAnswers,
   sureApiGetVisitConsultantAnswers,
   sureApiListClientCases,
-  type CaseListingSchema,
+  type VisitDetailSchema,
   type ConsultantAnswerSchema,
   sureApiGetCaseInternal,
   sureApiSubmitCase,
@@ -41,7 +41,7 @@ import { consultantAnswersStore, userAnswersStore } from '@/stores/answers'
 import { useTexts } from './useTexts'
 
 export const useCase = createGlobalState(() => {
-  const visit = ref<CaseListingSchema | null>(null)
+  const visit = ref<VisitDetailSchema | null>(null)
   const relatedCases = ref<RelatedCaseSchema[] | null>(null)
   const clientAnswers = ref<ClientAnswerSchema[] | null>(null)
   const consultantAnswers = ref<ConsultantAnswerSchema[] | null>(null)

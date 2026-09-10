@@ -503,6 +503,12 @@ class CaseListingSchema(ModelSchema):
         return getattr(visit, "last_modified_at", visit.created_at).isoformat()
 
 
+class VisitDetailSchema(CaseListingSchema):
+    #: The case belongs to another tenant than the requesting consultant's.
+    #: Set by the view, as it depends on who is asking.
+    other_tenant: bool = False
+
+
 class TestBundleSchema(ModelSchema):
     class Meta:
         model = TestBundle

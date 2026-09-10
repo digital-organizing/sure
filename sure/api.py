@@ -85,6 +85,7 @@ from sure.schema import (
     TestCategorySchema,
     TestResultOptionSchema,
     TestSchema,
+    VisitDetailSchema,
 )
 from tenants.models import Consultant
 from texts.translate import translate
@@ -294,12 +295,18 @@ def get_phone_number(request, pk: str):
         )
 
 
-@router.get("/case/{pk}/visit/", response=CaseListingSchema)
+@router.get("/case/{pk}/visit/", response=VisitDetailSchema)
 @inject_language
 def get_visit(request, pk: str):
     """Get the client answers for a case."""
 
     visit = get_case(request, pk)
+    # Consultants may view cases of other tenants through a connected client,
+    # the frontend warns them before they change anything there.
+    consultant = getattr(request.user, "consultant", None)
+    visit.other_tenant = (
+        consultant is not None and visit.case.location.tenant_id != consultant.tenant_id
+    )
     return visit
 
 

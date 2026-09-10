@@ -381,11 +381,9 @@ class InformationBannerAdmin(BaseTenantContentAdmin):
     """Admin for information banners."""
 
 
-
 @admin.register(Advertisement)
 class AdvertisementAdmin(BaseTenantContentAdmin):
     """Admin for advertisements."""
-
 
 
 @admin.register(APIToken)

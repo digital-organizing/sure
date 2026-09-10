@@ -87,7 +87,7 @@ def _process_result(result: HL7Result) -> bool:
             )
         result.save(update_fields=["attempts", "logs"])
 
-        logging.error(f"Error processing HL7 result {result.pk}: {e}")
+        logger.error("Error processing HL7 result %s: %s", result.pk, e)
         return False
 
     result.processed_at = timezone.now()

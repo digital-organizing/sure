@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Script to generate Markdown questionnaires from JSON data.
 Generates two separate markdown files: one for client questions and one for consultant questions.

@@ -69,5 +69,15 @@
     "vite-plugin-vue-devtools": "^8.1.1",
     "vitest": "^4.0.18",
     "vue-tsc": "^3.2.4"
+  },
+  "overrides": {
+    "@hey-api/json-schema-ref-parser": {
+      "js-yaml": "^4.3.2"
+    }
+  },
+  "allowScripts": {
+    "@sentry/cli@2.58.5": true,
+    "core-js@3.49.0": true,
+    "esbuild@0.28.1": true
   }
 }

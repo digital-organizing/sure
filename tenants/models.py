@@ -210,14 +210,14 @@ class Location(models.Model):
             day = (weekday + i) % 7
             hours = self.opening_hours.get(WEEKDAYS[day], [])
             for start_str, end_str in hours:
-                start_time = datetime.datetime.strptime(start_str, "%H:%M").time()
+                start_time = datetime.time.fromisoformat(start_str)
                 opening_datetime = make_aware(
                     datetime.datetime.combine(
                         from_datetime.date() + datetime.timedelta(days=i),
                         start_time,
                     )
                 )
-                closing_time = datetime.datetime.strptime(end_str, "%H:%M").time()
+                closing_time = datetime.time.fromisoformat(end_str)
                 closing_datetime = make_aware(
                     datetime.datetime.combine(
                         from_datetime.date() + datetime.timedelta(days=i),
@@ -225,9 +225,7 @@ class Location(models.Model):
                     )
                 )
 
-                if (
-                    opening_datetime <= from_datetime < closing_datetime
-                ):
+                if opening_datetime <= from_datetime < closing_datetime:
                     return opening_datetime
 
                 if opening_datetime > from_datetime:

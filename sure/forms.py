@@ -188,11 +188,14 @@ class GenerateCaseBatchForm(forms.Form):
         if cleaned_data is not None:
             location = cleaned_data.get("location")
             questionnaire = cleaned_data.get("questionnaire")
-            if location and questionnaire:
-                if not questionnaire.locations.filter(pk=location.pk).exists():
-                    raise forms.ValidationError(
-                        "The selected questionnaire is not available at the selected location."
-                    )
+            if (
+                location
+                and questionnaire
+                and not questionnaire.locations.filter(pk=location.pk).exists()
+            ):
+                raise forms.ValidationError(
+                    "The selected questionnaire is not available at the selected location."
+                )
         return cleaned_data
 
 

@@ -1,6 +1,5 @@
 """Backgorund Tasks for the project."""
 
-
 import os
 
 from celery import Celery

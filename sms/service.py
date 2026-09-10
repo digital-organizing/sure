@@ -21,6 +21,10 @@ class SMSUpStatus(Enum):
     UNKNOWN_ERROR = -99
 
 
+class SMSError(Exception):
+    """Raised when SMS Up did not accept or send the message."""
+
+
 @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
 def _send_sms(to: str, body: str):
     headers = {
@@ -54,10 +58,10 @@ def _send_sms(to: str, body: str):
     status_code = data.get("status", SMSUpStatus.UNKNOWN_ERROR.value)
 
     if status_code not in [SMSUpStatus.OK.value, SMSUpStatus.MODERATION.value]:
-        raise Exception(f"Failed to send SMS: {data}")
+        raise SMSError(f"Failed to send SMS: {data}")
 
     if data.get("sent") != 1:
-        raise Exception(f"SMS not sent: {data}")
+        raise SMSError(f"SMS not sent: {data}")
 
     return data
 

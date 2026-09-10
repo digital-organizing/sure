@@ -389,9 +389,10 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
     pk = strip_id(pk)
 
     visit = get_object_or_404(Visit, case_id=pk)
-    if request.user.is_authenticated:
-        if not verify_access_to_location(visit.case.location, request.user):
-            raise PermissionError(translate("no-access-location"))
+    if request.user.is_authenticated and not verify_access_to_location(
+        visit.case.location, request.user
+    ):
+        raise PermissionError(translate("no-access-location"))
 
     try:
         record_client_answers(

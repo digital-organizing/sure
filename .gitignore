@@ -17,3 +17,5 @@ agent_runs/
 
 static/
 staticfiles/
+
+data/

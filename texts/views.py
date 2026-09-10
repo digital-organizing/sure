@@ -80,7 +80,9 @@ class ImportTextView(UnfoldModelAdminViewMixin, FormView):
             }
 
             # Update or create
-            _text, created = Text.objects.update_or_create(slug=slug, defaults=text_data)
+            _text, created = Text.objects.update_or_create(
+                slug=slug, defaults=text_data
+            )
 
             if created:
                 created_count += 1

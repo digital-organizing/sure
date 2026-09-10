@@ -154,14 +154,15 @@ def get_case_tests_with_latest_results(
 ) -> QuerySet[Test]:
     test_latest_result_ids = get_test_results(visit)
 
+    # Clients are only allowed to see results if all results are information_by_sms=True
     if (
         filter_client is True
-    ):  # Clients are only allowed to see results if all results are information_by_sms=True
-        if test_latest_result_ids.filter(
+        and test_latest_result_ids.filter(
             result_option__information_by_sms=False,
             test__test_kind__rapid=False,
-        ).exists():
-            return Test.objects.none()
+        ).exists()
+    ):
+        return Test.objects.none()
     if filter_client is False:  # Return only results that are not information_by_sms
         test_latest_result_ids = test_latest_result_ids.filter(
             result_option__information_by_sms=False
@@ -223,8 +224,8 @@ def show_question(question, answers):
     if not show_for_options:
         return True
 
+    option: ClientOption
     for option in show_for_options:
-        option: ClientOption = option
         # answer record in answers dict contains 'codes' list
         answer = answers.get(option.question.code, None)
         if not answer:
@@ -292,10 +293,9 @@ def get_client_answers_export(visit: Visit):
 
     answers = {}
 
+    question: ClientQuestion
     for section in visit.questionnaire.sections.all():
         for question in section.client_questions.all():
-            question: ClientQuestion = question
-
             if not show_question(question, answers):
                 continue
 
@@ -337,9 +337,8 @@ def get_consultant_answers_export(visit: Visit):
             answers_map[ans.question_id] = ans  # type: ignore
 
     output = {}
+    question: ConsultantQuestion
     for question in visit.questionnaire.consultant_questions.all():
-        question: ConsultantQuestion = question
-
         answer = answers_map.get(question.pk)
         if not answer:
             answer_record = {
@@ -350,7 +349,7 @@ def get_consultant_answers_export(visit: Visit):
             # Use prefetched options from the question
             options: dict[str, ClientOption] = {
                 opt.code: opt for opt in question.options.all()
-            }  # type: ignore
+            }
             answers_en = _translate_answer_choices(
                 answer.choices, answer.texts, options, lang
             )
@@ -373,9 +372,8 @@ def get_test_results_export(visit: Visit, test_kinds=None):
     # Pre-map visit tests for faster lookup
     visit_tests = {t.test_kind.pk: t for t in visit.tests.all()}
 
+    test_kind: TestKind
     for test_kind in test_kinds:
-        test_kind: TestKind = test_kind
-
         output[f"{test_kind.name}"] = None
         if test_kind.interpretation_needed:
             output[f"{test_kind.name} [{test_kind.note}]"] = None

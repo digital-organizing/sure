@@ -83,6 +83,18 @@ plugins = ["mypy_django_plugin.main"]
 django_settings_module = "core.settings"
 
 
+[tool.ruff]
+extend-exclude = ["**/migrations/**"]
+
+[tool.ruff.lint]
+ignore = [
+  "RUF012",  # mutable class default, false positive with django (Meta, admin, ninja schemas)
+  "BLE001",  # blind except, used deliberately at task and I/O boundaries
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["DTZ001"]  # naive datetimes are wrapped in make_aware
+
 [tool.bandit]
 exclude = ["migrations", "tests", "./.venv/"]
 

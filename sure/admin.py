@@ -398,7 +398,7 @@ class VisitExportAdmin(ModelAdmin):
         self, request: HttpRequest, obj: models.Model, form: Form, change: widgets.Any
     ) -> None:
         if not isinstance(obj, VisitExport):
-            raise ValueError("obj must be an instance of VisitExport")
+            raise TypeError("obj must be an instance of VisitExport")
         if not change:
             obj.user = request.user
         super().save_model(request, obj, form, change)

@@ -130,6 +130,7 @@ class Location(models.Model):
     tenant = models.ForeignKey(
         Tenant, on_delete=models.CASCADE, related_name="locations"
     )
+    tenant_id: int
     name = models.CharField(max_length=255)
 
     address = models.TextField(blank=True, null=True)

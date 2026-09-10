@@ -21,7 +21,7 @@ class WindowsFTP_TLS(FTP_TLS):
         # We replace that method with a dummy function that does nothing.
         # This skips the polite shutdown handshake and just closes the socket later.
         if hasattr(conn, "unwrap"):
-            conn.unwrap = lambda: None
+            conn.unwrap = lambda: None  # ty: ignore[invalid-assignment]
 
         return conn, size
 

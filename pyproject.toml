@@ -95,6 +95,15 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["DTZ001"]  # naive datetimes are wrapped in make_aware
 
+[tool.ty.src]
+exclude = ["**/migrations/**"]
+
+[[tool.ty.overrides]]
+include = ["**/admin.py"]
+
+[tool.ty.overrides.rules]
+invalid-method-override = "ignore"  # unfold admin classes mixed with modeltranslation and django ones
+
 [tool.bandit]
 exclude = ["migrations", "tests", "./.venv/"]
 

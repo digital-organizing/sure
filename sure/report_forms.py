@@ -243,11 +243,12 @@ def _open_pdf(file: ReportFormFile) -> pymupdf.Document:
 
 
 def _field_kind(widget: pymupdf.Widget) -> str:
-    if widget.field_type == pymupdf.PDF_WIDGET_TYPE_CHECKBOX:
+    # pymupdf copies its constants from the mupdf bindings at runtime, ty can't see them.
+    if widget.field_type == pymupdf.PDF_WIDGET_TYPE_CHECKBOX:  # ty: ignore[unresolved-attribute]
         return ReportFieldKind.CHECKBOX
     if widget.field_type in (
-        pymupdf.PDF_WIDGET_TYPE_TEXT,
-        pymupdf.PDF_WIDGET_TYPE_COMBOBOX,
+        pymupdf.PDF_WIDGET_TYPE_TEXT,  # ty: ignore[unresolved-attribute]
+        pymupdf.PDF_WIDGET_TYPE_COMBOBOX,  # ty: ignore[unresolved-attribute]
     ):
         return ReportFieldKind.TEXT
     return ReportFieldKind.UNSUPPORTED
@@ -341,7 +342,7 @@ def fill_report(
                         continue
                     widget.field_value = widget.on_state()
                 elif report_field.kind == ReportFieldKind.TEXT and value.text:
-                    if widget.field_flags & pymupdf.PDF_TX_FIELD_IS_MULTILINE:
+                    if widget.field_flags & pymupdf.PDF_TX_FIELD_IS_MULTILINE:  # ty: ignore[unresolved-attribute]
                         text, widget.text_fontsize = fit_text(value.text, widget.rect)
                         widget.field_value = text
                     else:

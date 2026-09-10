@@ -55,7 +55,7 @@ class LaboratoryAdmin(ModelAdmin):
 
         return qs.filter(managers=request.user)
 
-    @action(description="Fetch results", icon="refresh")  # ty:ignore[call-non-callable]
+    @action(description="Fetch results", icon="refresh")
     def fetch_results(self, request, object_id):
         laboratory = self.get_object(request, object_id)
         if not laboratory:
@@ -147,7 +147,7 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
 
     actions_detail = ["download_hl7", "upload_hl7"]
 
-    @action(description="Download HL7 content", icon="download")  # ty:ignore[call-non-callable]
+    @action(description="Download HL7 content", icon="download")
     def download_hl7(self, request, object_id):
         order = self.get_object(request, object_id)
         if not order:
@@ -164,7 +164,7 @@ class LabOrderAdmin(SimpleHistoryAdmin, ModelAdmin):
             },
         )
 
-    @action(description="Upload", icon="upload")  # ty:ignore[call-non-callable]
+    @action(description="Upload", icon="upload")
     def upload_hl7(self, request, object_id):
         obj = self.get_object(request, object_id)
         if not obj:
@@ -241,7 +241,7 @@ class HL7ResultAdmin(ModelAdmin):
     def has_change_permission(self, *args, **kwargs) -> bool:
         return False
 
-    @action(description="Process again", icon="refresh")  # ty:ignore[call-non-callable]
+    @action(description="Process again", icon="refresh")
     def reprocess(self, request, object_id):
         result = self.get_object(request, object_id)
         if not result:

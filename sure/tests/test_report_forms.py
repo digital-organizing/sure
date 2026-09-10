@@ -46,8 +46,8 @@ IN_MEMORY_STORAGE = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
-TEXT = pymupdf.PDF_WIDGET_TYPE_TEXT
-CHECKBOX = pymupdf.PDF_WIDGET_TYPE_CHECKBOX
+TEXT = pymupdf.PDF_WIDGET_TYPE_TEXT  # ty: ignore[unresolved-attribute]
+CHECKBOX = pymupdf.PDF_WIDGET_TYPE_CHECKBOX  # ty: ignore[unresolved-attribute]
 
 FORM_FIELDS = [
     (TEXT, "Birth", (300, 50, 400, 64), {"date_format": "dd/mm/yyyy"}),
@@ -77,7 +77,7 @@ def make_pdf(fields) -> bytes:
         if "date_format" in options:
             widget.script_format = f'AFDate_FormatEx("{options["date_format"]}");'
         if options.get("multiline"):
-            widget.field_flags |= pymupdf.PDF_TX_FIELD_IS_MULTILINE
+            widget.field_flags |= pymupdf.PDF_TX_FIELD_IS_MULTILINE  # ty: ignore[unresolved-attribute]
         page.add_widget(widget)
     return document.tobytes()
 

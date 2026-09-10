@@ -62,6 +62,8 @@ class Case(models.Model):
         help_text=_("An optional external ID for the case"),
     )
 
+    visit: "Visit"
+
     # pid = models.CharField(
     #     max_length=255,
     #     blank=True,
@@ -993,11 +995,25 @@ class ActiveTestManager(models.Manager):
         return TestQuerySet(self.model, using=self._db).not_deleted()
 
 
+class AllTestManager(models.Manager):
+    """Manager including deleted tests, see ``ActiveTestManager``."""
+
+    def get_queryset(self) -> TestQuerySet:
+        return TestQuerySet(self.model, using=self._db)
+
+    def deleted(self) -> TestQuerySet:
+        return self.get_queryset().deleted()
+
+    def not_deleted(self) -> TestQuerySet:
+        return self.get_queryset().not_deleted()
+
+
 class Test(models.Model):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="tests")
     test_kind = models.ForeignKey(
         TestKind, on_delete=models.CASCADE, related_name="test_results"
     )
+    test_kind_id: int
     note = models.TextField(
         max_length=2000,
         blank=True,
@@ -1033,7 +1049,7 @@ class Test(models.Model):
     )
 
     objects = ActiveTestManager()
-    all_objects = models.Manager.from_queryset(TestQuerySet)()
+    all_objects = AllTestManager()
 
     results: models.QuerySet["TestResult"]
 
@@ -1101,6 +1117,7 @@ class TestResult(models.Model):
     result_option = models.ForeignKey(
         TestResultOption, on_delete=models.CASCADE, related_name="test_results"
     )
+    result_option_id: int
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="results")
     note = models.TextField(
         max_length=2000,
@@ -1280,7 +1297,7 @@ class ReportFormFile(models.Model):
 
     def save(self, *args, **kwargs):
         # A newly assigned upload stays uncommitted until the storage has it.
-        pdf_replaced = bool(self.pdf) and not self.pdf._committed
+        pdf_replaced = bool(self.pdf) and not self.pdf._committed  # ty: ignore[unresolved-attribute]
         super().save(*args, **kwargs)
         if pdf_replaced:
             # The service module imports the models, so it cannot be imported at the top.

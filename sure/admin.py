@@ -200,7 +200,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
         ),
     )
 
-    @action(description="Generate PDFs")  # ty:ignore[call-non-callable]
+    @action(description="Generate PDFs")
     def generate_pdf_action(self, request, object_id):
         generate_pdf_task.delay(object_id)
 
@@ -282,7 +282,7 @@ class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
 
             return new_q
 
-    @action(description=_("Duplicate questionnaire"))  # ty:ignore[call-non-callable]
+    @action(description=_("Duplicate questionnaire"))
     def duplicate_questionnaire_action(self, request, object_id):
         if not self.has_add_permission(request):
             from django.core.exceptions import PermissionDenied
@@ -383,7 +383,7 @@ class VisitExportAdmin(ModelAdmin):
         for export in queryset.values_list("id", flat=True):
             create_export.delay(export.pk)
 
-    @action(description="Start Export")  # ty:ignore[call-non-callable]
+    @action(description="Start Export")
     def start_export_obj(self, request, object_id):
         create_export.delay(object_id)
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
@@ -555,7 +555,7 @@ class ReportFieldInline(TabularInline):
 
     @admin.display(description=_("Kind"))
     def kind_display(self, obj: ReportField) -> str:
-        kind = obj.get_kind_display()
+        kind = obj.get_kind_display()  # ty: ignore[unresolved-attribute]
         return f"{kind} ({obj.date_format})" if obj.date_format else kind
 
 
@@ -577,7 +577,7 @@ class ReportFormFileAdmin(SuperuserOnlyAdminMixin, ModelAdmin):
     @admin.display(description=_("Preview"))
     def preview(self, obj: ReportFormFile) -> str:
         if not obj.pk or not obj.page_count:
-            return _("The preview is shown once the PDF is saved.")
+            return str(_("The preview is shown once the PDF is saved."))
         pages = format_html_join(
             "",
             '<a href="{0}" target="_blank" title="{1}"><img src="{0}" alt="{1}" '
@@ -637,7 +637,7 @@ class ReportFormFileAdmin(SuperuserOnlyAdminMixin, ModelAdmin):
 
     @action(
         description=_("Test fill"), url_path="test-fill-action", icon="picture_as_pdf"
-    )  # ty:ignore[call-non-callable]
+    )
     def test_fill(self, request: HttpRequest, object_id: int):
         return redirect(
             reverse("admin:sure_reportformfile_test_fill_view", args=[object_id])
@@ -647,13 +647,13 @@ class ReportFormFileAdmin(SuperuserOnlyAdminMixin, ModelAdmin):
         description=_("Copy mapping"),
         url_path="copy-mapping-action",
         icon="content_copy",
-    )  # ty:ignore[call-non-callable]
+    )
     def copy_mapping(self, request: HttpRequest, object_id: int):
         return redirect(
             reverse("admin:sure_reportformfile_copy_mapping_view", args=[object_id])
         )
 
-    @action(description=_("Re-read fields"), url_path="reread-fields", icon="refresh")  # ty:ignore[call-non-callable]
+    @action(description=_("Re-read fields"), url_path="reread-fields", icon="refresh")
     def reread_fields(self, request: HttpRequest, object_id: int):
         sync_fields(get_object_or_404(ReportFormFile, pk=object_id))
         messages.success(request, _("The fields were read again from the PDF."))
@@ -906,7 +906,7 @@ class VisitAdmin(ModelAdmin):
         tenants = request.user.tenants.all()  # ty:ignore[unresolved-attribute]
         return queryset.filter(case__location__tenant__in=tenants)
 
-    @action(description="Generate Batch", icon="layers")  # ty:ignore[call-non-callable]
+    @action(description="Generate Batch", icon="layers")
     def generate_batch(self, request: HttpRequest):
         return redirect(reverse("admin:sure_visit_generate_batch_view"))
 
@@ -920,7 +920,7 @@ class VisitAdmin(ModelAdmin):
             ),
         ] + super().get_urls()
 
-    @action(description="Cancel cases")  # ty:ignore[call-non-callable]
+    @action(description="Cancel cases")
     def cancel_cases(self, request: HttpRequest, queryset: models.QuerySet[Visit]):
         for visit in queryset:
             visit.status = VisitStatus.CANCELED

@@ -1,8 +1,9 @@
 import io
-from typing import Any
+from typing import Any, cast
 
 import polars as pl
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import HttpResponse
@@ -128,6 +129,8 @@ class ReportFormFileActionView(UnfoldModelAdminViewMixin, FormView):
 
     permission_required = ("sure.change_reportformfile",)
     template_name = "admin/sure/report_form_file_action.html"
+    # Set by the subclasses, unfold refuses views without a title.
+    title: str
     description = ""
 
     @cached_property
@@ -163,7 +166,8 @@ class ReportTestFillView(ReportFormFileActionView):
 
     def form_valid(self, form: Any) -> HttpResponse:
         visit = form.cleaned_data["case_id"]
-        pdf = fill_report(self.file, visit, self.request.user)
+        # Admin views are only reachable by logged in staff.
+        pdf = fill_report(self.file, visit, cast(User, self.request.user))
         visit.logs.create(
             action=f"Report form test fill: {self.file}", user=self.request.user
         )

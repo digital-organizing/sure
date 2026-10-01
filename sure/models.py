@@ -802,6 +802,11 @@ class Visit(models.Model):
     published_at = models.DateTimeField(
         null=True, blank=True, verbose_name=_("Published At")
     )
+    #: Set when the client answers are first submitted. The status cannot tell,
+    #: as the consultant may record answers and tests before the client is done.
+    client_submitted_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Client Submitted At")
+    )
     consultant = models.ForeignKey(
         "tenants.Consultant",
         on_delete=models.SET_NULL,

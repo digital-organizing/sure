@@ -134,14 +134,24 @@ function goToSection(index: number) {
   }, 5)
 }
 
-function onSubmit() {
-  sureApiSubmitCase({ path: { pk: props.caseId }, body: answersStore.answers })
-    .then(() => {
-      router.push(`/client/${props.caseId}/phone`)
-    })
-    .catch(() => {
-      alert(t('client-form-submit-error-alert').value)
-    })
+async function onSubmit() {
+  // The client resolves with { error } on HTTP errors instead of rejecting, so
+  // only move on once the answers were actually saved.
+  const response = await sureApiSubmitCase({
+    path: { pk: props.caseId },
+    body: answersStore.answers,
+    query: { lang: selectedLanguage.value },
+  }).catch(() => null)
+  if (!response || response.error) {
+    const detail = (response?.error as { detail?: string } | undefined)?.detail
+    alert(
+      response?.response?.status === 400 && detail
+        ? detail
+        : t('client-form-submit-error-alert').value,
+    )
+    return
+  }
+  router.push(`/client/${props.caseId}/phone`)
 }
 </script>
 

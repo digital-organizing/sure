@@ -1,6 +1,7 @@
 import logging
 
 import phonenumbers
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Func
@@ -25,6 +26,8 @@ from sure.cases import (
 )
 from sure.client_service import (
     can_connect_case,
+    client_can_set_key,
+    client_can_submit,
     create_case,
     create_visit,
     generate_token,
@@ -81,6 +84,7 @@ from sure.schema import (
     QuestionnaireSchema,
     RelatedCaseSchema,
     ResultInformationSchema,
+    SendTokenResponse,
     StatusSchema,
     SubmitCaseResponse,
     SubmitCaseSchema,
@@ -127,14 +131,14 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
         )
 
     # Handle unauthenticated users, case submitted but key not set
-    if visit.status == VisitStatus.CLIENT_SUBMITTED and visit.case.key == "":
+    if client_can_set_key(visit) and visit.case.key == "":
         return 302, {
             "success": False,
             "message": "Questionnaire already submitted, key not set",
         }
 
     # Case is already submitted, deny access
-    if visit.status != VisitStatus.CREATED:
+    if not client_can_submit(visit):
         return 403, {
             "success": False,
             "message": "Access denied to the case questionnaire",
@@ -150,8 +154,11 @@ def get_case_questionnaire(request, pk: str):  # pylint: disable=unused-argument
 
 
 @router.post(
-    "/case/{pk}/send-token/", auth=None, response={200: StatusSchema, 400: StatusSchema}
+    "/case/{pk}/send-token/",
+    auth=None,
+    response={200: SendTokenResponse, 400: StatusSchema},
 )
+@inject_language
 def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
     """Send a token to the given phone number for accessing the case."""
     visit = get_case_unverified(pk)
@@ -160,14 +167,20 @@ def send_token(request: HttpRequest, pk: str, phone_number: PhoneNumberSchema):
     request.session["phone_number"] = phone_number.phone_number
 
     if not can_connect_case(visit.case):
-        return 400, StatusSchema(success=False, message="Case cannot be connected")
+        return 400, StatusSchema(
+            success=False, message=translate("case-cannot-be-connected")
+        )
 
     try:
         send_token_service(phone_number.phone_number, visit.case)
     except (ValueError, phonenumbers.NumberParseException) as e:
         return 400, StatusSchema(success=False, message=str(e))
 
-    return StatusSchema(success=True, message=phone_number.phone_number)
+    return SendTokenResponse(
+        success=True,
+        message=phone_number.phone_number,
+        resend_after_seconds=settings.TOKEN_RESEND_INTERVAL_MINUTES * 60,
+    )
 
 
 @router.post(
@@ -401,7 +414,7 @@ def submit_case(request, pk: str, answers: SubmitCaseSchema):
             request.user if request.user.is_authenticated else None,
         )
     except ValueError as e:
-        raise HttpError(400, str(e)) from e
+        raise HttpError(400, translate("client-submit-not-allowed")) from e
 
     return {"success": True}
 
@@ -747,15 +760,14 @@ def set_case_note_hidden(request, pk: str, note_pk: int, hidden: Form[bool]):
 def set_case_key(request, pk: str, key: Form["str"]):
     visit = get_case_unverified(pk)
 
-    if visit.status != VisitStatus.CLIENT_SUBMITTED:
-        raise HttpError(400, "Cannot set key for a case that is not in CREATED status")
+    if not client_can_set_key(visit):
+        return 400, {"success": False, "message": translate("client-key-not-allowed")}
 
     try:
         visit.case.set_key(key)
     except ValueError as e:
         return 400, {"success": False, "message": str(e)}
     except ValidationError as e:
-        print(e.messages)
         return 400, {"success": False, "message": e.messages}
     visit.case.language = get_language()
     visit.case.save(update_fields=["language"])

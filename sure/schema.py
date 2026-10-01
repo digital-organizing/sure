@@ -634,6 +634,11 @@ class FlatTestResultSchema(ModelSchema):
     test: FlatTestSchema
 
 
+class SendTokenResponse(StatusSchema):
+    #: How long the client has to wait before a new token can be requested.
+    resend_after_seconds: int
+
+
 class PhoneNumberSchema(Schema):
     phone_number: Annotated[str, BeforeValidator(validate_phone_number)]
 

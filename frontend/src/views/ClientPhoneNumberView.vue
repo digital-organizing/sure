@@ -134,20 +134,25 @@ async function startVerification() {
   const response = await sureApiSendToken({
     body: { phone_number: phonenumber.value },
     path: { pk: props.caseId },
-  }).catch(() => {
+    query: { lang: language.value },
+  }).catch(() => null)
+  if (!response) {
     error.value = translate('client-phone-error-network')
-    return { error: { message: '' } }
-  })
-  if (response.error) {
-    error.value = translate('client-phone-error-invalid')
     return
   }
-  if (response.response?.status !== 200) {
-    error.value = translate('client-phone-error-invalid')
+  if (response.error || response.response?.status !== 200) {
+    // 400 carries a message explaining why no code was sent (e.g. a code was
+    // sent recently); everything else means the number was rejected.
+    const message =
+      response.response?.status === 400
+        ? ensureString((response.error as { message?: string | string[] } | undefined)?.message)
+        : ''
+    error.value = message || translate('client-phone-error-invalid')
     return
   }
   phonenumberSent.value = ensureString(response.data?.message)
-  start(90)
+  // The backend rejects a new code for this long, so block the button as long.
+  start(response.data?.resend_after_seconds ?? 0)
   showVerify.value = true
 }
 
@@ -242,7 +247,6 @@ watch(selectedConsentOption, () => {
 
 <template>
   <div class="client-form-view">
-    {{ error }}
     <div class="client-section-element" id="navi-top">
       <ClientNavigationTop
         :section-title="t('client-phone-section-title').value"

@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 import tenants.models
 from sms.service import send_sms
@@ -236,14 +237,34 @@ def get_client_by_id(client_id: str, case_id: str):
     return connection.client
 
 
+# The consultant may get ahead of the client, so the client steps stay open
+# until the tests are recorded.
+CLIENT_OPEN_STATUSES = (
+    VisitStatus.CREATED,
+    VisitStatus.CLIENT_SUBMITTED,
+    VisitStatus.CONSULTANT_SUBMITTED,
+    VisitStatus.TESTS_RECORDED,
+)
+
+
+def client_can_submit(visit: Visit) -> bool:
+    """Check if the client may still submit the questionnaire, which works once."""
+    return visit.client_submitted_at is None and visit.status in CLIENT_OPEN_STATUSES
+
+
+def client_can_set_key(visit: Visit) -> bool:
+    """Check if the client may set the key, which follows the questionnaire."""
+    return (
+        visit.client_submitted_at is not None and visit.status in CLIENT_OPEN_STATUSES
+    )
+
+
 def record_client_answers(
     visit: Visit, answers: list[AnswerSchema], user: User | None = None
 ):
     """Record answers for a visit."""
-    if user is None and visit.status != VisitStatus.CREATED:
-        raise ValueError(
-            "Cannot record answers for a visit that is not in the CREATED status"
-        )
+    if user is None and not client_can_submit(visit):
+        raise ValueError("The client can no longer record answers for this visit")
 
     current_answers = (
         visit.client_answers.all()
@@ -277,8 +298,12 @@ def record_client_answers(
 
     with transaction.atomic():
         ClientAnswer.objects.bulk_create(created_answers)
-        visit.status = VisitStatus.CLIENT_SUBMITTED
-        visit.save(update_fields=["status"])
+        # A client submitting after the consultant must not move the visit back.
+        if user is not None or visit.status == VisitStatus.CREATED:
+            visit.status = VisitStatus.CLIENT_SUBMITTED
+        if visit.client_submitted_at is None:
+            visit.client_submitted_at = timezone.now()
+        visit.save(update_fields=["status", "client_submitted_at"])
 
 
 def _compare_lists(list1: list, list2: list) -> bool:

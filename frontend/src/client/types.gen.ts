@@ -275,6 +275,28 @@ export type StatusSchema = {
 };
 
 /**
+ * SendTokenResponse
+ */
+export type SendTokenResponse = {
+    /**
+     * Success
+     */
+    success: boolean;
+    /**
+     * Message
+     */
+    message?: string | Array<string> | null;
+    /**
+     * Warnings
+     */
+    warnings?: Array<string> | null;
+    /**
+     * Resend After Seconds
+     */
+    resend_after_seconds: number;
+};
+
+/**
  * PhoneNumberSchema
  */
 export type PhoneNumberSchema = {
@@ -2118,7 +2140,12 @@ export type SureApiSendTokenData = {
          */
         pk: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Lang
+         */
+        lang?: string | null;
+    };
     url: '/api/sure/case/{pk}/send-token/';
 };
 
@@ -2135,7 +2162,7 @@ export type SureApiSendTokenResponses = {
     /**
      * OK
      */
-    200: StatusSchema;
+    200: SendTokenResponse;
 };
 
 export type SureApiSendTokenResponse = SureApiSendTokenResponses[keyof SureApiSendTokenResponses];

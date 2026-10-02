@@ -711,7 +711,7 @@ class DocumentSchema(ModelSchema):
 
     @staticmethod
     def resolve_link(document: VisitDocument) -> str:
-        return document.document.url
+        return document.download_link()
 
 
 class DocumentAccessSchema(Schema):

@@ -198,9 +198,12 @@ def can_connect_case(case: Case) -> bool:
     return not Connection.objects.filter(case=case).exists()
 
 
-@transaction.atomic
 def connect_case(case: Case, phone_number: str, token: str, consent: str) -> Connection:
-    """Connect a case to a client identified by the given phone number and token."""
+    """Connect a case to a client identified by the given phone number and token.
+
+    The token is checked in its own transaction: a failed attempt has to stay
+    counted even though the connection is refused.
+    """
 
     if not can_connect_case(case):
         raise ValueError("Case cannot be connected")
@@ -212,10 +215,11 @@ def connect_case(case: Case, phone_number: str, token: str, consent: str) -> Con
     if not contact:
         raise ValueError("Invalid token or phone number")
 
-    client, _ = Client.objects.get_or_create(contact=contact)
-    connection, _ = Connection.objects.get_or_create(client=client, case=case)
-    connection.consent = consent
-    connection.save()
+    with transaction.atomic():
+        client, _ = Client.objects.get_or_create(contact=contact)
+        connection, _ = Connection.objects.get_or_create(client=client, case=case)
+        connection.consent = consent
+        connection.save()
     return connection
 
 

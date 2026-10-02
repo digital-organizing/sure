@@ -54,6 +54,7 @@ from unfold.forms import (
 )
 from unfold.widgets import UnfoldAdminSelectWidget, UnfoldAdminTextInputWidget
 
+from core.admin import ScopedChoicesMixin
 from labor.models import TestProfile
 from sure.cases import case_cohort_by_location, case_cohort_by_tenants
 from sure.forms import CohortFilterForm
@@ -62,6 +63,7 @@ from sure.models import (
     ClientQuestion,
     ConsultantOption,
     ConsultantQuestion,
+    ExportStatus,
     Questionnaire,
     ReportField,
     ReportForm,
@@ -172,7 +174,9 @@ class ConsultantQuestionInline(TabularInline, TranslationTabularInline):
 @admin.register(
     Questionnaire,
 )
-class QuestionaireAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
+class QuestionaireAdmin(
+    ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin
+):
     list_display = ("name",)
     search_fields = ("name", "name_en")
     inlines = [SectionInline, ConsultantQuestionInline]
@@ -378,14 +382,27 @@ class VisitExportAdmin(ModelAdmin):
 
     inlines = [VisitExportDownloadInline]
 
+    def _startable(self, request: HttpRequest) -> models.QuerySet[VisitExport]:
+        """Exports the user may start: their own, and only while still pending."""
+        return self.get_queryset(request).filter(
+            user=request.user, status=ExportStatus.PENDING
+        )
+
     @action
     def start_export(self, request: HttpRequest, queryset):
-        for export in queryset.values_list("id", flat=True):
-            create_export.delay(export.pk)
+        startable = self._startable(request).filter(pk__in=queryset)
+        for export_id in startable.values_list("id", flat=True):
+            create_export.delay(export_id)
 
     @action(description="Start Export")
     def start_export_obj(self, request, object_id):
-        create_export.delay(object_id)
+        if self._startable(request).filter(pk=object_id).exists():
+            create_export.delay(object_id)
+        else:
+            messages.error(
+                request,
+                _("Only your own exports that have not started yet can be started."),
+            )
         return redirect(reverse("admin:sure_visitexport_change", args=[object_id]))
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet:
@@ -472,7 +489,7 @@ class TestResultOptionAdmin(ModelAdmin, TabbedTranslationAdmin):
 
 
 @admin.register(ResultInformation)
-class ResultInformationAdmin(ModelAdmin, TabbedTranslationAdmin):
+class ResultInformationAdmin(ScopedChoicesMixin, ModelAdmin, TabbedTranslationAdmin):
     list_display = ("option",)
     list_filter = ("locations",)
     search_fields = ("information_text", "information_text_en")

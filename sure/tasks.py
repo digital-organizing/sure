@@ -115,9 +115,10 @@ def create_export(export_id: int) -> None:
     now = timezone.now()
 
     filename = f"visit_export_{now.isoformat('T', timespec='minutes')}_{export.start_date}_{export.end_date}.xlsx"
-    export.file.save(filename, ContentFile(buffer.read()), save=True)
+    export.filename = filename
+    export.file.save(filename, ContentFile(buffer.read()), save=False)
     export.status = ExportStatus.COMPLETED
-    export.save(update_fields=["status"])
+    export.save(update_fields=["file", "filename", "status"])
 
     if export.user.email:
         send_mail(

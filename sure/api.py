@@ -698,7 +698,7 @@ def get_document_link(request, pk: str, doc_pk: int, key: Form[str] = ""):
     document = get_object_or_404(visit.documents, pk=doc_pk)
     if not authenticted and document.hidden:
         raise HttpError(403, "Access denied to this document")
-    link = document.document.url
+    link = document.download_link()
     return {"link": link}
 
 

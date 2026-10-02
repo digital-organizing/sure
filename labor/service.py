@@ -229,7 +229,12 @@ def _store_documents(visit, documents) -> list[VisitDocument]:
             )
             continue
 
-        visit_document = VisitDocument(visit=visit, name=document.filename, hidden=True)
+        visit_document = VisitDocument(
+            visit=visit,
+            name=document.filename,
+            filename=document.filename,
+            hidden=True,
+        )
         visit_document.document.save(
             document.filename, ContentFile(document.content), save=False
         )
@@ -330,6 +335,30 @@ def _unescape_hl7_text(value: str) -> str:
     exports), so the newline is what gets persisted.
     """
     return _LINE_BREAK_ESCAPE.sub("\n", value)
+
+
+#: The delimiters declared in MSH-2 (``|^~\\&``) and their escape sequences.
+#: The escape character itself has to come first.
+_HL7_ESCAPES = {
+    "\\": "\\E\\",
+    "|": "\\F\\",
+    "^": "\\S\\",
+    "&": "\\T\\",
+    "~": "\\R\\",
+}
+_HL7_SPECIAL = re.compile(r"[\\|^&~]")
+_LINE_BREAK = re.compile(r"\r\n|\r|\n")
+
+
+def _escape_hl7_text(value: str, line_break: str = "\\.br\\") -> str:
+    """Makes free text safe to place in a field of an outgoing message.
+
+    Without this a ``|`` or a line break in user input would start a new field
+    or a whole new segment. Line breaks become ``line_break``, which defaults to
+    the HL7 escape that ``_unescape_hl7_text`` reads back.
+    """
+    value = _HL7_SPECIAL.sub(lambda match: _HL7_ESCAPES[match.group()], value.strip())
+    return _LINE_BREAK.sub(lambda _: line_break, value)
 
 
 def _process_nte(seg, visit, last_test_name):
@@ -579,13 +608,14 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
     timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
 
     # MSH
-    msh = f"MSH|^~\\&|SURE|{location.name}|TEAMW|TEAMW|{timestamp}||OML^O21|{timestamp}|P|2.8|||NE|NE|CHE|8859/1|de"
+    msh = f"MSH|^~\\&|SURE|{_escape_hl7_text(location.name, line_break=' ')}|TEAMW|TEAMW|{timestamp}||OML^O21|{timestamp}|P|2.8|||NE|NE|CHE|8859/1|de"
 
     # PID
     pid_id = get_pid(visit)
     birth_year = patient_data.birth_year
     dob = f"{birth_year}0101"
-    sex = patient_data.gender
+    # Free text on our side, so it cannot be checked against a list of values.
+    sex = _escape_hl7_text(patient_data.gender, line_break=" ")
     last_name = "Anonym"
     first_name = pid_id
 
@@ -651,7 +681,7 @@ def generate_hl7_order(visit, patient_data: PatientDataSchema) -> LabOrder:
         spm_index += 1
 
     if patient_data.note:
-        nte = f"NTE|1||{patient_data.note}"
+        nte = f"NTE|1||{_escape_hl7_text(patient_data.note)}"
         order.note = patient_data.note
         segments.append(nte)
 

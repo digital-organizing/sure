@@ -2,6 +2,7 @@
 
 This includes clients, cases, and connections, as well as the questionnaires and the answers."""
 
+import os
 import secrets
 import uuid
 from datetime import timedelta
@@ -20,12 +21,15 @@ from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import escape
+from django.utils.http import content_disposition_header
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_clamd.validators import validate_file_infection
 from html_sanitizer import Sanitizer
 from markdown import markdown
 from simple_history.models import HistoricalRecords
+from storages.backends.s3 import S3Storage
 
 from sure.validators import MimeTypeValidator, validate_fillable_pdf
 
@@ -198,15 +202,29 @@ class Contact(models.Model):
 
     @transaction.atomic
     def verify_token(self, token: str, case: Case) -> "Token | None":
-        """Verify if the given token is valid for this contact."""
-        valid_token = self.tokens.filter(
-            token=token,
+        """Verify if the given token is valid for this contact.
+
+        A wrong guess is counted against the open token; once it has used up its
+        attempts it is no longer accepted and a new one has to be requested. It
+        still counts as recent, so the resend interval limits how fast that goes.
+        """
+        open_tokens = self.tokens.select_for_update().filter(
             used_at__isnull=True,
             disabled=False,
             case=case,
-        ).first()
+        )
+        valid_token = next(
+            (
+                candidate
+                for candidate in open_tokens
+                if candidate.failed_attempts < settings.TOKEN_MAX_ATTEMPTS
+                and secrets.compare_digest(candidate.token, token)
+            ),
+            None,
+        )
 
         if valid_token is None:
+            open_tokens.update(failed_attempts=models.F("failed_attempts") + 1)
             return None
 
         valid_token.used_at = timezone.now()
@@ -273,6 +291,12 @@ class Token(models.Model):
         default=False,
         verbose_name=_("Disabled"),
         help_text=_("Whether this token is disabled and cannot be used"),
+    )
+
+    failed_attempts = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name=_("Failed Attempts"),
+        help_text=_("Number of wrong codes entered while this token was open"),
     )
 
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="tokens")
@@ -935,6 +959,38 @@ ALLOWED_MIMETYPES = [
 ]
 
 
+def _unique_key(directory: str, filename: str) -> str:
+    """Storage key that cannot collide, whatever the file was called.
+
+    The name shown to users is kept in the database instead."""
+    extension = os.path.splitext(filename)[1].lower()
+    return f"{directory}/{uuid.uuid4().hex}{extension}"
+
+
+def visit_document_path(instance, filename: str) -> str:
+    return _unique_key(f"visit_documents/{instance.visit_id}", filename)
+
+
+def visit_export_path(instance, filename: str) -> str:
+    return _unique_key("visit_exports", filename)
+
+
+def signed_download_url(file, filename: str) -> str:
+    """Link to a stored file that downloads under ``filename``.
+
+    The storage key is a UUID, so the name is handed to S3 to send back as
+    Content-Disposition. Other storages only know the plain url."""
+    filename = filename or os.path.basename(file.name)
+    if isinstance(file.storage, S3Storage):
+        return file.storage.url(
+            file.name,
+            parameters={
+                "ResponseContentDisposition": content_disposition_header(True, filename)
+            },
+        )
+    return file.url
+
+
 class VisitDocument(models.Model):
     visit = models.ForeignKey(Visit, on_delete=models.CASCADE, related_name="documents")
     name = models.CharField(
@@ -943,7 +999,7 @@ class VisitDocument(models.Model):
         help_text=_("Name of the document"),
     )
     document = models.FileField(
-        upload_to="visit_documents/",
+        upload_to=visit_document_path,
         verbose_name=_("Document"),
         help_text=_("Document related to the visit"),
         validators=[
@@ -953,6 +1009,12 @@ class VisitDocument(models.Model):
             MimeTypeValidator(allowed_mimetypes=ALLOWED_MIMETYPES),
             validate_file_infection,
         ],
+    )
+    filename = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("File Name"),
+        help_text=_("Name the document is downloaded as"),
     )
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Uploaded At"))
     user = models.ForeignKey(
@@ -976,6 +1038,15 @@ class VisitDocument(models.Model):
         verbose_name = _("Visit Document")
         verbose_name_plural = _("Visit Documents")
         ordering = ["uploaded_at"]
+
+    def save(self, *args, **kwargs):
+        # A file that is not stored yet still carries the name it was uploaded with.
+        if not self.filename and self.document and not self.document._committed:
+            self.filename = os.path.basename(self.document.name)
+        super().save(*args, **kwargs)
+
+    def download_link(self) -> str:
+        return signed_download_url(self.document, self.filename)
 
 
 class TestQuerySet(models.QuerySet):
@@ -1175,11 +1246,17 @@ class VisitExport(models.Model):
     end_date = models.DateField(verbose_name=_("End Date"))
 
     file = models.FileField(
-        upload_to="visit_exports/",
+        upload_to=visit_export_path,
         null=True,
         blank=True,
         verbose_name=_("Exported File"),
         help_text=_("The exported file containing visit data"),
+    )
+    filename = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("File Name"),
+        help_text=_("Name of the exported file as shown to users"),
     )
 
     error_message = models.TextField(
@@ -1204,7 +1281,9 @@ class VisitExport(models.Model):
     def download_url(self):
         if self.file:
             link = reverse("sure:download_visit_export", args=[self.pk])
-            return mark_safe(f'<a href="{link}" target="_blank">{self.file.name}</a>')  # nosec
+            return mark_safe(
+                f'<a href="{link}" target="_blank">{escape(self.filename or self.file.name)}</a>'
+            )  # nosec
         return None
 
     def __str__(self):

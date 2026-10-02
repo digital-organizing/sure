@@ -18,6 +18,7 @@ from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import action
 
+from core.admin import ScopedChoicesMixin
 from labor.models import LocationToLab
 from tenants.account import send_2fa_reset_mail, send_reset_mail
 from tenants.models import (
@@ -32,13 +33,13 @@ from tenants.models import (
 from tenants.views import ConsultantInviteView
 
 
-class LocationToLabInline(TabularInline):
+class LocationToLabInline(ScopedChoicesMixin, TabularInline):
     model = LocationToLab
     extra = 0
     autocomplete_fields = ("labor",)
 
 
-class LocationInline(TabularInline):
+class LocationInline(ScopedChoicesMixin, TabularInline):
     """Inline admin for locations."""
 
     model = Location
@@ -49,7 +50,9 @@ class LocationInline(TabularInline):
 @admin.register(
     Location,
 )
-class LocationAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
+class LocationAdmin(
+    ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin
+):
     """Admin for locations."""
 
     list_display = ("name", "tenant")
@@ -122,7 +125,7 @@ class AdminFilter(admin.SimpleListFilter):
 @admin.register(
     Consultant,
 )
-class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
+class ConsultantAdmin(ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin):
     """Admin for consultants."""
 
     list_display = (
@@ -249,7 +252,7 @@ class ConsultantAdmin(SimpleHistoryAdmin, ModelAdmin):
     display_locations.short_description = "Locations"  # ty: ignore[unresolved-attribute]
 
 
-class ConsultantInline(TabularInline):
+class ConsultantInline(ScopedChoicesMixin, TabularInline):
     """Inline admin for consultants."""
 
     model = Consultant
@@ -261,7 +264,7 @@ class ConsultantInline(TabularInline):
 @admin.register(
     Tenant,
 )
-class TenantAdmin(SimpleHistoryAdmin, ModelAdmin):
+class TenantAdmin(ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin):
     """Admin for tenants.
 
     Only superusers can see all tenants.
@@ -292,7 +295,7 @@ class TenantAdmin(SimpleHistoryAdmin, ModelAdmin):
 @admin.register(
     Tag,
 )
-class TagAdmin(ModelAdmin):
+class TagAdmin(ScopedChoicesMixin, ModelAdmin):
     """Admin for tags."""
 
     list_display = ("name", "owner")
@@ -335,7 +338,9 @@ class TagAdmin(ModelAdmin):
         )
 
 
-class BaseTenantContentAdmin(SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin):
+class BaseTenantContentAdmin(
+    ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin, TabbedTranslationAdmin
+):
     """Base admin class for tenant-specific content that can be assigned to locations."""
 
     list_display = ("name", "created_at", "published_at", "expires_at", "tenant")
@@ -387,7 +392,7 @@ class AdvertisementAdmin(BaseTenantContentAdmin):
 
 
 @admin.register(APIToken)
-class APITokenAdmin(ModelAdmin):
+class APITokenAdmin(ScopedChoicesMixin, ModelAdmin):
     """Admin for API tokens."""
 
     list_display = ("name", "tenant", "owner", "revoked", "created_at")

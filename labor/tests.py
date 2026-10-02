@@ -16,7 +16,9 @@ from labor.models import (
     TestProfile,
 )
 from labor.service import (
+    EmbeddedDocument,
     _normalize_segments,
+    _store_documents,
     _unescape_hl7_text,
     extract_embedded_documents,
     parse_hl7_to_db,
@@ -418,6 +420,29 @@ class EmbeddedDocumentTests(TestCase):
         self.assertEqual(document.name, "lab_report_1.pdf")
         self.assertEqual(document.document.read(), pdf)
 
+    def test_documents_are_stored_under_unique_keys(self):
+        """The storage key must not depend on the name the lab or user chose."""
+        other_case = Case.objects.create(id="9184723", location=self.location)
+        other_visit = Visit.objects.create(
+            case=other_case, questionnaire=self.questionnaire
+        )
+        documents = [EmbeddedDocument(filename="Report.PDF", content=b"%PDF-1.5")]
+
+        (first,) = _store_documents(self.visit, documents)
+        (second,) = _store_documents(other_visit, documents)
+
+        self.assertEqual(first.name, "Report.PDF")
+        self.assertEqual(first.filename, "Report.PDF")
+        self.assertRegex(
+            first.document.name,
+            rf"^visit_documents/{self.visit.pk}/[0-9a-f]{{32}}\.pdf$",
+        )
+        self.assertRegex(
+            second.document.name,
+            rf"^visit_documents/{other_visit.pk}/[0-9a-f]{{32}}\.pdf$",
+        )
+        self.assertNotEqual(first.document.name, second.document.name)
+
 
 class GroupedResultProfileTests(TestCase):
     """The lab groups analyses under department OBRs (26 Hormone, 35
@@ -649,6 +674,39 @@ class HL7OrderGenerationAndUploadTests(TestCase):
         self.assertNotIn("\r", spm_2)
         self.assertNotIn("\n", spm_2)
         self.assertIn("E^EDTA", spm_2)
+
+    def test_separators_in_patient_data_are_escaped(self):
+        patient_data = PatientDataSchema(
+            birth_year=1990,
+            gender="m|x\rOBR|9|evil",
+            note="line one\r\nORC|NW|999^a&b~c\\d",
+        )
+
+        order = generate_hl7_order(self.visit, patient_data)
+        lines = order.content.split("\n")
+
+        # Nothing the user typed may open a segment of its own.
+        self.assertEqual(
+            [line[:3] for line in lines],
+            ["MSH", "PID", "PV1", "ORC", "OBR", "SPM", "SPM", "NTE"],
+        )
+        pid = lines[1].split("|")
+        self.assertEqual(pid[8], "m\\F\\x OBR\\F\\9\\F\\evil")
+        self.assertEqual(
+            lines[-1],
+            "NTE|1||line one\\.br\\ORC\\F\\NW\\F\\999\\S\\a\\T\\b\\R\\c\\E\\d",
+        )
+        # The order keeps the note as it was typed.
+        self.assertEqual(order.note, patient_data.note)
+
+    def test_plain_patient_data_is_unchanged(self):
+        patient_data = PatientDataSchema(birth_year=1990, gender="m", note="nüchtern")
+
+        order = generate_hl7_order(self.visit, patient_data)
+        lines = order.content.split("\n")
+
+        self.assertEqual(lines[1].split("|")[8], "m")
+        self.assertEqual(lines[-1], "NTE|1||nüchtern")
 
     def test_profile_clean_raises_validation_error_on_newlines(self):
         invalid_profile = TestProfile(

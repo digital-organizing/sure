@@ -122,6 +122,12 @@ def generate_pdfs(questionnaire: Questionnaire):
         client_field = getattr(questionnaire, f"client_pdf_{language[0]}")
         consultant_field = getattr(questionnaire, f"consultant_pdf_{language[0]}")
 
+        # The storage never overwrites, so the previous version has to go first
+        # or every regeneration would leave a file behind.
+        for field in (client_field, consultant_field):
+            if field:
+                field.delete(save=False)
+
         client_field.save(
             f"{questionnaire.pk}_client_{language[0]}.pdf",
             ContentFile(client_pdf.read()),

@@ -230,7 +230,7 @@ STORAGES = {
             "secret_key": env.str("S3_SECRET_KEY", default=""),
             "bucket_name": env.str("S3_BUCKET_NAME", default=""),
             "querystring_auth": True,
-            "file_overwrite": True,
+            "file_overwrite": False,
             "region_name": env.str("S3_REGION", default="us-east-1"),
             "endpoint_url": env.str("S3_ENDPOINT", ""),
             # "custom_domain": env.str("S3_DOMAIN", ""),
@@ -665,6 +665,9 @@ SIMULATE_SMS = env.bool("SIMULATE_SMS", default=False)
 SUPPORTED_SMS_CODES = env.list(
     "SMS_AVAILABLE_CODES", default=["41", "43", "32", "33", "39", "34", "351"]
 )
+
+# Wrong guesses a verification code survives before it stops being accepted.
+TOKEN_MAX_ATTEMPTS = env.int("TOKEN_MAX_ATTEMPTS", default=5)
 
 TOKEN_RESEND_INTERVAL_MINUTES = env.int(
     "TOKEN_RESEND_INTERVAL_MINUTES", default=0 if DEBUG else 3

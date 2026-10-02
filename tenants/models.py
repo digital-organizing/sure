@@ -1,6 +1,7 @@
 """Models for tenants (organizations) using the service."""
 
 import datetime
+import re
 import secrets
 
 import simple_history
@@ -29,6 +30,47 @@ Important: This link is only valid for creating an account. Afterwards, you must
 
 INVITATION_MAIL_SUBJECT = "Your new account on SURE"
 
+#: Everything an invitation mail may contain. The template is edited by tenant
+#: admins, so it is filled in by plain substitution: rendering it as a Django
+#: template would let it read anything reachable from the tenant or the user.
+INVITATION_MAIL_PLACEHOLDERS = (
+    "first_name",
+    "tenant.name",
+    "user.get_full_name",
+    "activation_link",
+)
+_PLACEHOLDER = re.compile(r"\{\{(.*?)\}\}", re.DOTALL)
+
+
+def validate_invitation_mail_template(value: str) -> None:
+    if "{%" in value:
+        raise ValidationError(_("Template tags ({% ... %}) are not supported."))
+    unknown = sorted(
+        {
+            name.strip()
+            for name in _PLACEHOLDER.findall(value)
+            if name.strip() not in INVITATION_MAIL_PLACEHOLDERS
+        }
+    )
+    if unknown:
+        raise ValidationError(
+            _("Unknown placeholder: %(unknown)s. Available are: %(available)s."),
+            params={
+                "unknown": ", ".join(unknown),
+                "available": ", ".join(INVITATION_MAIL_PLACEHOLDERS),
+            },
+        )
+
+
+def render_invitation_mail(template: str, values: dict[str, str]) -> str:
+    """Fills the placeholders of an invitation mail; anything else stays as written."""
+
+    def replace(match: re.Match) -> str:
+        name = match.group(1).strip()
+        return str(values[name]) if name in values else match.group(0)
+
+    return _PLACEHOLDER.sub(replace, template)
+
 
 class Tenant(models.Model):
     """A tenant (organization) using the service."""
@@ -50,7 +92,11 @@ class Tenant(models.Model):
 
     invitation_mail_template = models.TextField(
         default=INVITIATION_MAIL_TEMPLATE,
-        help_text=_("Template for invitation emails sent to new users."),
+        validators=[validate_invitation_mail_template],
+        help_text=_(
+            "Template for invitation emails sent to new users. Available placeholders: "
+            "{{ first_name }}, {{ tenant.name }}, {{ user.get_full_name }}, {{ activation_link }}."
+        ),
     )
     invitation_mail_subject = models.CharField(
         max_length=255,

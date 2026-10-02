@@ -23,7 +23,13 @@ from sure.forms import (
 )
 from sure.report_forms import copy_mapping, fill_report
 
-from .models import ReportFormFile, Test, VisitExport, VisitExportDownload
+from .models import (
+    ReportFormFile,
+    Test,
+    VisitExport,
+    VisitExportDownload,
+    signed_download_url,
+)
 
 
 @require_2fa_or_trusted
@@ -39,7 +45,7 @@ def download_visit_export(request, pk):
                 "You do not have permission to download this export."
             )
 
-    redirect_url = visit_export.file.url
+    redirect_url = signed_download_url(visit_export.file, visit_export.filename)
     VisitExportDownload.objects.create(
         visit_export=visit_export,
         user=request.user,

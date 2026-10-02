@@ -3,14 +3,12 @@ from crispy_forms.layout import Column, Div, Fieldset, Layout, Row
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.template import Context, Template
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from unfold import widgets
 from unfold.layout import Submit
 from unfold.widgets import UnfoldAdminEmailInputWidget
 
-from tenants.models import Location, Tenant
+from tenants.models import Location, Tenant, render_invitation_mail
 from tenants.tasks import send_background_mail
 
 
@@ -80,17 +78,17 @@ class ConsultantInviteForm(forms.Form):
     def send_invitation_email(self, request, activation_link: str) -> None:
         """Send the invitation email to the consultant."""
 
-        template = Template(self.cleaned_data["tenant"].invitation_mail_template)
-        context = Context(
+        tenant = self.cleaned_data["tenant"]
+        message = render_invitation_mail(
+            tenant.invitation_mail_template,
             {
                 "first_name": self.cleaned_data["first_name"],
-                "tenant": self.cleaned_data["tenant"],
-                "user": request.user,
-                "activation_link": mark_safe(activation_link),  # nosec
-            }
+                "tenant.name": tenant.name,
+                "user.get_full_name": request.user.get_full_name(),
+                "activation_link": activation_link,
+            },
         )
-        message = template.render(context)
-        subject = self.cleaned_data["tenant"].invitation_mail_subject
+        subject = tenant.invitation_mail_subject
 
         send_background_mail.delay(
             {

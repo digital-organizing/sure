@@ -13,11 +13,11 @@ class TenantTokenAuth(APIKeyHeader):
         if not name or not token:
             return None
 
-        api_token = APIToken.objects.filter(name=name, token=token).first()
-
-        if api_token and not api_token.revoked:
-            request.user = api_token.owner
-            return api_token.tenant
+        for api_token in APIToken.objects.filter(name=name, revoked=False):
+            if api_token.matches(token):
+                request.user = api_token.owner
+                return api_token.tenant
+        return None
 
 
 auth_tenant_api_token = TenantTokenAuth()

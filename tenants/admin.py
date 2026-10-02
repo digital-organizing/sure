@@ -4,7 +4,7 @@ import io
 from typing import Any
 
 import polars as pl
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
@@ -399,15 +399,25 @@ class APITokenAdmin(ScopedChoicesMixin, ModelAdmin):
     search_fields = ("name", "tenant__name", "owner__username", "owner__email")
 
     autocomplete_fields = ("tenant", "owner")
-    exclude = ("token",)
-
     readonly_fields = ("created_at", "header")
 
     def header(self, obj: APIToken) -> str:
-        """Display the full API token header."""
-        return f"{obj.name}:{obj.token}"
+        """The token is only stored hashed, so all but its end is masked."""
+        if not obj.pk:
+            return "-"
+        return f"{obj.name}:…{obj.token_hint}"
 
     header.short_description = "X-Tenant-Token"  # ty: ignore[unresolved-attribute]
+
+    def save_model(self, request: HttpRequest, obj: Any, form: Any, change: Any):
+        super().save_model(request, obj, form, change)
+        if obj.raw_token:
+            self.message_user(
+                request,
+                _("X-Tenant-Token: %(header)s — copy it now, it cannot be shown again.")
+                % {"header": f"{obj.name}:{obj.raw_token}"},
+                level=messages.WARNING,
+            )
 
     def get_queryset(self, request):
         """Limit queryset based on user permissions."""

@@ -1,6 +1,7 @@
 """Models for tenants (organizations) using the service."""
 
 import datetime
+import hashlib
 import re
 import secrets
 
@@ -457,6 +458,12 @@ def generate_token():
     return secrets.token_hex(25)
 
 
+def hash_api_token(token: str) -> str:
+    """Tokens are long and random, so a fast hash is enough: there is nothing
+    to brute-force, and a password hasher would slow down every API request."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
 class APIToken(models.Model):
     """API Token for a tenant."""
 
@@ -464,7 +471,13 @@ class APIToken(models.Model):
         Tenant, on_delete=models.CASCADE, related_name="api_tokens"
     )
     name = models.CharField(max_length=30, default=generate_name)
-    token = models.CharField(max_length=80, default=generate_token)
+    # Only the hash is stored. The token itself is shown once, on creation.
+    token_hash = models.CharField(max_length=64, editable=False)
+    token_hint = models.CharField(
+        max_length=4,
+        editable=False,
+        help_text=_("Last characters of the token, to tell tokens apart"),
+    )
 
     owner = models.ForeignKey(
         "auth.User", on_delete=models.CASCADE, related_name="owned_api_tokens"
@@ -472,6 +485,19 @@ class APIToken(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     revoked = models.BooleanField(default=False)
+
+    #: Set on the instance that created the token, never loaded from the database.
+    raw_token: str | None = None
+
+    def save(self, *args, **kwargs) -> None:
+        if not self.token_hash:
+            self.raw_token = generate_token()
+            self.token_hash = hash_api_token(self.raw_token)
+            self.token_hint = self.raw_token[-4:]
+        super().save(*args, **kwargs)
+
+    def matches(self, token: str) -> bool:
+        return secrets.compare_digest(self.token_hash, hash_api_token(token))
 
     def __str__(self) -> str:
         return f"API Token '{self.name}' for {self.tenant.name}"

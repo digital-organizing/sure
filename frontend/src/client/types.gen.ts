@@ -16,6 +16,14 @@ export type LoginResponse = {
      * Error
      */
     error?: string | null;
+    /**
+     * Code
+     */
+    code?: string | null;
+    /**
+     * Retry After
+     */
+    retry_after?: number | null;
 };
 
 /**
@@ -1744,6 +1752,10 @@ export type CoreApiLoginViewErrors = {
      * Unauthorized
      */
     401: LoginResponse;
+    /**
+     * Too Many Requests
+     */
+    429: LoginResponse;
 };
 
 export type CoreApiLoginViewError = CoreApiLoginViewErrors[keyof CoreApiLoginViewErrors];
@@ -1884,6 +1896,10 @@ export type CoreApiVerifyOtpViewErrors = {
      * Unauthorized
      */
     401: LoginResponse;
+    /**
+     * Too Many Requests
+     */
+    429: LoginResponse;
 };
 
 export type CoreApiVerifyOtpViewError = CoreApiVerifyOtpViewErrors[keyof CoreApiVerifyOtpViewErrors];
@@ -1917,6 +1933,10 @@ export type CoreApiRemoveOtpViewErrors = {
      * Unauthorized
      */
     401: LoginResponse;
+    /**
+     * Too Many Requests
+     */
+    429: LoginResponse;
 };
 
 export type CoreApiRemoveOtpViewError = CoreApiRemoveOtpViewErrors[keyof CoreApiRemoveOtpViewErrors];
@@ -2012,6 +2032,10 @@ export type CoreApiOtp2FaChallengeViewErrors = {
      * Unauthorized
      */
     401: LoginResponse;
+    /**
+     * Too Many Requests
+     */
+    429: LoginResponse;
 };
 
 export type CoreApiOtp2FaChallengeViewError = CoreApiOtp2FaChallengeViewErrors[keyof CoreApiOtp2FaChallengeViewErrors];
@@ -2049,6 +2073,10 @@ export type CoreApiChangePasswordViewErrors = {
      * Unauthorized
      */
     401: LoginResponse;
+    /**
+     * Too Many Requests
+     */
+    429: LoginResponse;
 };
 
 export type CoreApiChangePasswordViewError = CoreApiChangePasswordViewErrors[keyof CoreApiChangePasswordViewErrors];

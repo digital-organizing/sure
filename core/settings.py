@@ -704,6 +704,10 @@ AXES_SENSITIVE_PARAMETERS = ["password", "new_password", "username", "sesame"]
 AXES_VERBOSE = DEBUG
 
 AXES_LOCKOUT_PARAMETERS = ["username"]
+AXES_LOCKOUT_CALLABLE = "core.auth.lockout_response"
+# Attempts made while locked out must not restart the cool off, otherwise a
+# user who keeps trying never gets back in.
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
 
 
 CLAMD_SOCKET = ""

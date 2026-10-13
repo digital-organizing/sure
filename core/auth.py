@@ -1,9 +1,37 @@
+import math
+from datetime import timedelta
 from functools import wraps
 from typing import Any
 
+from axes.helpers import get_cool_off
 from django.core.exceptions import PermissionDenied as Unauthorized
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from ninja.security.apikey import APIKeyCookie
+
+
+def retry_after_seconds(delta: timedelta) -> int:
+    return max(1, math.ceil(delta.total_seconds()))
+
+
+def lockout_response(request, original_response=None, credentials=None):
+    """Axes lockout in the shape of the other auth responses (LoginResponse).
+
+    The default is a plain text body the frontend can not show to the user.
+    """
+    cool_off = get_cool_off(request)
+    retry_after = retry_after_seconds(cool_off) if cool_off else None
+    response = JsonResponse(
+        {
+            "success": False,
+            "error": "Too many failed login attempts. This account is temporarily locked.",
+            "code": "locked_out",
+            "retry_after": retry_after,
+        },
+        status=429,
+    )
+    if retry_after:
+        response["Retry-After"] = str(retry_after)
+    return response
 
 
 class Auth2FaOrTrusted(APIKeyCookie):

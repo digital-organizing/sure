@@ -5,10 +5,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpResponse
-from django.utils import translation
+from django.utils import timezone, translation
 from django.views.decorators.csrf import csrf_exempt
 from django_otp import devices_for_user, user_has_device, verify_token
 from django_otp import login as otp_login
+from django_otp.models import Device
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from ninja import Form, NinjaAPI, Schema
@@ -20,7 +21,7 @@ import labor.api
 import sure.api
 import tenants.api
 import texts.api
-from core.auth import auth_2fa, auth_2fa_or_trusted
+from core.auth import auth_2fa, auth_2fa_or_trusted, retry_after_seconds
 
 api = NinjaAPI(
     auth=auth_2fa_or_trusted,
@@ -69,12 +70,49 @@ def permission_exception_handler(request, exc):
 class LoginResponse(Schema):
     success: bool
     error: str | None = None
+    # Machine readable reason, the frontend translates it for the user.
+    code: str | None = None
+    retry_after: int | None = None
 
 
 AUTH_RESPONSE = {
     200: LoginResponse,
     401: LoginResponse,
+    429: LoginResponse,
 }
+
+
+def normalize_otp_token(token: str) -> str:
+    """Authenticator apps display codes in groups, e.g. "123 456"."""
+    return "".join(token.split())
+
+
+def otp_throttled_response(request, device_id: str):
+    """Tell a throttled device apart from a wrong code.
+
+    django-otp rejects every code, even a correct one, while a device is
+    throttled after failed attempts. Returns None if verifying is allowed.
+    """
+    device = Device.from_persistent_id(device_id)
+    if device is None or device.user_id != request.user.pk:
+        return None
+    allowed, data = device.verify_is_allowed()
+    if allowed:
+        return None
+    locked_until = (data or {}).get("locked_until")
+    retry_after = (
+        retry_after_seconds(locked_until - timezone.now()) if locked_until else None
+    )
+    return api.create_response(
+        request,
+        data=LoginResponse(
+            success=False,
+            error="Too many failed attempts. Wait a moment before trying again.",
+            code="throttled",
+            retry_after=retry_after,
+        ),
+        status=429,
+    )
 
 
 @api.post("/auth/login", auth=None, response=AUTH_RESPONSE)
@@ -86,7 +124,9 @@ def login_view(request, username: Form[str], password: Form[str]):
         return {"success": True}
     return api.create_response(
         request,
-        data=LoginResponse(success=False, error="Invalid credentials"),
+        data=LoginResponse(
+            success=False, error="Invalid credentials", code="invalid_credentials"
+        ),
         status=401,
     )
 
@@ -176,11 +216,15 @@ def verify_otp_view(request, device_id: Form[str], token: Form[str]):
             ),
             status=400,
         )
-    device = verify_token(request.user, device_id, token)
+    if (throttled := otp_throttled_response(request, device_id)) is not None:
+        return throttled
+    device = verify_token(request.user, device_id, normalize_otp_token(token))
     if device is None:
         return api.create_response(
             request,
-            data=LoginResponse(success=False, error="Invalid token"),
+            data=LoginResponse(
+                success=False, error="Invalid token", code="invalid_token"
+            ),
             status=401,
         )
     with transaction.atomic():
@@ -239,11 +283,15 @@ def generate_otp_backup_codes_view(request):
 def otp_2fa_challenge_view(
     request, device_id: Form[str], token: Form[str], remember: Form[bool] = False
 ):
-    device = verify_token(request.user, device_id, token)
+    if (throttled := otp_throttled_response(request, device_id)) is not None:
+        return throttled
+    device = verify_token(request.user, device_id, normalize_otp_token(token))
     if device is None:
         return api.create_response(
             request,
-            data=LoginResponse(success=False, error="Invalid token"),
+            data=LoginResponse(
+                success=False, error="Invalid token", code="invalid_token"
+            ),
             status=401,
         )
     otp_login(request, device)

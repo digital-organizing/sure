@@ -2,8 +2,11 @@ from urllib.parse import urlencode
 
 from constance import config
 from django.conf import settings
+from django.db.models import F
 from django.template import Context, Template
 from django.utils.safestring import mark_safe
+from django_agent_trust.models import AgentSettings
+from django_otp import devices_for_user
 from sesame.utils import get_parameters
 
 from .tasks import send_background_mail
@@ -37,6 +40,18 @@ def send_reset_mail(request, consultant) -> None:
             "recipient_list": [user.email],
         }
     )
+
+
+def reset_2fa(user) -> None:
+    """Remove the user's 2FA devices and stop trusting their browsers.
+
+    A reset usually follows a lost or stolen device, so a browser that was
+    trusted to skip 2FA must not keep that privilege.
+    """
+    for device in devices_for_user(user, confirmed=None):
+        device.delete()
+    AgentSettings.objects.ensure_for_user(user)
+    AgentSettings.objects.filter(user=user).update(serial=F("serial") + 1)
 
 
 def send_2fa_reset_mail(request, user) -> None:

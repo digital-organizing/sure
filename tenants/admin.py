@@ -12,7 +12,6 @@ from django.http.request import HttpRequest
 from django.shortcuts import redirect
 from django.urls import URLPattern, path
 from django.utils.translation import gettext_lazy as _
-from django_otp import devices_for_user
 from modeltranslation.admin import TabbedTranslationAdmin
 from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
@@ -20,7 +19,7 @@ from unfold.decorators import action
 
 from core.admin import ScopedChoicesMixin
 from labor.models import LocationToLab
-from tenants.account import send_2fa_reset_mail, send_reset_mail
+from tenants.account import reset_2fa, send_2fa_reset_mail, send_reset_mail
 from tenants.models import (
     Advertisement,
     APIToken,
@@ -168,8 +167,7 @@ class ConsultantAdmin(ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for a single consultant."""
         consultant = self.get_queryset(request).get(pk=object_id)
         user = consultant.user
-        for device in devices_for_user(user, confirmed=None):
-            device.delete()
+        reset_2fa(user)
         send_2fa_reset_mail(request, user)
         return redirect("admin:tenants_consultant_change", object_id)
 
@@ -197,8 +195,7 @@ class ConsultantAdmin(ScopedChoicesMixin, SimpleHistoryAdmin, ModelAdmin):
         """Admin action to reset 2FA for selected consultants."""
         for consultant in queryset:
             user = consultant.user
-            for device in devices_for_user(user, confirmed=None):
-                device.delete()
+            reset_2fa(user)
             send_2fa_reset_mail(request, user)
 
     @admin.action(description="Download consultants")

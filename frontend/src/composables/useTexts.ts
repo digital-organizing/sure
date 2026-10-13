@@ -86,12 +86,13 @@ export const useTexts = createGlobalState(() => {
     return md(texts.value[slug] || slug)
   }
 
-  function getText(slug: string) {
+  // The fallback is shown as long as the text is missing in the texts database.
+  function getText(slug: string, fallback?: string) {
     if (language.value === null) {
       setLanguage()
     }
     return computed(() => {
-      return texts.value[slug] || slug
+      return texts.value[slug] || fallback || slug
     })
   }
 

@@ -9,8 +9,12 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const { getText: t } = useTexts()
 
-const { login, account, login2fa, error, twoFaDevices, logout, fetchAccount, fetchTwoFaDevices } =
-  useAccount()
+const { login, account, login2fa, error, twoFaDevices, logout, fetchTwoFaDevices } = useAccount()
+
+const helpText = t(
+  'login-help',
+  'Forgot your password or lost access to your authenticator app? Contact your administrator.',
+)
 
 const showLogin = computed(() => {
   return account.value.username === null
@@ -24,43 +28,37 @@ const hasOtpDevices = computed(() => {
   return twoFaDevices.value.length > 0
 })
 
+// The router guard has loaded the account and has already sent verified users
+// on, so only the half logged in ones (password but no 2FA yet) are left.
 onMounted(async () => {
   if (!account.value.username) {
-    await fetchAccount()
-  }
-
-  if (!account.value.username) {
-    return
-  }
-
-  if (account.value.username && account.value.verified) {
-    const next = router.currentRoute.value.query.next as string | undefined
-    router.push(next || { name: 'home' })
     return
   }
 
   await fetchTwoFaDevices()
 
   if (!hasOtpDevices.value) {
-    router.push({ name: 'setup-2fa' })
+    router.replace({ name: 'setup-2fa' })
     return
   }
 })
+
+// replace instead of push: the login must not stay in the history, or the back
+// button leads to a page that immediately sends the user forward again.
+function continueAfterLogin() {
+  const next = router.currentRoute.value.query.next as string | undefined
+  router.replace(next || { name: 'home' })
+}
 
 async function onSubmit(e: { values: Record<string, string>; valid: boolean }) {
   if (e.valid) {
     await login(e.values['username']!, e.values['password']!)
     nextTick(() => {
-      console.log('account after login', account.value)
-      console.log('showLogin', showLogin.value)
-      console.log('showOtp', showOtp.value)
-      console.log('hasOtpDevices', hasOtpDevices.value)
       if (!showLogin.value && !showOtp.value && hasOtpDevices.value) {
-        const next = router.currentRoute.value.query.next as string | undefined
-        router.push(next || { name: 'home' })
+        continueAfterLogin()
       }
       if (!showLogin.value && !hasOtpDevices.value) {
-        router.push({ name: 'setup-2fa' })
+        router.replace({ name: 'setup-2fa' })
       }
     })
   }
@@ -75,8 +73,7 @@ async function on2FaSubmit(e: { values: Record<string, string>; valid: boolean }
     await login2fa(token!, deviceId, remember)
 
     if (account.value.username && account.value.verified) {
-      const next = router.currentRoute.value.query.next as string | undefined
-      router.push(next || { name: 'home' })
+      continueAfterLogin()
     }
   }
 }
@@ -106,6 +103,7 @@ async function cancelLogin() {
 
     <Button type="submit" :label="t('login').value" />
     <Message severity="error" v-if="error">{{ error }}</Message>
+    <p class="help">{{ helpText }}</p>
   </Form>
 
   <Form @submit="on2FaSubmit" v-if="showOtp" class="form-col">
@@ -131,5 +129,14 @@ async function cancelLogin() {
     <Button type="submit" :label="t('verify-2fa').value" />
     <Button :label="t('cancel').value" class="p-button-secondary" @click="cancelLogin" />
     <Message severity="error" v-if="error">{{ error }}</Message>
+    <p class="help">{{ helpText }}</p>
   </Form>
 </template>
+
+<style scoped>
+.help {
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+  margin: 0;
+}
+</style>

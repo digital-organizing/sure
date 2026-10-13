@@ -1,20 +1,41 @@
 <script setup lang="ts">
-import { computed, onActivated, onMounted } from 'vue'
-import { RouterView, useRoute } from 'vue-router'
+import { computed, onActivated, onMounted, watch } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useAccount } from './composables/useAccount'
 import InternalMenuBar from './components/InternalMenuBar.vue'
 import { useTitle } from '@vueuse/core'
 import { useTexts } from './composables/useTexts'
 import { usePrimeVue } from 'primevue/config'
 import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
 import ConfirmDialog from 'primevue/confirmdialog'
 
 const primevue = usePrimeVue()
 
 const { account } = useAccount()
 const route = useRoute()
+const router = useRouter()
+const toast = useToast()
 
 const { getText, texts, onLanguageChange } = useTexts()
+
+const sessionExpiredText = getText(
+  'session-expired',
+  'Your session has ended. Please log in again.',
+)
+
+// The session can end while a protected page is open (it expired, or the user
+// logged out in another tab). Say so and go to the login, instead of leaving a
+// page behind on which nothing works anymore.
+watch(
+  () => !!account.value.username && !!account.value.verified,
+  (verified, wasVerified) => {
+    if (verified || !wasVerified) return
+    if (!route.matched.some((record) => record.meta.requiresAuth === true)) return
+    toast.add({ severity: 'warn', summary: sessionExpiredText.value, life: 10000 })
+    router.replace({ name: 'login', query: { next: route.fullPath } })
+  },
+)
 
 const showInternalMenu = computed(() => route.meta.showInternalMenu !== false)
 

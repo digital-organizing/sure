@@ -11,8 +11,8 @@ import {
   type AccountResponse,
   type LoginResponse,
 } from '@/client'
-import { createGlobalState } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { createGlobalState, useDocumentVisibility } from '@vueuse/core'
+import { computed, ref, watch } from 'vue'
 import { useTexts } from './useTexts'
 
 type ApiResult = { error?: unknown; response?: Response }
@@ -92,7 +92,16 @@ export const useAccount = createGlobalState(() => {
     return account.value.username !== null
   })
 
-  async function fetchAccount() {
+  // A silent fetch is a background refresh: it must not clear or replace the
+  // error of the form the user is looking at.
+  async function fetchAccount(silent: boolean = false) {
+    if (silent) {
+      const response = await coreApiAccount()
+      if (response.data) {
+        account.value = response.data
+      }
+      return
+    }
     loading.value = true
     error.value = null
     try {
@@ -253,14 +262,24 @@ export const useAccount = createGlobalState(() => {
     }
   }
 
+  // Notice a session that ended in the meantime (expired, logged out in another
+  // tab): periodically, and as soon as the user comes back to the tab.
   const interval = setInterval(
     () => {
-      fetchAccount()
+      fetchAccount(true)
     },
     5 * 60 * 1000,
   )
 
-  fetchAccount().then(() => {
+  const visibility = useDocumentVisibility()
+  watch(visibility, (state) => {
+    if (state === 'visible' && isAuthenticated.value) {
+      fetchAccount(true)
+    }
+  })
+
+  // Resolves once the account state is known for the first time.
+  const ready = fetchAccount().then(() => {
     if (isAuthenticated.value) {
       fetchTwoFaDevices()
     }
@@ -271,6 +290,7 @@ export const useAccount = createGlobalState(() => {
     loading,
     error,
     fetchAccount,
+    ready,
     isAuthenticated,
     login,
     logout,

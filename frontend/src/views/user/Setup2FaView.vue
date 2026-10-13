@@ -4,6 +4,7 @@ import { useAccount } from '@/composables/useAccount'
 import { useTexts } from '@/composables/useTexts'
 import { useClipboard } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
+import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { computed, ref } from 'vue'
 
@@ -13,6 +14,7 @@ const router = useRouter()
 
 const { copy, isSupported } = useClipboard()
 const toast = useToast()
+const confirm = useConfirm()
 
 const { getText: t } = useTexts()
 
@@ -22,7 +24,17 @@ const configUrl = computed(() => (device.value ? device.value.config_url || '' :
 
 const configCode = useQRCode(configUrl)
 
-const { account, setup2faDevice, verifyOtp, createBackupCodes, twoFaDevices } = useAccount()
+const { account, setup2faDevice, verifyOtp, createBackupCodes, twoFaDevices, fetchTwoFaDevices } =
+  useAccount()
+
+// Backup codes are stored as a 2FA device of their own.
+const hasBackupCodes = computed(() =>
+  twoFaDevices.value.some((d) => d.id.startsWith('otp_static.staticdevice/')),
+)
+const replaceCodesWarning = t(
+  'backup-codes-replace-warning',
+  'You already have backup codes. Generating new ones makes the existing codes invalid.',
+)
 
 const codes = ref<string[]>([])
 
@@ -67,11 +79,30 @@ async function onVerify2FaSetup(e: { values: Record<string, string>; valid: bool
   }
 }
 
-async function onCreateBackupCodes() {
+async function generateBackupCodes() {
   const newCodes = await createBackupCodes()
   if (newCodes && newCodes.length > 0) {
     codes.value = newCodes
+    fetchTwoFaDevices()
   }
+}
+
+function onCreateBackupCodes() {
+  if (!hasBackupCodes.value) {
+    generateBackupCodes()
+    return
+  }
+  confirm.require({
+    message: replaceCodesWarning.value,
+    header: t('confirmation').value,
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      generateBackupCodes()
+    },
+    reject: () => {
+      /* no action */
+    },
+  })
 }
 function onCopyCode() {
   copy(device.value?.config_url || '').then(() => {
@@ -136,6 +167,9 @@ function onCopyCode() {
     <p>
       {{ t('2fa-setup-complete') }}
     </p>
+    <Message severity="warn" v-if="hasBackupCodes && codes.length == 0">
+      {{ replaceCodesWarning }}
+    </Message>
     <Button type="submit" v-if="codes.length == 0">{{ t('generate-backup-codes') }}</Button>
     <div v-if="codes.length > 0">
       <h3>{{ t('your-backup-codes') }}</h3>

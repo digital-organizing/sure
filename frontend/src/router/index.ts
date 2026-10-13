@@ -24,6 +24,7 @@ import LogoutView from '@/views/user/LogoutView.vue'
 import SetupView from '@/views/user/SetupView.vue'
 import Setup2FaView from '@/views/user/Setup2FaView.vue'
 import CaseSummaryView from '@/views/consultant/case/CaseSummaryView.vue'
+import { useAccount } from '@/composables/useAccount'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -132,6 +133,9 @@ const router = createRouter({
     {
       path: '/consultant',
       component: ConsultantView,
+      meta: {
+        requiresAuth: true,
+      },
       children: [
         {
           path: '',
@@ -200,6 +204,33 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+// Decide on login state before a view is shown, so that neither a protected
+// page nor the login form flashes up for a user who is about to be redirected.
+router.beforeEach(async (to) => {
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth === true)
+  if (!requiresAuth && to.name !== 'login') {
+    return true
+  }
+
+  const { account, ready, fetchAccount } = useAccount()
+  if (to.name === 'login') {
+    // Always ask the server: a redirect to the login usually means the state
+    // in memory is outdated.
+    await fetchAccount()
+  } else {
+    await ready
+  }
+  const verified = !!account.value.username && !!account.value.verified
+
+  if (requiresAuth && !verified) {
+    return { name: 'login', query: { next: to.fullPath } }
+  }
+  if (to.name === 'login' && verified) {
+    return (to.query.next as string | undefined) || { name: 'home' }
+  }
+  return true
 })
 
 export default router

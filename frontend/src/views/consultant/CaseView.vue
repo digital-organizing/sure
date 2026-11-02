@@ -175,7 +175,9 @@ onMounted(async () => {
   if (props.caseId !== visit.value?.case) {
     await setCaseId(props.caseId)
   }
-  if (router.currentRoute.value.name !== 'consultant-case') {
+  // No visit when loading failed, e.g. the session expired and the user is
+  // already on the way to the login.
+  if (router.currentRoute.value.name !== 'consultant-case' || !visit.value) {
     return
   }
   newExternalId.value = cleanId(visit.value?.external_id || '')

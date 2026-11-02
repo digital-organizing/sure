@@ -71,6 +71,7 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
         location = form.cleaned_data["location"]
         questionnaire = form.cleaned_data["questionnaire"]
         tag = form.cleaned_data["tag"]
+        language = form.cleaned_data["language"]
         quantity = form.cleaned_data["quantity"]
         selected_tests = form.cleaned_data.get("tests", [])
 
@@ -81,7 +82,7 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
                     location_id=location.pk,
                     user=self.request.user,
                     external_id="",
-                    language="en",
+                    language=language,
                 )
                 visit = create_visit(case, questionnaire)
                 visit.tags = [tag]
@@ -108,6 +109,7 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
                         "Location": location.name,
                         "Questionnaire": questionnaire.name,
                         "Tag": tag,
+                        "Language": language,
                         "Created At": timezone.localtime(visit.created_at).strftime(
                             "%Y-%m-%d %H:%M:%S"
                         ),

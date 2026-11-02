@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Div, Layout, Row
 from django import forms
+from django.conf import settings
 from unfold import widgets
 from unfold.layout import Submit
 
@@ -109,6 +110,13 @@ class GenerateCaseBatchForm(forms.Form):
         label="Questionnaire",
         widget=widgets.UnfoldAdminSelect2Widget(),
     )
+    language = forms.ChoiceField(
+        choices=settings.LANGUAGES,
+        initial="en",
+        label="Language",
+        help_text="Preferred language of the clients, applied to all cases in this batch.",
+        widget=widgets.UnfoldAdminSelectWidget(),
+    )
     tag = forms.CharField(
         max_length=50,
         required=True,
@@ -161,6 +169,7 @@ class GenerateCaseBatchForm(forms.Form):
                 Column(
                     "location",
                     "questionnaire",
+                    "language",
                     css_class="w-1/2",
                 ),
                 Column(

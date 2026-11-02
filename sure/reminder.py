@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.utils.translation import activate
 
+from sms.models import SMSCategory
 from sms.service import send_sms
 from sure.models import Visit
 from texts.translate import translate
@@ -73,7 +74,7 @@ def send_reminder(visit: Visit):
 
     message = f"{base_text}\n{location_text}" if location_text else base_text
 
-    send_sms(phone_number, message, visit.case.location.tenant)
+    send_sms(phone_number, message, visit.case.location, SMSCategory.REMINDER)
 
 
 def find_visits_for_reminders():

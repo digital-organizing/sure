@@ -4,8 +4,8 @@ import requests
 from django.conf import settings
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from sms.models import SMSMessage
-from tenants.models import Tenant
+from sms.models import SMSCategory, SMSMessage
+from tenants.models import Location
 
 
 class SMSUpStatus(Enum):
@@ -66,13 +66,18 @@ def _send_sms(to: str, body: str):
     return data
 
 
-def send_sms(to: str, body: str, tenant: Tenant) -> None:
-    """Send an SMS message via SMS Up, uses settings from Django settings."""
+def send_sms(to: str, body: str, location: Location, category: SMSCategory) -> None:
+    """Send an SMS message via SMS Up, uses settings from Django settings.
+
+    Location and category are recorded so the usage can be billed per tenant.
+    """
 
     data = _send_sms(to, body)
 
     SMSMessage.objects.create(
         to=to,
         response=data,
-        tenant=tenant,
+        tenant=location.tenant,
+        location=location,
+        category=category,
     )

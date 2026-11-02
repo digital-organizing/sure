@@ -1,6 +1,13 @@
 from django.db import models
 
-# Create your models here.
+
+class SMSCategory(models.TextChoices):
+    """Why an SMS was sent, so the usage can be broken down for billing."""
+
+    CASE_LINK = "case_link", "Questionnaire link"
+    RESULTS_LINK = "results_link", "Results link"
+    VERIFICATION_CODE = "verification_code", "Verification code"
+    REMINDER = "reminder", "Reminder"
 
 
 class SMSMessage(models.Model):
@@ -14,6 +21,18 @@ class SMSMessage(models.Model):
         related_name="sms_messages",
         blank=True,
         null=True,
+    )
+    # Empty for messages sent before these were recorded and that the
+    # backfill_sms_categories command could not attribute.
+    location = models.ForeignKey(
+        "tenants.Location",
+        on_delete=models.SET_NULL,
+        related_name="sms_messages",
+        blank=True,
+        null=True,
+    )
+    category = models.CharField(
+        max_length=20, choices=SMSCategory.choices, blank=True, default=""
     )
 
     def __str__(self) -> str:

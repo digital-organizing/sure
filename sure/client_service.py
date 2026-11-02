@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 import tenants.models
+from sms.models import SMSCategory
 from sms.service import send_sms
 from sure.cases import annotate_last_modified
 from sure.schema import AnswerSchema
@@ -139,7 +140,7 @@ def send_case_link(case: Case, phone_number: str):
         link=link, case_id=case.human_id
     )
 
-    send_sms(contact.phone_number, msg, case.location.tenant)
+    send_sms(contact.phone_number, msg, case.location, SMSCategory.CASE_LINK)
 
 
 def send_results_link(case: Case):
@@ -153,7 +154,7 @@ def send_results_link(case: Case):
         link=link, case_id=case.human_id
     )
 
-    send_sms(contact.phone_number, msg, case.location.tenant)
+    send_sms(contact.phone_number, msg, case.location, SMSCategory.RESULTS_LINK)
 
 
 def send_token(phone_number: str, case: Case):
@@ -170,7 +171,7 @@ def send_token(phone_number: str, case: Case):
     msg_template = translate("verification-code-message")
     msg = msg_template.format(site_url=settings.SITE_URL, token=token)
 
-    send_sms(contact.phone_number, msg, case.location.tenant)
+    send_sms(contact.phone_number, msg, case.location, SMSCategory.VERIFICATION_CODE)
 
 
 def verify_token(token: str, phone_number: str, case: Case) -> Contact | None:

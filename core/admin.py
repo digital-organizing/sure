@@ -1,6 +1,7 @@
 # myapp/admin.py or a separate file like admin_site.py
 # from django.contrib.admin import AdminSite
 from functools import wraps
+from typing import TYPE_CHECKING
 
 from django.db.models import Q
 from django.shortcuts import redirect
@@ -8,6 +9,12 @@ from django_otp import devices_for_user
 from unfold.sites import UnfoldAdminSite
 
 from .auth import auth_2fa_or_trusted
+
+if TYPE_CHECKING:
+    # Mixed into ModelAdmin, which provides the methods it extends.
+    from django.contrib.admin import ModelAdmin as _ScopedChoicesBase
+else:
+    _ScopedChoicesBase = object
 
 
 def enforce_2fa(view_func):
@@ -29,7 +36,7 @@ def enforce_2fa(view_func):
     return wrapper
 
 
-class ScopedChoicesMixin:
+class ScopedChoicesMixin(_ScopedChoicesBase):
     """Limits relation fields to what the user may see in the related admin.
 
     The autocomplete search is already scoped by the related admin's

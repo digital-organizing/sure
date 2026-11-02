@@ -99,10 +99,10 @@ class QuestionnairePdfTests(TestCase):
         with translation.override("en"):
             generate_pdfs(questionnaire)
             questionnaire.refresh_from_db()
-            first = questionnaire.client_pdf_en.name
+            first = questionnaire.client_pdf_en.name  # ty: ignore[unresolved-attribute]
             generate_pdfs(questionnaire)
             questionnaire.refresh_from_db()
 
-        self.assertEqual(questionnaire.client_pdf_en.name, first)
+        self.assertEqual(questionnaire.client_pdf_en.name, first)  # ty: ignore[unresolved-attribute]
         _, files = default_storage.listdir("questionnaire_pdfs")
         self.assertEqual(len(files), 2 * len(settings.LANGUAGES))

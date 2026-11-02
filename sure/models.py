@@ -1041,8 +1041,12 @@ class VisitDocument(models.Model):
 
     def save(self, *args, **kwargs):
         # A file that is not stored yet still carries the name it was uploaded with.
-        if not self.filename and self.document and not self.document._committed:
-            self.filename = os.path.basename(self.document.name)
+        if (
+            not self.filename
+            and self.document
+            and not getattr(self.document, "_committed", True)
+        ):
+            self.filename = os.path.basename(self.document.name or "")
         super().save(*args, **kwargs)
 
     def download_link(self) -> str:

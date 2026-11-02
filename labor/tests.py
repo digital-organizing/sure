@@ -434,11 +434,11 @@ class EmbeddedDocumentTests(TestCase):
         self.assertEqual(first.name, "Report.PDF")
         self.assertEqual(first.filename, "Report.PDF")
         self.assertRegex(
-            first.document.name,
+            str(first.document.name),
             rf"^visit_documents/{self.visit.pk}/[0-9a-f]{{32}}\.pdf$",
         )
         self.assertRegex(
-            second.document.name,
+            str(second.document.name),
             rf"^visit_documents/{other_visit.pk}/[0-9a-f]{{32}}\.pdf$",
         )
         self.assertNotEqual(first.document.name, second.document.name)
@@ -815,7 +815,7 @@ class ProcessResultsRetryTests(TestCase):
         retrieve.side_effect = lambda laboratory: self._pending()
 
         with patch("labor.tasks.parse_hl7_to_db") as parse:
-            retrieve_results_task(self.laboratory.id)
+            retrieve_results_task(self.laboratory.pk)
 
         parse.assert_called_once()
         self.assertIsNotNone(HL7Result.objects.get().processed_at)

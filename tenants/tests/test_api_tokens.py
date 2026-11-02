@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import RequestFactory, TestCase, TransactionTestCase
@@ -14,6 +15,8 @@ class APITokenTests(TestCase):
         self.owner = User.objects.create_superuser("root", password="pw")
         self.tenant = Tenant.objects.create(name="Tenant", owner=self.owner)
         self.api_token = APIToken.objects.create(tenant=self.tenant, owner=self.owner)
+        # Only set on the instance that created the token.
+        assert self.api_token.raw_token is not None
         self.raw_token = self.api_token.raw_token
 
     def _authenticate(self, key):
@@ -78,7 +81,7 @@ class APITokenTests(TestCase):
         )
 
         created = APIToken.objects.get(name="new")
-        shown = [str(m) for m in response.wsgi_request._messages]
+        shown = [str(m) for m in get_messages(response.wsgi_request)]
         header = next(m for m in shown if "X-Tenant-Token" in m)
         raw_token = header.split("new:")[1].split(" ")[0]
         self.assertTrue(created.matches(raw_token))

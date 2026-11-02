@@ -11,7 +11,7 @@ from openpyxl import load_workbook
 from sms.backfill import backfill
 from sms.models import SMSCategory, SMSMessage
 from sms.service import send_sms
-from sms.views import sms_usage
+from sms.views import sms_usage, usage_columns
 from sure.models import (
     Case,
     Client,
@@ -167,36 +167,42 @@ class BackfillTests(SMSTestCase):
 
 
 class UsageTests(SMSTestCase):
-    def test_usage_is_totalled_per_location_and_category(self):
+    def _attribute(self, sms, category):
+        SMSMessage.objects.filter(pk=sms.pk).update(
+            location=self.location, category=category
+        )
+
+    def test_one_row_per_location_with_a_column_pair_per_category(self):
         for cost in (1, 2):
-            sms = self._sms(SENT, cost=cost)
-            SMSMessage.objects.filter(pk=sms.pk).update(
-                location=self.location, category=SMSCategory.REMINDER
-            )
+            self._attribute(self._sms(SENT, cost=cost), SMSCategory.REMINDER)
+        self._attribute(self._sms(SENT, cost=3), SMSCategory.VERIFICATION_CODE)
+        self._attribute(self._sms(SENT), "")
         self._sms(SENT)
         self._sms(SENT + timedelta(days=40))
 
         usage = sms_usage(date(2026, 10, 1), date(2026, 10, 31))
 
+        self.assertEqual([row["Location"] for row in usage], ["Center", "Unknown"])
+        center = usage[0]
+        self.assertEqual(center["Tenant"], "Tenant")
+        self.assertEqual((center["Reminder SMS"], center["Reminder credits"]), (2, 3))
         self.assertEqual(
-            usage,
-            [
-                {
-                    "Tenant": "Tenant",
-                    "Location": "Center",
-                    "Category": "Reminder",
-                    "SMS": 2,
-                    "Credits": 3,
-                },
-                {
-                    "Tenant": "Tenant",
-                    "Location": "Unknown",
-                    "Category": "Unknown",
-                    "SMS": 1,
-                    "Credits": 1,
-                },
-            ],
+            (center["Verification code SMS"], center["Verification code credits"]),
+            (1, 3),
         )
+        self.assertEqual((center["Unknown SMS"], center["Unknown credits"]), (1, 1))
+        self.assertEqual(
+            (center["Questionnaire link SMS"], center["Results link credits"]), (0, 0)
+        )
+        self.assertEqual(center["Total credits"], 7)
+        self.assertEqual(usage[1]["Total credits"], 1)
+
+    def test_every_row_has_every_column(self):
+        self._sms(SENT)
+
+        (row,) = sms_usage(date(2026, 10, 1), date(2026, 10, 31))
+
+        self.assertEqual(list(row), usage_columns())
 
 
 @override_settings(STORAGES=PLAIN_STATICFILES)
@@ -220,8 +226,9 @@ class UsageExportViewTests(SMSTestCase):
 
         sheet = load_workbook(io.BytesIO(response.content)).active
         rows = list(sheet.iter_rows(values_only=True))
-        self.assertEqual(rows[0], ("Tenant", "Location", "Category", "SMS", "Credits"))
-        self.assertEqual(rows[-1], ("Total", None, None, 1, 2))
+        self.assertEqual(rows[0], tuple(usage_columns()))
+        self.assertEqual(rows[-1][0], "Total")
+        self.assertEqual(rows[-1][-1], 2)
 
     def test_tenant_admin_is_denied(self):
         admin = User.objects.create_user("tenant_admin", password="pw", is_staff=True)

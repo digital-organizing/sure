@@ -12,7 +12,7 @@
 
 {% block content %}
     <div class="flex flex-col gap-8 mb-8">
-        <p class="text-sm">Number of SMS and credits used, per tenant, location and category. SMS sent before the category was recorded count as "Unknown" where they could not be attributed.</p>
+        <p class="text-sm">One row per location with the number of SMS and the credits used per category, and the total credits for billing. SMS sent before the category was recorded count as "Unknown" where they could not be attributed.</p>
         {% crispy form "unfold_crispy" %}
     </div>
 {% endblock %}

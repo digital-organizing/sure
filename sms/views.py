@@ -13,11 +13,26 @@ from sms.forms import SMSUsageExportForm
 from sms.models import SMSCategory, SMSMessage
 
 UNKNOWN = "Unknown"
+TOTAL_CREDITS = "Total credits"
+
+
+def _category_labels() -> list[str]:
+    # Unknown last: SMS sent before the category was recorded still have to be
+    # billed, so they get columns of their own instead of being dropped.
+    return [str(label) for _, label in SMSCategory.choices] + [UNKNOWN]
+
+
+def usage_columns() -> list[str]:
+    columns = ["Tenant", "Location"]
+    for label in _category_labels():
+        columns += [f"{label} SMS", f"{label} credits"]
+    return columns + [TOTAL_CREDITS]
 
 
 def sms_usage(start, end) -> list[dict]:
-    """SMS sent between both days, totalled per tenant, location and category.
+    """SMS sent between both days, one row per location for billing.
 
+    Every category has a column for the number of SMS and one for the credits.
     Credits come from the provider's answer: a long message is split into
     several SMS and costs as many credits.
     """
@@ -30,19 +45,22 @@ def sms_usage(start, end) -> list[dict]:
             credits=Sum(Coalesce(Cast(KT("response__cost"), IntegerField()), 1)),
         )
     )
-    usage = [
-        {
-            "Tenant": row["tenant__name"] or UNKNOWN,
-            "Location": row["location__name"] or UNKNOWN,
-            "Category": labels.get(row["category"], UNKNOWN),
-            "SMS": row["count"],
-            "Credits": row["credits"],
-        }
-        for row in rows
-    ]
-    return sorted(
-        usage, key=lambda row: (row["Tenant"], row["Location"], row["Category"])
-    )
+
+    usage: dict[tuple[str, str], dict] = {}
+    for row in rows:
+        tenant = row["tenant__name"] or UNKNOWN
+        location = row["location__name"] or UNKNOWN
+        record = usage.setdefault(
+            (tenant, location),
+            {"Tenant": tenant, "Location": location}
+            | {column: 0 for column in usage_columns()[2:]},
+        )
+        label = str(labels.get(row["category"], UNKNOWN))
+        record[f"{label} SMS"] += row["count"]
+        record[f"{label} credits"] += row["credits"]
+        record[TOTAL_CREDITS] += row["credits"]
+
+    return [usage[key] for key in sorted(usage)]
 
 
 def sms_usage_workbook(usage: list[dict]) -> bytes:
@@ -50,18 +68,26 @@ def sms_usage_workbook(usage: list[dict]) -> bytes:
     workbook = xlsxwriter.Workbook(output)
     sheet = workbook.add_worksheet("SMS usage")
     bold = workbook.add_format({"bold": True})
+    # Category headers are long, wrap them instead of widening every column.
+    header = workbook.add_format({"bold": True, "text_wrap": True, "valign": "top"})
 
-    columns = ["Tenant", "Location", "Category", "SMS", "Credits"]
-    sheet.write_row(0, 0, columns, bold)
+    columns = usage_columns()
+    sheet.write_row(0, 0, columns, header)
+    sheet.set_row(0, 45)
     for row, record in enumerate(usage, start=1):
         sheet.write_row(row, 0, [record[column] for column in columns])
 
     total = len(usage) + 1
     sheet.write(total, 0, "Total", bold)
-    sheet.write(total, 3, sum(record["SMS"] for record in usage), bold)
-    sheet.write(total, 4, sum(record["Credits"] for record in usage), bold)
-    sheet.set_column(0, 2, 28)
-    sheet.set_column(3, 4, 10)
+    for index, column in enumerate(columns[2:], start=2):
+        sheet.write(total, index, sum(record[column] for record in usage), bold)
+
+    sheet.set_column(0, 1, 28)
+    sheet.set_column(2, len(columns) - 1, 14)
+    sheet.freeze_panes(1, 2)
+    sheet.set_landscape()
+    sheet.fit_to_pages(1, 0)
+    sheet.repeat_rows(0)
 
     workbook.close()
     return output.getvalue()

@@ -50,7 +50,7 @@
     "@types/node": "^25.0.10",
     "@types/sanitize-html": "^2.16.0",
     "@vitejs/plugin-vue": "^6.0.3",
-    "@vitest/eslint-plugin": "^1.6.6",
+    "@vitest/eslint-plugin": "1.6.27",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.7.0",
     "@vue/test-utils": "^2.4.0",
@@ -73,10 +73,11 @@
   "overrides": {
     "@hey-api/json-schema-ref-parser": {
       "js-yaml": "^4.3.2"
-    }
+    },
+    "brace-expansion@^2": "^2.1.7"
   },
   "allowScripts": {
-    "@sentry/cli@2.58.5": true,
+    "@sentry/cli@2.58.6": true,
     "core-js@3.49.0": true,
     "esbuild@0.28.1": true
   }

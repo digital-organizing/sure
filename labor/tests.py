@@ -602,10 +602,14 @@ from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import ValidationError
 
-from labor.models import FTPConnection
+from labor.models import FTPConnection, ImlementationChoices
 from labor.schema import PatientDataSchema
 from labor.service import generate_hl7_order
-from labor.tasks import MAX_PROCESSING_ATTEMPTS, process_results
+from labor.tasks import (
+    MAX_PROCESSING_ATTEMPTS,
+    process_results,
+    retrieve_results_task,
+)
 from labor.team_w import upload_order
 
 
@@ -803,6 +807,18 @@ class ProcessResultsRetryTests(TestCase):
 
         result.refresh_from_db()
         self.assertEqual(result.attempts, 1)
+
+    @patch("labor.tasks.retrieve_results_team_w")
+    def test_retrieving_results_processes_them(self, retrieve):
+        self.laboratory.implementation = ImlementationChoices.TEAM_W
+        self.laboratory.save()
+        retrieve.side_effect = lambda laboratory: self._pending()
+
+        with patch("labor.tasks.parse_hl7_to_db") as parse:
+            retrieve_results_task(self.laboratory.id)
+
+        parse.assert_called_once()
+        self.assertIsNotNone(HL7Result.objects.get().processed_at)
 
     def test_successful_result_is_marked_processed(self):
         with patch("labor.tasks.parse_hl7_to_db") as parse:

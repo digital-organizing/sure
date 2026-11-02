@@ -65,6 +65,11 @@ def retrieve_results_task(lab_id: int):
         case ImlementationChoices.TEAM_W:
             retrieve_results_team_w(laboratory)
 
+    # Fetching only stores the raw messages. Processing them here instead of
+    # relying on a separately configured beat entry, which was easy to miss
+    # and left results sitting unprocessed.
+    process_results()
+
 
 #: A result that keeps failing is a permanent problem - a message we cannot
 #: map, or one of our own orders the lab left in the results directory. Retrying

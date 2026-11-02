@@ -8,36 +8,21 @@ import { useToast } from 'primevue/usetoast'
 
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const { locations, fetchLocations } = useLocations()
 const { questionnaires, fetchQuestionnaires } = useQuestionnaires()
-const {
-  getText: t,
-  language: currentLanguage,
-  getLanguage,
-  getAvailableLanguages,
-  onLanguageChange,
-  availableLanguages,
-} = useTexts()
+const { getText: t, language: currentLanguage, availableLanguages } = useTexts()
 
 const questionnaire = ref<number | null>(null)
 const location = ref<number | null>(null)
 const externalId = ref<string>('')
 const phone = ref<string>('')
-const language = ref<string>('en')
-
-onMounted(() => {
-  getAvailableLanguages().then(() => {
-    getLanguage().then((lang) => {
-      language.value = lang!
-    })
-  })
-  language.value = currentLanguage.value!
-  onLanguageChange((newLang) => {
-    language.value = newLang!
-  })
+// New cases default to the consultant's own interface language.
+const language = ref<string>(currentLanguage.value ?? 'en')
+watch(currentLanguage, (lang) => {
+  if (lang) language.value = lang
 })
 
 const link = ref<string>('')
@@ -89,7 +74,7 @@ function startNewCase() {
   caseId.value = ''
   externalId.value = ''
   phone.value = ''
-  language.value = currentLanguage.value!
+  language.value = currentLanguage.value ?? 'en'
 
   // A new key re-mounts the form, which plays the enter transition, so it is
   // obvious that this is a fresh form and not the case just created.

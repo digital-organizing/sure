@@ -40,7 +40,9 @@ export const useTexts = createGlobalState(() => {
     setLanguage(preferredLang || 'en')
   })
 
-  async function setLanguage(lang?: string) {
+  // persist: false switches the language without making it the preference of
+  // this browser, which is shared by all tabs.
+  async function setLanguage(lang?: string, persist = true) {
     if (!lang) {
       try {
         lang = localStorage.getItem('preferredLanguage') || 'en'
@@ -60,9 +62,11 @@ export const useTexts = createGlobalState(() => {
       console.warn(`Language ${lang} is not available.`)
       return
     }
-    try {
-      localStorage.setItem('preferredLanguage', lang)
-    } catch {}
+    if (persist) {
+      try {
+        localStorage.setItem('preferredLanguage', lang)
+      } catch {}
+    }
     loadingPromise.value = textsApiListTexts({ query: { lang } })
       .then((response) => {
         if (!response.data) return

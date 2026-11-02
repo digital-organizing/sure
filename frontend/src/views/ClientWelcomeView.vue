@@ -41,7 +41,9 @@ async function selectLanguage(lang: string) {
 onMounted(() => {
   sureApiGetCaseLanguage({ path: { pk: props.caseId } }).then((response) => {
     if (response.data) {
-      setLanguage(response.data)
+      // Not persisted: a consultant opening the questionnaire would otherwise
+      // get the client's language as their own in every tab.
+      setLanguage(response.data, false)
     }
   })
 })

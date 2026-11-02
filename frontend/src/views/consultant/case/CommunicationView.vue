@@ -111,11 +111,14 @@ function makeCall(number: string) {
     <ReportFormsComponent class="row" :caseId="props.caseId" />
 
     <section class="row">
-      <CaseNoteComponent class="row" />
+      <CaseNoteComponent class="row" :locked="caseStatus?.value == 'not_available'" />
     </section>
 
     <section class="row">
-      <DocumentUploadComponent :caseId="props.caseId" />
+      <DocumentUploadComponent
+        :caseId="props.caseId"
+        :locked="caseStatus?.value == 'not_available'"
+      />
     </section>
   </div>
 

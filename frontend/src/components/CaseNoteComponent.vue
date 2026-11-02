@@ -13,6 +13,9 @@ const md = new MarkdownIt({
   typographer: true,
 })
 
+// Locked while the client cannot see results at all, a note would never reach them.
+defineProps<{ locked?: boolean }>()
+
 const { notes, createCaseNote, setCaseNoteHidden } = useCase()
 const text = ref('')
 
@@ -36,12 +39,21 @@ function onCreate() {
       <div class="actions">
         <ToggleSwitch
           :model-value="!note.hidden"
+          :disabled="locked"
           @update:model-value="(value: boolean) => setCaseNoteHidden(note.id!, !value)"
         />
         <label>{{ !note.hidden ? t('visible') : t('hidden') }}</label>
       </div>
     </section>
-    <div class="form-row">
+    <Message severity="warn" variant="simple" size="small" v-if="locked">
+      {{
+        t(
+          'client-communication-locked',
+          'The results have to be communicated by phone. The client does not see notes or documents, so nothing can be added.',
+        )
+      }}
+    </Message>
+    <div class="form-row" v-if="!locked">
       <div class="field">
         <Textarea
           v-model="text"

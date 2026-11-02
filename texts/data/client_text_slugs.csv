@@ -134,6 +134,7 @@ client-navigation-languages-label,ClientNavigationTop,Menu label for language se
 give-file-name,DocumentUploadComponent,Placeholder for file name input,Give the file a name
 upload,DocumentUploadComponent,Button label to upload file,Upload
 document-upload-info,DocumentUploadComponent,Info message about document uploads,"Here you can upload documents related to the tests. These documents will be visible to the client unless marked as hidden. You cannot delete documents once uploaded."
+client-communication-locked,CommunicationView,Hint when notes and documents are locked because results must be communicated by phone,"The results have to be communicated by phone. The client does not see notes or documents, so nothing can be added."
 expand-section,ConsultantSection,Title attribute for expand button,Expand section
 submit-answer,ClientQuestionConsultant,Button label to submit answer,Submit Answer
 unknown-item,HistoryItem,Fallback label for unknown item type,Unknown Item

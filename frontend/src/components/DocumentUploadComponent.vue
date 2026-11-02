@@ -5,6 +5,10 @@ import { useTexts } from '@/composables/useTexts'
 import { formatDate } from '@vueuse/core'
 import { ref } from 'vue'
 
+// Locked while the client cannot see results at all, a document would never
+// reach them. Existing documents stay readable, e.g. the lab report.
+defineProps<{ locked?: boolean }>()
+
 const { documents, uploadDocument, setDocumentHidden, visit, error } = useCase()
 const { getText: t } = useTexts()
 
@@ -73,12 +77,21 @@ function onSelect(event: unknown) {
           :input-id="'toggle_' + document.id!"
           :label="document.hidden ? t('hidden').value : t('visible').value"
           :model-value="!document.hidden"
+          :disabled="locked"
           @update:model-value="(value: boolean) => setDocumentHidden(document.id!, !value)"
         />
       </div>
     </div>
 
-    <div class="upload-row">
+    <Message severity="warn" variant="simple" size="small" v-if="locked">
+      {{
+        t(
+          'client-communication-locked',
+          'The results have to be communicated by phone. The client does not see notes or documents, so nothing can be added.',
+        )
+      }}
+    </Message>
+    <div class="upload-row" v-if="!locked">
       <div class="input-row">
         <InputText v-model="fileName" :placeholder="t('give-file-name').value" />
         <FileUpload
@@ -102,7 +115,7 @@ function onSelect(event: unknown) {
     <Message severity="error" v-if="error" size="small" variant="simple">
       {{ error }}
     </Message>
-    <Message severity="info" variant="simple" size="small">
+    <Message severity="info" variant="simple" size="small" v-if="!locked">
       {{ t('document-upload-info') }}
     </Message>
   </Panel>

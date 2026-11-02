@@ -84,6 +84,8 @@ case-created-successfully,CreateCaseView,Dialog header when case is created,Case
 case-created-message,CreateCaseView,Message shown when case is created,Case has been created successfully. Share the following link with your client:
 case-id,CreateCaseView,Label for case ID display,Case ID
 close,CreateCaseView,Button label to close dialog,Close
+close-new-case,CreateCaseView,Button label to close dialog and start a new case,Close + New Case
+go-to-dashboard,CreateCaseView,Button label to close dialog and go to the dashboard,Go to Dashboard
 open-client-questionnaire,CreateCaseView,Button label to open questionnaire,Open client questionnaire
 open-consultant-view,CreateCaseView,Button label to open consultant view,Open consultant view
 link-copied,CreateCaseView,Toast summary when link copied,Link Copied

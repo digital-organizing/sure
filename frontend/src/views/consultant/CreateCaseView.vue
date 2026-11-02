@@ -9,6 +9,7 @@ import { useToast } from 'primevue/usetoast'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const { locations, fetchLocations } = useLocations()
 const { questionnaires, fetchQuestionnaires } = useQuestionnaires()
@@ -81,6 +82,34 @@ onMounted(() => {
   })
 })
 
+// Questionnaire and location stay as chosen, the next case is usually created
+// at the same place. Everything client specific is cleared.
+function startNewCase() {
+  link.value = ''
+  caseId.value = ''
+  externalId.value = ''
+  phone.value = ''
+  language.value = currentLanguage.value!
+
+  // A new key re-mounts the form, which plays the enter transition, so it is
+  // obvious that this is a fresh form and not the case just created.
+  formKey.value++
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function focusFirstField() {
+  document.getElementById('external_id')?.focus({ preventScroll: true })
+}
+
+const formKey = ref(0)
+
+const router = useRouter()
+
+function goToDashboard() {
+  link.value = ''
+  router.push({ name: 'consultant-dashboard' })
+}
+
 function onCopy() {
   copy(link.value).then(() => {
     toast.add({
@@ -94,68 +123,75 @@ function onCopy() {
 </script>
 
 <template>
-  <Form @submit="handleSubmit" class="form-col stretch">
-    <h2>{{ t('create-new-case') }}</h2>
-    <div class="form-field">
-      <label for="external_id">{{ t('internal-id') }}</label>
-      <InputText
-        :label="t('internal-id').value"
-        name="external_id"
-        v-model="externalId"
-        id="external_id"
-      />
-      <Message size="small" severity="secondary" variant="simple">{{
-        t('internal-id-help')
-      }}</Message>
-    </div>
-    <div class="form-field">
-      <label for="questionnaire_id">{{ t('questionnaire') }}</label>
-      <Select
-        id="questionnaire_id"
-        :label="t('questionnaire').value"
-        name="questionnaire_id"
-        :options="questionnaires"
-        option-label="name"
-        option-value="id"
-        v-model="questionnaire"
-      />
-    </div>
-    <div class="form-field">
-      <label for="location_id">{{ t('location') }}</label>
-      <Select
-        id="location_id"
-        :label="t('location').value"
-        name="location_id"
-        :options="locations"
-        option-label="name"
-        option-value="id"
-        v-model="location"
-      />
-    </div>
-    <div class="form-field">
-      <label for="phone">{{ t('mobile-phone-number') }}</label>
-      <InputText id="phone" :label="t('mobile-phone-number').value" name="phone" v-model="phone" />
-      <Message size="small" severity="secondary" variant="simple">{{
-        t('phone-number-help')
-      }}</Message>
-    </div>
-    <div class="form-field">
-      <label for="language">{{ t('preferred-language') }}</label>
-      <SelectButton v-model="language" :options="availableLanguages.map((lang) => lang[0])">
-      </SelectButton>
-      <Message size="small" severity="secondary" variant="simple">{{
-        t('preferred-language-help')
-      }}</Message>
-    </div>
-    <Button :label="t('create-case').value" type="submit" />
-  </Form>
+  <Transition name="new-case" mode="out-in" @after-enter="focusFirstField">
+    <Form :key="formKey" @submit="handleSubmit" class="form-col stretch">
+      <h2>{{ t('create-new-case') }}</h2>
+      <div class="form-field">
+        <label for="external_id">{{ t('internal-id') }}</label>
+        <InputText
+          :label="t('internal-id').value"
+          name="external_id"
+          v-model="externalId"
+          id="external_id"
+        />
+        <Message size="small" severity="secondary" variant="simple">{{
+          t('internal-id-help')
+        }}</Message>
+      </div>
+      <div class="form-field">
+        <label for="questionnaire_id">{{ t('questionnaire') }}</label>
+        <Select
+          id="questionnaire_id"
+          :label="t('questionnaire').value"
+          name="questionnaire_id"
+          :options="questionnaires"
+          option-label="name"
+          option-value="id"
+          v-model="questionnaire"
+        />
+      </div>
+      <div class="form-field">
+        <label for="location_id">{{ t('location') }}</label>
+        <Select
+          id="location_id"
+          :label="t('location').value"
+          name="location_id"
+          :options="locations"
+          option-label="name"
+          option-value="id"
+          v-model="location"
+        />
+      </div>
+      <div class="form-field">
+        <label for="phone">{{ t('mobile-phone-number') }}</label>
+        <InputText
+          id="phone"
+          :label="t('mobile-phone-number').value"
+          name="phone"
+          v-model="phone"
+        />
+        <Message size="small" severity="secondary" variant="simple">{{
+          t('phone-number-help')
+        }}</Message>
+      </div>
+      <div class="form-field">
+        <label for="language">{{ t('preferred-language') }}</label>
+        <SelectButton v-model="language" :options="availableLanguages.map((lang) => lang[0])">
+        </SelectButton>
+        <Message size="small" severity="secondary" variant="simple">{{
+          t('preferred-language-help')
+        }}</Message>
+      </div>
+      <Button :label="t('create-case').value" type="submit" />
+    </Form>
+  </Transition>
   <Dialog
     v-if="link"
     :header="t('case-created-successfully').value"
     visible
     modal
     :closable="false"
-    @hide="link = ''"
+    @hide="startNewCase"
   >
     <div>
       <div class="qr-code">
@@ -176,7 +212,12 @@ function onCopy() {
       </div>
 
       <div class="dialog-buttons">
-        <Button :label="t('close').value" @click="link = ''" />
+        <Button :label="t('close-new-case', 'Close + New Case').value" @click="startNewCase" />
+        <Button
+          :label="t('go-to-dashboard', 'Go to Dashboard').value"
+          severity="contrast"
+          @click="goToDashboard"
+        />
         <Button
           :label="t('open-client-questionnaire').value"
           asChild
@@ -201,6 +242,34 @@ function onCopy() {
 </template>
 
 <style scoped>
+.new-case-leave-active {
+  transition:
+    opacity 0.2s ease-in,
+    transform 0.2s ease-in;
+}
+.new-case-enter-active {
+  transition:
+    opacity 0.35s ease-out,
+    transform 0.35s ease-out;
+}
+.new-case-leave-to {
+  opacity: 0;
+  transform: translateX(-2rem);
+}
+.new-case-enter-from {
+  opacity: 0;
+  transform: translateX(2rem);
+}
+@media (prefers-reduced-motion: reduce) {
+  .new-case-enter-active,
+  .new-case-leave-active {
+    transition: opacity 0.2s;
+  }
+  .new-case-enter-from,
+  .new-case-leave-to {
+    transform: none;
+  }
+}
 .qr-code {
   display: flex;
   justify-content: center;

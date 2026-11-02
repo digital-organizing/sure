@@ -15,6 +15,8 @@
   --consultant-color: #0391ce;
   --tests-color: #0247fe;
   --results-color: #8601af;
+  /* Needs a consultant to review, so it gets a hue no other status uses. */
+  --results-ingested-color: #007c89;
   --results-missed-color: #b4045f;
   --summary-color: #3d01a4;
   --communication-color: #646464;
@@ -42,6 +44,10 @@ body {
 
 .summary {
   --status-color: var(--summary-color);
+}
+
+.results_ingested {
+  --status-color: var(--results-ingested-color);
 }
 
 .results_recorded {

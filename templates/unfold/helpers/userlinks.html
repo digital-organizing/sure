@@ -1,0 +1,21 @@
+{% load i18n static unfold %}
+
+{# Copy of unfold's userlinks.html with a link to the consultant view, so admins who also consult can switch quickly. #}
+<div class="flex flex-row gap-3 items-center ml-auto">
+    {% if environment %}
+        {% include "unfold/helpers/label.html" with text=environment.0 type=environment.1 %}
+    {% endif %}
+
+    {% if user.consultant %}
+        <a href="/consultant" class="border border-base-200 flex font-medium gap-2 items-center px-3 py-2 rounded-default text-sm text-font-important-light hover:bg-base-100 dark:border-base-700 dark:text-font-important-dark dark:hover:bg-base-800">
+            <span class="material-symbols-outlined text-lg">clinical_notes</span>
+            {% trans "Consultant view" %}
+        </a>
+    {% endif %}
+
+    {% action_list %}
+
+    {% if nav_global_side %}
+        {{ nav_global_side }}
+    {% endif %}
+</div>

@@ -117,12 +117,12 @@ class GenerateCaseBatchForm(forms.Form):
         help_text="Preferred language of the clients, applied to all cases in this batch.",
         widget=widgets.UnfoldAdminSelectWidget(),
     )
-    tag = forms.CharField(
-        max_length=50,
-        required=True,
-        label="Tag",
-        help_text="Tag to apply to all generated cases in this batch.",
-        widget=widgets.UnfoldAdminTextInputWidget(),
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.none(),
+        label="Tags",
+        help_text="At least one tag to apply to all generated cases in this batch. "
+        "Only tags available at the selected location can be used.",
+        widget=widgets.UnfoldAdminSelect2MultipleWidget({"class": "w-full"}),
     )
     quantity = forms.IntegerField(
         min_value=1,
@@ -151,6 +151,7 @@ class GenerateCaseBatchForm(forms.Form):
         if self.request.user.is_superuser:
             self.fields["location"].queryset = Location.objects.all()  # ty:ignore[unresolved-attribute]
             self.fields["questionnaire"].queryset = Questionnaire.objects.all()  # ty:ignore[unresolved-attribute]
+            self.fields["tags"].queryset = Tag.objects.all()  # ty:ignore[unresolved-attribute]
         else:
             tenants = self.request.user.tenants.all()
             self.fields["location"].queryset = Location.objects.filter(  # ty:ignore[unresolved-attribute]
@@ -158,6 +159,9 @@ class GenerateCaseBatchForm(forms.Form):
             )
             self.fields["questionnaire"].queryset = Questionnaire.objects.filter(  # ty:ignore[unresolved-attribute]
                 locations__tenant__in=tenants
+            ).distinct()
+            self.fields["tags"].queryset = Tag.objects.filter(  # ty:ignore[unresolved-attribute]
+                available_in__tenant__in=tenants
             ).distinct()
 
         self.helper = FormHelper()
@@ -173,8 +177,8 @@ class GenerateCaseBatchForm(forms.Form):
                     css_class="w-1/2",
                 ),
                 Column(
-                    "tag",
                     "quantity",
+                    "tags",
                     css_class="w-1/2",
                 ),
             ),
@@ -205,6 +209,16 @@ class GenerateCaseBatchForm(forms.Form):
                 raise forms.ValidationError(
                     "The selected questionnaire is not available at the selected location."
                 )
+
+            tags = cleaned_data.get("tags")
+            if location and tags:
+                unavailable = tags.exclude(available_in=location)
+                if unavailable.exists():
+                    self.add_error(
+                        "tags",
+                        "Not available at the selected location: "
+                        + ", ".join(tag.name for tag in unavailable),
+                    )
         return cleaned_data
 
 

@@ -17,4 +17,17 @@
         {% crispy form "unfold_crispy" %}
     </div>
 
+    {# Word's mail merge ignores images from Excel, so it has to draw the QR code from the URL itself. #}
+    <div class="border border-base-200 flex flex-col gap-2 mb-8 p-4 rounded-default text-sm dark:border-base-800">
+        <h3 class="font-semibold text-font-important-light dark:text-font-important-dark">QR codes in serial letters (Word)</h3>
+        <p>The Excel contains a QR code in the cell of every case. It shows in Excel 365 and Excel 2021 or newer; LibreOffice and older Excel versions show #VALUE! instead.</p>
+        <p>Word does not take images over from Excel in a mail merge, so let Word draw the QR code from the URL:</p>
+        <ol class="flex flex-col gap-1 pl-5" style="list-style: decimal">
+            <li>Select the downloaded Excel as the recipient list of the mail merge.</li>
+            <li>Where the QR code should go, press <kbd>Ctrl</kbd>+<kbd>F9</kbd> (Mac: <kbd>Cmd</kbd>+<kbd>F9</kbd>) and type between the braces: <code style="font-family: monospace">MERGEBARCODE Questionnaire_URL QR \q 3</code></li>
+            <li>Press <kbd>Alt</kbd>+<kbd>F9</kbd> (Mac: <kbd>Option</kbd>+<kbd>F9</kbd>) to leave the field code view and finish the merge as usual.</li>
+        </ol>
+        <p>Use the field <code style="font-family: monospace">Case_ID</code> to print the case number next to it.</p>
+    </div>
+
 {% endblock %}

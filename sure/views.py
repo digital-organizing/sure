@@ -1,7 +1,8 @@
 import io
 from typing import Any, cast
 
-import polars as pl
+import segno
+import xlsxwriter
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
@@ -11,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.text import slugify
 from django.views.generic.edit import FormView
 from unfold.views import UnfoldModelAdminViewMixin
 
@@ -70,7 +72,7 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
     def form_valid(self, form: Any) -> HttpResponse:
         location = form.cleaned_data["location"]
         questionnaire = form.cleaned_data["questionnaire"]
-        tag = form.cleaned_data["tag"]
+        tag_names = [tag.name for tag in form.cleaned_data["tags"]]
         language = form.cleaned_data["language"]
         quantity = form.cleaned_data["quantity"]
         selected_tests = form.cleaned_data.get("tests", [])
@@ -85,8 +87,9 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
                     language=language,
                 )
                 visit = create_visit(case, questionnaire)
-                visit.tags = [tag]
-                visit.save(update_fields=["tags"])
+                if tag_names:
+                    visit.tags = tag_names
+                    visit.save(update_fields=["tags"])
 
                 # Create selected tests for this visit
                 if selected_tests:
@@ -101,35 +104,86 @@ class GenerateCaseBatchView(UnfoldModelAdminViewMixin, FormView):
                     user=self.request.user,
                 )
 
-                link = get_case_link(case)
                 records.append(
                     {
                         "Case ID": case.human_id,
-                        "Access Link": link,
+                        "Questionnaire URL": get_case_link(case),
                         "Location": location.name,
                         "Questionnaire": questionnaire.name,
-                        "Tag": tag,
                         "Language": language,
+                        "Tags": ", ".join(tag_names),
                         "Created At": timezone.localtime(visit.created_at).strftime(
                             "%Y-%m-%d %H:%M:%S"
                         ),
                     }
                 )
 
-        df = pl.DataFrame(records)
-        output = io.BytesIO()
-        df.write_excel(output)
-        output.seek(0)
-
-        filename = (
-            f"case_batch_{location.name.replace(' ', '_')}_{tag.replace(' ', '_')}.xlsx"
+        filename = "_".join(
+            slugify(part) for part in ["case_batch", location.name, *tag_names]
         )
         response = HttpResponse(
-            output.read(),
+            case_batch_workbook(records),
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-        response["Content-Disposition"] = f"attachment; filename={filename}"
+        response["Content-Disposition"] = f'attachment; filename="{filename}.xlsx"'
         return response
+
+
+#: Rows are this tall so the QR code next to the links can be scanned from a
+#: printout; QR_SCALE is the size of one QR module in pixels.
+QR_ROW_HEIGHT = 120
+QR_SCALE = 4
+
+
+def case_batch_workbook(records: list[dict[str, str]]) -> bytes:
+    """Writes the cases of a batch to Excel, a scannable QR code in every row.
+
+    The QR code goes into the third column, right after case ID and URL, so
+    the columns a label print needs are next to each other.
+    """
+    output = io.BytesIO()
+    # Not in_memory: xlsxwriter 3.2.9 then names the rels file of embedded
+    # images "/xl/richData/...", which LibreOffice refuses to open.
+    workbook = xlsxwriter.Workbook(output)
+    sheet = workbook.add_worksheet("Cases")
+    header = workbook.add_format({"bold": True})
+    cell = workbook.add_format({"valign": "vcenter"})
+    # Links get their own format from xlsxwriter, which drops the alignment.
+    link = workbook.add_format(
+        {"valign": "vcenter", "font_color": "blue", "underline": 1}
+    )
+
+    columns = list(records[0]) if records else []
+    columns.insert(2, "QR Code")
+    for index, column in enumerate(columns):
+        sheet.write(0, index, column, header)
+    sheet.set_column(0, 0, 14)
+    sheet.set_column(1, 1, 45)
+    sheet.set_column(2, 2, 24)
+    sheet.set_column(3, len(columns) - 1, 18)
+
+    for row, record in enumerate(records, start=1):
+        sheet.set_row(row, QR_ROW_HEIGHT, cell)
+        values = list(record.values())
+        values.insert(2, "")
+        for index, value in enumerate(values):
+            sheet.write(row, index, value, link if index == 1 else cell)
+
+        qr_code = io.BytesIO()
+        segno.make(record["Questionnaire URL"], error="m").save(
+            qr_code, kind="png", scale=QR_SCALE, border=2
+        )
+        # Placed in the cell rather than floating over it, so it stays with its
+        # row when the sheet is sorted or filtered.
+        sheet.embed_image(row, 2, "qr.png", {"image_data": qr_code})
+
+    # Print all columns on one landscape page width, header on every page.
+    sheet.set_landscape()
+    sheet.fit_to_pages(1, 0)
+    sheet.repeat_rows(0)
+
+    workbook.close()
+    return output.getvalue()
 
 
 class ReportFormFileActionView(UnfoldModelAdminViewMixin, FormView):
